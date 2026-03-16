@@ -604,7 +604,7 @@
 
     <!-- HERO -->
     <section class="hero">
-        <div class="hero-badge">Not for Profit</div>
+        <div class="hero-badge">Seed Forth</div>
         <h1>Infinite Agency<br>to <em>Invent Time</em></h1>
         <p class="hero-sub">
             AI Agents are here to free you from exactly what you want to get free from.
@@ -769,7 +769,14 @@
             <p class="cta-text fade-in">
                 We take what's leaking life from you, and we return it with structure. That is the abundance we point at. Not money first. Life returned.
             </p>
-            <a href="mailto:hello@seedforth.org" class="cta-btn fade-in">Start a Conversation</a>
+            <a href="#waitlist" class="cta-btn fade-in" id="waitlistBtn">Join the Waitlist</a>
+            <div id="waitlistForm" style="display:none; margin-top:2rem; max-width:420px; margin-left:auto; margin-right:auto;">
+                <form onsubmit="submitWaitlist(event)" style="display:flex; gap:0.75rem;">
+                    <input type="email" id="waitlistEmail" placeholder="Your email" required style="flex:1; padding:0.85rem 1.2rem; background:var(--bg-subtle); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:inherit; font-size:0.9rem; outline:none;">
+                    <button type="submit" style="padding:0.85rem 1.5rem; background:var(--accent); border:none; color:var(--bg); font-family:inherit; font-size:0.85rem; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; border-radius:4px; cursor:pointer;">Submit</button>
+                </form>
+                <p id="waitlistMsg" style="margin-top:1rem; font-size:0.85rem; color:var(--accent); display:none;"></p>
+            </div>
         </div>
     </section>
 
@@ -777,7 +784,7 @@
     <footer>
         <div class="footer-logo">Seed Forth</div>
         <div class="footer-tagline">Service as Capital. Dharma as Foundation. Collective Clarity as Outcome.</div>
-        <div class="footer-note">Not for profit. The seed was sown long ago. The work now is tending.</div>
+        <div class="footer-note">The seed was sown long ago. The work now is tending.</div>
     </footer>
 
     <script>
@@ -809,6 +816,30 @@
         }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
 
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Waitlist toggle + submit
+        const waitlistBtn = document.getElementById('waitlistBtn');
+        const waitlistForm = document.getElementById('waitlistForm');
+        waitlistBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            waitlistForm.style.display = waitlistForm.style.display === 'none' ? 'block' : 'none';
+            if (waitlistForm.style.display === 'block') {
+                document.getElementById('waitlistEmail').focus();
+            }
+        });
+
+        function submitWaitlist(e) {
+            e.preventDefault();
+            const email = document.getElementById('waitlistEmail').value;
+            const msg = document.getElementById('waitlistMsg');
+            // Store in localStorage as a simple client-side list for now
+            const list = JSON.parse(localStorage.getItem('seedforth_waitlist') || '[]');
+            list.push({ email, timestamp: new Date().toISOString() });
+            localStorage.setItem('seedforth_waitlist', JSON.stringify(list));
+            msg.textContent = 'You are on the list. We will reach out.';
+            msg.style.display = 'block';
+            document.getElementById('waitlistEmail').value = '';
+        }
     </script>
 
 </body>
