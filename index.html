@@ -605,6 +605,84 @@
             font-weight: 300;
         }
 
+        /* ---- MANTRA INTERSTITIAL (mobile-first) ---- */
+        .mantra {
+            padding: 4.5rem 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mantra::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.05) 0%, transparent 60%),
+                linear-gradient(180deg, var(--bg) 0%, rgba(18, 15, 12, 1) 50%, var(--bg) 100%);
+            z-index: 0;
+        }
+
+        .mantra .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mantra-devanagari {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 300;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+
+        .mantra-transliteration {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .mantra-line {
+            width: 40px;
+            height: 1px;
+            background: var(--accent);
+            margin: 0 auto 2rem;
+            opacity: 0.4;
+        }
+
+        .mantra-meaning {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .mantra-source {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+        }
+
+        .mantra-reflection {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.85;
+            font-weight: 300;
+        }
+
         /* ---- CTA / WAITLIST (mobile-first) ---- */
         .cta {
             padding: 4.5rem 1.5rem 3.5rem;
@@ -879,6 +957,10 @@
                 font-size: 0.95rem;
             }
 
+            .mantra {
+                padding: 7rem 2rem;
+            }
+
             .cta {
                 padding: 7rem 2rem 5rem;
             }
@@ -1003,6 +1085,20 @@
 
             <p class="ripple-foot fade-in">
                 Physical health. Mental clarity. Emotional steadiness. Present for your family. Engaged in your community. Building for those who come after.
+            </p>
+        </div>
+    </section>
+
+    <!-- MANTRA -->
+    <section class="mantra">
+        <div class="container">
+            <div class="mantra-devanagari fade-in">वसुधैव कुटुम्बकम्</div>
+            <div class="mantra-transliteration fade-in">Vasudhaiva Kutumbakam</div>
+            <div class="mantra-line fade-in"></div>
+            <div class="mantra-meaning fade-in">"The world is one family."</div>
+            <div class="mantra-source fade-in">Maha Upanishad, Chapter 6, Verse 72</div>
+            <p class="mantra-reflection fade-in">
+                This is the oldest idea we carry forward. When you free yourself from what drains you, you do not retreat inward. You expand. Your presence returns to your family. Your energy returns to your community. Your work begins to serve something larger than your own survival. The ripple was never about you alone. It was always about the whole family — and the whole world is that family.
             </p>
         </div>
     </section>
