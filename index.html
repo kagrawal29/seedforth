@@ -481,8 +481,21 @@
             white-space: nowrap;
         }
 
-        .collapse-node.start { color: var(--accent); }
-        .collapse-node.end { color: var(--teal); }
+        .collapse-node {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Before row: warm/rose — friction */
+        .collapse-before .collapse-node.start { color: var(--warm); }
+        .collapse-before .collapse-node.end { color: var(--text-muted); }
+
+        /* After row: teal — clarity */
+        .collapse-after .collapse-node.start { color: var(--accent); }
+        .collapse-after .collapse-node.end { color: var(--teal); font-size: 0.65rem; font-weight: 600; }
 
         .collapse-friction {
             display: flex;
@@ -494,14 +507,14 @@
             width: 4px;
             height: 4px;
             border-radius: 50%;
-            background: var(--text-muted);
-            opacity: 0.25;
+            background: var(--warm);
+            opacity: 0.3;
         }
 
         .collapse-friction-label {
             font-size: 0.5rem;
-            color: var(--text-muted);
-            opacity: 0.5;
+            color: var(--warm);
+            opacity: 0.45;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
@@ -512,7 +525,7 @@
             height: 1px;
         }
 
-        .collapse-line.dim { background: rgba(138, 133, 128, 0.2); }
+        .collapse-line.dim { background: rgba(212, 115, 110, 0.2); }
         .collapse-line.bright {
             background: linear-gradient(to right, var(--accent), var(--teal));
             width: 50px;
@@ -532,11 +545,6 @@
             color: var(--text-muted);
             opacity: 0.35;
             margin-bottom: 0.25rem;
-        }
-
-        .collapse-after .collapse-node.end {
-            font-size: 0.65rem;
-            font-weight: 600;
         }
 
         .collapse-after .collapse-arrow {
