@@ -270,117 +270,148 @@
             transform: translateY(0);
         }
 
-        /* ---- SECTION: MIRROR + TURN (mobile-first) ---- */
-        .mirror {
-            padding: 4.5rem 1.5rem;
+        /* ---- SECTION: THE WEIGHT (compression half) ---- */
+        .the-weight {
+            padding: 5rem 1.5rem 3rem;
             position: relative;
             overflow: hidden;
         }
 
-        /* Depth: layered background */
-        .mirror::before {
+        .the-weight::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background:
                 radial-gradient(ellipse at 20% 50%, rgba(201, 169, 110, 0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(155, 142, 196, 0.03) 0%, transparent 50%),
-                linear-gradient(170deg, rgba(17, 17, 17, 1) 0%, rgba(20, 16, 14, 1) 50%, rgba(17, 17, 17, 1) 100%);
+                linear-gradient(180deg, rgba(17, 17, 17, 1) 0%, rgba(14, 12, 10, 1) 100%);
             z-index: 0;
         }
 
-        .mirror .container {
+        .the-weight .container {
             position: relative;
             z-index: 1;
         }
 
-        .mirror-top {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2.5rem;
-            align-items: center;
-            margin-bottom: 3.5rem;
+        .weight-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.25rem;
+            font-weight: 500;
+            opacity: 0.7;
         }
 
-        .mirror-title {
+        .weight-title {
             font-family: 'Playfair Display', serif;
             font-size: clamp(2rem, 5vw, 3rem);
             font-weight: 400;
             line-height: 1.2;
-            margin-bottom: 1.25rem;
+            margin-bottom: 2rem;
         }
 
-        .mirror-text {
-            font-size: 0.95rem;
+        /* Dense micro moments — tight line height, compressed feel */
+        .weight-moments {
+            max-width: 480px;
+            margin-bottom: 1.5rem;
+        }
+
+        .weight-moment {
+            display: block;
+            font-size: 0.88rem;
             color: var(--text-muted);
-            line-height: 1.85;
+            line-height: 1.5;
             font-weight: 300;
+            padding: 0.35rem 0;
+            opacity: 0.55;
+            transition: opacity 0.3s;
         }
 
-        .mirror-quote {
+        .weight-moment:nth-child(1) { opacity: 0.4; }
+        .weight-moment:nth-child(2) { opacity: 0.5; }
+        .weight-moment:nth-child(3) { opacity: 0.6; }
+        .weight-moment:nth-child(4) { opacity: 0.7; }
+
+        .weight-verdict {
+            font-size: 0.92rem;
+            color: var(--text);
+            line-height: 1.7;
+            font-weight: 400;
+            max-width: 480px;
+            margin-top: 0.5rem;
+        }
+
+        .weight-quote {
             font-family: 'Playfair Display', serif;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-style: italic;
             line-height: 1.65;
             color: var(--text);
             border-left: 2px solid;
             border-image: linear-gradient(to bottom, var(--accent), var(--warm)) 1;
             padding-left: 1.5rem;
+            max-width: 400px;
+            opacity: 0.85;
         }
 
-        .divider {
-            width: 60px;
-            height: 2px;
-            background: linear-gradient(to right, var(--accent), var(--teal));
-            margin: 0 auto 2.5rem;
-            border-radius: 1px;
-        }
-
-        /* ---- TURN STATEMENT with visual element ---- */
-        .turn-visual {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .turn-clock {
+        /* ---- THE BREAK (transition moment) ---- */
+        .the-break {
+            padding: 3rem 1.5rem;
+            text-align: center;
             position: relative;
-            width: 100px;
-            height: 100px;
+            overflow: hidden;
         }
 
-        .turn-clock svg {
+        .break-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.5), rgba(110, 156, 138, 0.3));
+            margin: 0 auto 2rem;
+        }
+
+        .break-visual {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+        }
+
+        .break-visual svg {
             width: 100%;
             height: 100%;
         }
 
-        .turn-clock .clock-hand {
-            transform-origin: 50px 50px;
-            animation: clock-return 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        /* Clock circle that opens into arcs */
+        .break-circle-closed {
+            animation: circle-open 6s ease-in-out infinite;
         }
 
-        @keyframes clock-return {
-            0% { transform: rotate(0deg); opacity: 0.3; }
-            40% { transform: rotate(270deg); opacity: 0.6; }
-            60% { transform: rotate(270deg); opacity: 0.6; }
-            100% { transform: rotate(360deg); opacity: 0.3; }
+        @keyframes circle-open {
+            0%, 20% { stroke-dashoffset: 0; opacity: 0.3; }
+            50%, 70% { stroke-dashoffset: 80; opacity: 0.15; }
+            100% { stroke-dashoffset: 0; opacity: 0.3; }
         }
 
-        .turn-statement {
+        .break-arcs {
+            animation: arcs-emerge 6s ease-in-out infinite;
+        }
+
+        @keyframes arcs-emerge {
+            0%, 20% { opacity: 0; transform: scale(0.9); }
+            50%, 70% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        .break-statement {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-size: clamp(1.4rem, 4vw, 2rem);
             font-weight: 400;
-            line-height: 1.45;
-            text-align: center;
-            max-width: 700px;
+            line-height: 1.5;
+            max-width: 560px;
+            margin: 0 auto;
         }
 
-        .turn-statement strong {
+        .break-statement strong {
             background: linear-gradient(135deg, var(--accent), var(--teal));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -388,107 +419,165 @@
             font-weight: 600;
         }
 
-        /* ---- CARDS: staggered layout ---- */
-        .turn-cards {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.25rem;
-        }
-
-        .turn-card {
-            padding: 1.75rem 1.5rem 1.5rem;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+        /* ---- THE RELEASE (expansion half) ---- */
+        .the-release {
+            padding: 3rem 1.5rem 5rem;
+            text-align: center;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.4s, transform 0.4s, box-shadow 0.4s;
-            background: rgba(17, 17, 17, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
         }
 
-        .turn-card::before {
+        .the-release::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            border-radius: 12px 12px 0 0;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(110, 156, 138, 0.04) 0%, transparent 60%),
+                linear-gradient(180deg, rgba(14, 12, 10, 1) 0%, var(--bg) 100%);
+            z-index: 0;
         }
 
-        .turn-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 12px;
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
+        .the-release .container {
+            position: relative;
+            z-index: 1;
         }
 
-        .turn-card:nth-child(1)::before { background: linear-gradient(to right, var(--accent), transparent); }
-        .turn-card:nth-child(2)::before { background: linear-gradient(to right, var(--teal), transparent); }
-        .turn-card:nth-child(3)::before { background: linear-gradient(to right, var(--lavender), transparent); }
-
-        .turn-card:nth-child(1)::after { background: radial-gradient(ellipse at top left, rgba(201, 169, 110, 0.06), transparent 60%); }
-        .turn-card:nth-child(2)::after { background: radial-gradient(ellipse at top left, rgba(110, 156, 138, 0.06), transparent 60%); }
-        .turn-card:nth-child(3)::after { background: radial-gradient(ellipse at top left, rgba(155, 142, 196, 0.06), transparent 60%); }
-
-        .turn-card:hover::after { opacity: 1; }
-
-        .turn-card:nth-child(1):hover { border-color: rgba(201, 169, 110, 0.25); box-shadow: 0 8px 40px rgba(201, 169, 110, 0.06); }
-        .turn-card:nth-child(2):hover { border-color: rgba(110, 156, 138, 0.25); box-shadow: 0 8px 40px rgba(110, 156, 138, 0.06); }
-        .turn-card:nth-child(3):hover { border-color: rgba(155, 142, 196, 0.25); box-shadow: 0 8px 40px rgba(155, 142, 196, 0.06); }
-
-        .turn-card:hover { transform: translateY(-3px); }
-
-        /* Card icon */
-        .turn-card-icon {
-            width: 44px;
-            height: 44px;
-            margin-bottom: 1rem;
-            opacity: 0.7;
-            transition: opacity 0.4s, transform 0.4s;
+        /* Gap collapse visual */
+        .collapse-visual {
+            margin: 0 auto 3rem;
+            max-width: 340px;
         }
 
-        .turn-card:hover .turn-card-icon {
+        .collapse-before, .collapse-after {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            justify-content: center;
+            flex-wrap: nowrap;
+            padding: 1rem 0;
+        }
+
+        .collapse-before {
+            opacity: 0.45;
+        }
+
+        .collapse-after {
             opacity: 1;
-            transform: scale(1.08);
         }
 
-        .turn-card-content {
-            position: relative;
+        .collapse-divider {
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--accent), transparent);
+            margin: 0.5rem auto;
         }
 
-        .turn-card h3 {
-            font-size: 0.9rem;
+        .collapse-node {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
             font-weight: 500;
-            margin-bottom: 0.5rem;
-            position: relative;
+            white-space: nowrap;
         }
 
-        .turn-card:nth-child(1) h3 { color: var(--accent); }
-        .turn-card:nth-child(2) h3 { color: var(--teal); }
-        .turn-card:nth-child(3) h3 { color: var(--lavender); }
+        .collapse-node.start { color: var(--accent); }
+        .collapse-node.end { color: var(--teal); }
 
-        .turn-card p {
-            font-size: 0.85rem;
+        .collapse-friction {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .collapse-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            opacity: 0.25;
+        }
+
+        .collapse-friction-label {
+            font-size: 0.5rem;
             color: var(--text-muted);
-            line-height: 1.7;
-            font-weight: 300;
-            position: relative;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
-        /* Connector line between divider and turn visual */
-        .turn-connector {
-            width: 1px;
-            height: 40px;
-            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.4), rgba(110, 156, 138, 0.2));
-            margin: 0 auto 0;
+        .collapse-line {
+            flex: 0 0 auto;
+            width: 30px;
+            height: 1px;
+        }
+
+        .collapse-line.dim { background: rgba(138, 133, 128, 0.2); }
+        .collapse-line.bright {
+            background: linear-gradient(to right, var(--accent), var(--teal));
+            width: 50px;
+            height: 2px;
+        }
+
+        .collapse-arrow {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            opacity: 0.3;
+        }
+
+        .collapse-label {
+            font-size: 0.5rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            opacity: 0.35;
+            margin-bottom: 0.25rem;
+        }
+
+        .collapse-after .collapse-node.end {
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .collapse-after .collapse-arrow {
+            color: var(--teal);
+            opacity: 0.8;
+        }
+
+        /* Release payoff — three beats, no boxes */
+        .release-flow {
+            font-size: 1rem;
+            line-height: 2.4;
+            color: var(--text);
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+        }
+
+        .release-beat {
+            display: block;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.6s, transform 0.6s;
+        }
+
+        .release-beat.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .release-beat:nth-child(1) { transition-delay: 0s; color: var(--accent); }
+        .release-beat:nth-child(2) { transition-delay: 0.2s; color: var(--teal); }
+        .release-beat:nth-child(3) { transition-delay: 0.4s; color: var(--lavender); }
+
+        /* Acceleration line */
+        .release-accel {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            font-style: italic;
+            color: var(--text);
+            max-width: 420px;
+            margin: 0 auto;
+            line-height: 1.65;
+            opacity: 0.8;
         }
 
         /* ---- SECTION: RIPPLE (mobile-first) ---- */
@@ -652,14 +741,24 @@
         .ripple-foot {
             margin-top: -140px;
             padding-top: 190px;
-            font-size: 0.92rem;
-            color: var(--text-muted);
             max-width: 480px;
             margin-left: auto;
             margin-right: auto;
-            line-height: 1.8;
-            font-weight: 300;
         }
+
+        .ripple-moment {
+            display: block;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-weight: 300;
+            padding: 0.3rem 0;
+            opacity: 0.5;
+        }
+
+        .ripple-moment:nth-child(2) { opacity: 0.55; }
+        .ripple-moment:nth-child(3) { opacity: 0.6; }
+        .ripple-moment:nth-child(4) { opacity: 0.7; }
 
         /* ---- MANTRA INTERSTITIAL (mobile-first) ---- */
         .mantra {
@@ -942,68 +1041,50 @@
                 font-size: 1.1rem;
             }
 
-            .mirror {
-                padding: 7rem 2rem;
+            .the-weight {
+                padding: 7rem 2rem 4rem;
             }
 
-            .mirror-top {
+            .weight-title {
+                margin-bottom: 2.5rem;
+            }
+
+            .weight-content {
+                display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 4rem;
-                margin-bottom: 5rem;
+                align-items: start;
             }
 
-            .mirror-title {
-                margin-bottom: 1.5rem;
+            .weight-quote {
+                font-size: 1.4rem;
+                margin-top: 1rem;
             }
 
-            .mirror-text {
-                font-size: 1rem;
+            .the-break {
+                padding: 4rem 2rem;
             }
 
-            .mirror-quote {
-                font-size: 1.5rem;
+            .break-visual {
+                width: 140px;
+                height: 140px;
             }
 
-            .divider {
-                margin-bottom: 0;
+            .the-release {
+                padding: 4rem 2rem 7rem;
             }
 
-            .turn-visual {
-                flex-direction: row;
-                gap: 3rem;
-                align-items: center;
+            .collapse-visual {
+                max-width: 440px;
             }
 
-            .turn-clock {
-                width: 120px;
-                height: 120px;
-                flex-shrink: 0;
+            .collapse-line.bright {
+                width: 80px;
             }
 
-            .turn-statement {
-                text-align: left;
-            }
-
-            .turn-cards {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1.5rem;
-            }
-
-            .turn-card:nth-child(2) {
-                transform: translateY(20px);
-            }
-
-            .turn-card:nth-child(2):hover {
-                transform: translateY(17px);
-            }
-
-            .turn-card {
-                padding: 2rem 1.75rem 1.75rem;
-            }
-
-            .turn-card-icon {
-                width: 52px;
-                height: 52px;
+            .release-flow {
+                font-size: 1.15rem;
+                line-height: 2.6;
             }
 
             .ripple {
@@ -1095,107 +1176,108 @@
         <div class="hero-orb hero-orb-3"></div>
         <h1>Infinite Agency<br>to <em>Invent Time</em></h1>
         <p class="hero-sub">
-            You can't do what you love if your capacity to act is consumed by what you must do. Remove the must. What remains is love.
+            Remove the must. What remains is love.
         </p>
         <div class="scroll-cue"></div>
     </section>
 
-    <!-- MIRROR + TURN -->
-    <section class="mirror" id="mirror">
+    <!-- THE WEIGHT: compression -->
+    <section class="the-weight" id="mirror">
         <div class="container">
-            <div class="mirror-top fade-in">
+            <div class="weight-label fade-in">The reality</div>
+            <h2 class="weight-title fade-in">You are not behind.<br>Your system is.</h2>
+            <div class="weight-content">
                 <div>
-                    <div class="section-label">The reality</div>
-                    <h2 class="mirror-title">You are not behind.<br>Your system is.</h2>
-                    <p class="mirror-text">
-                        The idea you had in the shower that died by the time you opened your laptop. The book on your nightstand with the same bookmark for three months. The call you keep meaning to make. The evening walk that keeps getting pushed to tomorrow.
-                    </p>
-                    <br>
-                    <p class="mirror-text">
-                        These are not failures of discipline. You had the intention every time. The system intercepted it.
+                    <div class="weight-moments fade-in">
+                        <span class="weight-moment">The idea that died before you opened your laptop.</span>
+                        <span class="weight-moment">The book with the same bookmark for three months.</span>
+                        <span class="weight-moment">The call you keep meaning to make.</span>
+                        <span class="weight-moment">The evening walk that never happens.</span>
+                    </div>
+                    <p class="weight-verdict fade-in">
+                        Not failures of discipline. The system intercepted every one.
                     </p>
                 </div>
                 <div>
-                    <p class="mirror-quote">
+                    <p class="weight-quote fade-in">
                         "How does your work feel when you are alone with it?"
                     </p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="divider fade-in"></div>
-            <div class="turn-connector fade-in"></div>
+    <!-- THE BREAK: transition -->
+    <section class="the-break">
+        <div class="break-line fade-in"></div>
+        <div class="break-visual fade-in">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <!-- Closed clock circle (fading out) -->
+                <circle class="break-circle-closed" cx="60" cy="60" r="45" fill="none" stroke="rgba(201, 169, 110, 0.3)" stroke-width="1" stroke-dasharray="283"/>
+                <!-- Opening arcs (emerging) — Echo Forward shape -->
+                <g class="break-arcs" style="transform-origin: 60px 60px;">
+                    <circle cx="38" cy="60" r="30" fill="none" stroke="rgba(110, 156, 138, 0.15)" stroke-width="0.8"/>
+                    <circle cx="50" cy="60" r="22" fill="none" stroke="rgba(110, 156, 138, 0.3)" stroke-width="1"/>
+                    <circle cx="62" cy="60" r="14" fill="none" stroke="rgba(110, 156, 138, 0.6)" stroke-width="1.3"/>
+                    <circle cx="80" cy="60" r="3.5" fill="var(--teal)" opacity="0.8"/>
+                </g>
+            </svg>
+        </div>
+        <p class="break-statement fade-in">
+            AI agents don't add hours to the clock.<br>
+            They return the ones that <strong>were never yours</strong>.
+        </p>
+    </section>
 
-            <div class="turn-visual fade-in">
-                <div class="turn-clock">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Outer ring -->
-                        <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(201, 169, 110, 0.15)" stroke-width="0.5"/>
-                        <!-- Hour marks -->
-                        <line x1="50" y1="6" x2="50" y2="10" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
-                        <line x1="50" y1="90" x2="50" y2="94" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
-                        <line x1="6" y1="50" x2="10" y2="50" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
-                        <line x1="90" y1="50" x2="94" y2="50" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
-                        <!-- Ghost arc: hours consumed -->
-                        <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(201, 169, 110, 0.08)" stroke-width="6" stroke-dasharray="160 80" stroke-linecap="round"/>
-                        <!-- Returning arc -->
-                        <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(110, 156, 138, 0.25)" stroke-width="6" stroke-dasharray="80 160" stroke-dashoffset="-160" stroke-linecap="round"/>
-                        <!-- Animated hand -->
-                        <line class="clock-hand" x1="50" y1="50" x2="50" y2="18" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round"/>
-                        <!-- Center dot -->
-                        <circle cx="50" cy="50" r="2.5" fill="var(--accent)"/>
-                    </svg>
+    <!-- THE RELEASE: expansion -->
+    <section class="the-release">
+        <div class="container">
+
+            <!-- Gap collapse diagram -->
+            <div class="collapse-visual fade-in">
+                <div class="collapse-label">Before</div>
+                <div class="collapse-before">
+                    <span class="collapse-node start">Intention</span>
+                    <span class="collapse-line dim"></span>
+                    <span class="collapse-friction">
+                        <span class="collapse-dot"></span>
+                        <span class="collapse-dot"></span>
+                        <span class="collapse-friction-label">friction</span>
+                        <span class="collapse-dot"></span>
+                        <span class="collapse-dot"></span>
+                    </span>
+                    <span class="collapse-line dim"></span>
+                    <span class="collapse-friction">
+                        <span class="collapse-dot"></span>
+                        <span class="collapse-friction-label">delay</span>
+                        <span class="collapse-dot"></span>
+                    </span>
+                    <span class="collapse-line dim"></span>
+                    <span class="collapse-arrow">&rarr;</span>
+                    <span class="collapse-node end">Maybe</span>
                 </div>
-                <p class="turn-statement">
-                    AI agents don't add hours to the clock.<br>
-                    They return the ones that <strong>were never yours</strong>.
-                </p>
+
+                <div class="collapse-divider"></div>
+                <div class="collapse-label">After</div>
+                <div class="collapse-after">
+                    <span class="collapse-node start">Intention</span>
+                    <span class="collapse-line bright"></span>
+                    <span class="collapse-arrow">&rarr;</span>
+                    <span class="collapse-node end">Impact</span>
+                </div>
             </div>
 
-            <div class="turn-cards fade-in">
-                <div class="turn-card">
-                    <!-- Icon: circular arrows / time returning -->
-                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(201, 169, 110, 0.25)" stroke-width="1"/>
-                        <path d="M 22 6 A 16 16 0 0 1 38 22" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
-                        <polygon points="37,17 39,23 33,22" fill="var(--accent)" opacity="0.8"/>
-                        <path d="M 22 38 A 16 16 0 0 1 6 22" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-                        <polygon points="7,27 5,21 11,22" fill="var(--accent)" opacity="0.4"/>
-                    </svg>
-                    <div class="turn-card-content">
-                        <h3>Reclaim Time</h3>
-                        <p>The mechanical, the repetitive, the administrative. Handled. Your hours come back.</p>
-                    </div>
-                </div>
-                <div class="turn-card">
-                    <!-- Icon: intersecting lines smoothing into a curve -->
-                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Friction lines (fading) -->
-                        <line x1="6" y1="14" x2="20" y2="20" stroke="rgba(110, 156, 138, 0.2)" stroke-width="1"/>
-                        <line x1="8" y1="28" x2="22" y2="22" stroke="rgba(110, 156, 138, 0.15)" stroke-width="1"/>
-                        <line x1="10" y1="8" x2="18" y2="18" stroke="rgba(110, 156, 138, 0.12)" stroke-width="1"/>
-                        <!-- Smooth curve emerging -->
-                        <path d="M 8 32 Q 16 20 22 22 T 38 14" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/>
-                        <circle cx="38" cy="14" r="2" fill="var(--teal)" opacity="0.8"/>
-                    </svg>
-                    <div class="turn-card-content">
-                        <h3>Remove Friction</h3>
-                        <p>One workflow, one bottleneck, one handoff at a time. Until the system stops intercepting your intentions.</p>
-                    </div>
-                </div>
-                <div class="turn-card">
-                    <!-- Icon: Echo Forward mark (circles opening outward) -->
-                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="14" cy="22" r="12" fill="none" stroke="rgba(155, 142, 196, 0.15)" stroke-width="0.8"/>
-                        <circle cx="20" cy="22" r="9" fill="none" stroke="rgba(155, 142, 196, 0.3)" stroke-width="1"/>
-                        <circle cx="26" cy="22" r="6" fill="none" stroke="rgba(155, 142, 196, 0.6)" stroke-width="1.2"/>
-                        <circle cx="34" cy="22" r="2" fill="var(--lavender)" opacity="0.8"/>
-                    </svg>
-                    <div class="turn-card-content">
-                        <h3>Do What You Love</h3>
-                        <p>When the must is removed, what remains is yours. The work that matters. The people who matter. The life only you can live.</p>
-                    </div>
-                </div>
+            <!-- Three beats — no boxes -->
+            <div class="release-flow fade-in" id="releaseFlow">
+                <span class="release-beat">Your hours come back.</span>
+                <span class="release-beat">The friction dissolves.</span>
+                <span class="release-beat">What remains is yours.</span>
             </div>
+
+            <p class="release-accel fade-in">
+                The distance between what you see and what you change collapses.
+            </p>
+
         </div>
     </section>
 
@@ -1215,9 +1297,12 @@
                 <div class="ripple-ring"><span class="ripple-label">Coming Generations</span></div>
             </div>
 
-            <p class="ripple-foot fade-in">
-                You sleep before midnight. You look up when your kid walks in. You take the call you kept postponing. You build something that outlasts the quarter.
-            </p>
+            <div class="ripple-foot fade-in">
+                <span class="ripple-moment">You sleep before midnight.</span>
+                <span class="ripple-moment">You look up when your kid walks in.</span>
+                <span class="ripple-moment">You take the call you kept postponing.</span>
+                <span class="ripple-moment">You build something that outlasts the quarter.</span>
+            </div>
         </div>
     </section>
 
@@ -1230,7 +1315,7 @@
             <div class="mantra-meaning fade-in">The soil that feeds the root feeds the fruit that falls back as seed.</div>
             <div class="mantra-source fade-in">Maha Upanishad, Chapter 6, Verse 72</div>
             <p class="mantra-reflection fade-in">
-                Nothing you build stays with you alone. The hours you reclaim shape how you show up at dinner. The clarity you gain changes the decisions you make for others. The energy you stop leaking becomes something your children inherit without being taught. Not that we are connected by sentiment. That we are connected by consequence.
+                Nothing you build stays with you alone. What you repair in your life ripples outward and returns in forms you would not recognize as your own.
             </p>
         </div>
     </section>
@@ -1329,6 +1414,22 @@
                 ring.style.transition = 'opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s';
             });
             rippleObserver.observe(rippleVisual);
+        }
+
+        // Release beats stagger animation
+        const releaseFlow = document.getElementById('releaseFlow');
+        if (releaseFlow) {
+            const releaseObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.querySelectorAll('.release-beat').forEach(beat => {
+                            beat.classList.add('visible');
+                        });
+                        releaseObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+            releaseObserver.observe(releaseFlow);
         }
 
         // Show confirmation if redirected back after form submit

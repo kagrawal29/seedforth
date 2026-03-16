@@ -25,6 +25,9 @@ build/
 *.docx
 *.pptx
 
+# Screenshots
+*.png
+
 # Project subdirectories (separate repos)
 audioworld/
 news-commodity-link/
