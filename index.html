@@ -339,6 +339,38 @@
             border-radius: 1px;
         }
 
+        /* ---- TURN STATEMENT with visual element ---- */
+        .turn-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .turn-clock {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .turn-clock svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .turn-clock .clock-hand {
+            transform-origin: 50px 50px;
+            animation: clock-return 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+
+        @keyframes clock-return {
+            0% { transform: rotate(0deg); opacity: 0.3; }
+            40% { transform: rotate(270deg); opacity: 0.6; }
+            60% { transform: rotate(270deg); opacity: 0.6; }
+            100% { transform: rotate(360deg); opacity: 0.3; }
+        }
+
         .turn-statement {
             font-family: 'Playfair Display', serif;
             font-size: clamp(1.5rem, 4vw, 2.2rem);
@@ -346,7 +378,6 @@
             line-height: 1.45;
             text-align: center;
             max-width: 700px;
-            margin: 0 auto 2.5rem;
         }
 
         .turn-statement strong {
@@ -357,20 +388,20 @@
             font-weight: 600;
         }
 
+        /* ---- CARDS: staggered layout ---- */
         .turn-cards {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .turn-card {
-            padding: 1.5rem;
+            padding: 1.75rem 1.5rem 1.5rem;
             border: 1px solid var(--border);
             border-radius: 12px;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
-            /* Depth: glass-morphism */
+            transition: border-color 0.4s, transform 0.4s, box-shadow 0.4s;
             background: rgba(17, 17, 17, 0.6);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -386,7 +417,6 @@
             border-radius: 12px 12px 0 0;
         }
 
-        /* Depth: subtle inner glow on cards */
         .turn-card::after {
             content: '';
             position: absolute;
@@ -416,10 +446,28 @@
 
         .turn-card:hover { transform: translateY(-3px); }
 
+        /* Card icon */
+        .turn-card-icon {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+            transition: opacity 0.4s, transform 0.4s;
+        }
+
+        .turn-card:hover .turn-card-icon {
+            opacity: 1;
+            transform: scale(1.08);
+        }
+
+        .turn-card-content {
+            position: relative;
+        }
+
         .turn-card h3 {
             font-size: 0.9rem;
             font-weight: 500;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
             position: relative;
         }
 
@@ -433,6 +481,14 @@
             line-height: 1.7;
             font-weight: 300;
             position: relative;
+        }
+
+        /* Connector line between divider and turn visual */
+        .turn-connector {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.4), rgba(110, 156, 138, 0.2));
+            margin: 0 auto 0;
         }
 
         /* ---- SECTION: RIPPLE (mobile-first) ---- */
@@ -909,20 +965,45 @@
             }
 
             .divider {
-                margin-bottom: 3rem;
+                margin-bottom: 0;
+            }
+
+            .turn-visual {
+                flex-direction: row;
+                gap: 3rem;
+                align-items: center;
+            }
+
+            .turn-clock {
+                width: 120px;
+                height: 120px;
+                flex-shrink: 0;
             }
 
             .turn-statement {
-                margin-bottom: 3rem;
+                text-align: left;
             }
 
             .turn-cards {
                 grid-template-columns: repeat(3, 1fr);
-                gap: 1.25rem;
+                gap: 1.5rem;
+            }
+
+            .turn-card:nth-child(2) {
+                transform: translateY(20px);
+            }
+
+            .turn-card:nth-child(2):hover {
+                transform: translateY(17px);
             }
 
             .turn-card {
-                padding: 1.75rem;
+                padding: 2rem 1.75rem 1.75rem;
+            }
+
+            .turn-card-icon {
+                width: 52px;
+                height: 52px;
             }
 
             .ripple {
@@ -1042,24 +1123,77 @@
             </div>
 
             <div class="divider fade-in"></div>
+            <div class="turn-connector fade-in"></div>
 
-            <p class="turn-statement fade-in">
-                AI agents don't add hours to the clock.<br>
-                They return the ones that <strong>were never yours</strong>.
-            </p>
+            <div class="turn-visual fade-in">
+                <div class="turn-clock">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Outer ring -->
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(201, 169, 110, 0.15)" stroke-width="0.5"/>
+                        <!-- Hour marks -->
+                        <line x1="50" y1="6" x2="50" y2="10" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
+                        <line x1="50" y1="90" x2="50" y2="94" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
+                        <line x1="6" y1="50" x2="10" y2="50" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
+                        <line x1="90" y1="50" x2="94" y2="50" stroke="rgba(201, 169, 110, 0.3)" stroke-width="0.8"/>
+                        <!-- Ghost arc: hours consumed -->
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(201, 169, 110, 0.08)" stroke-width="6" stroke-dasharray="160 80" stroke-linecap="round"/>
+                        <!-- Returning arc -->
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(110, 156, 138, 0.25)" stroke-width="6" stroke-dasharray="80 160" stroke-dashoffset="-160" stroke-linecap="round"/>
+                        <!-- Animated hand -->
+                        <line class="clock-hand" x1="50" y1="50" x2="50" y2="18" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round"/>
+                        <!-- Center dot -->
+                        <circle cx="50" cy="50" r="2.5" fill="var(--accent)"/>
+                    </svg>
+                </div>
+                <p class="turn-statement">
+                    AI agents don't add hours to the clock.<br>
+                    They return the ones that <strong>were never yours</strong>.
+                </p>
+            </div>
 
             <div class="turn-cards fade-in">
                 <div class="turn-card">
-                    <h3>Reclaim Time</h3>
-                    <p>The mechanical, the repetitive, the administrative. Handled. Your hours come back.</p>
+                    <!-- Icon: circular arrows / time returning -->
+                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(201, 169, 110, 0.25)" stroke-width="1"/>
+                        <path d="M 22 6 A 16 16 0 0 1 38 22" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+                        <polygon points="37,17 39,23 33,22" fill="var(--accent)" opacity="0.8"/>
+                        <path d="M 22 38 A 16 16 0 0 1 6 22" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+                        <polygon points="7,27 5,21 11,22" fill="var(--accent)" opacity="0.4"/>
+                    </svg>
+                    <div class="turn-card-content">
+                        <h3>Reclaim Time</h3>
+                        <p>The mechanical, the repetitive, the administrative. Handled. Your hours come back.</p>
+                    </div>
                 </div>
                 <div class="turn-card">
-                    <h3>Remove Friction</h3>
-                    <p>One workflow, one bottleneck, one handoff at a time. Until the system stops intercepting your intentions.</p>
+                    <!-- Icon: intersecting lines smoothing into a curve -->
+                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Friction lines (fading) -->
+                        <line x1="6" y1="14" x2="20" y2="20" stroke="rgba(110, 156, 138, 0.2)" stroke-width="1"/>
+                        <line x1="8" y1="28" x2="22" y2="22" stroke="rgba(110, 156, 138, 0.15)" stroke-width="1"/>
+                        <line x1="10" y1="8" x2="18" y2="18" stroke="rgba(110, 156, 138, 0.12)" stroke-width="1"/>
+                        <!-- Smooth curve emerging -->
+                        <path d="M 8 32 Q 16 20 22 22 T 38 14" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="38" cy="14" r="2" fill="var(--teal)" opacity="0.8"/>
+                    </svg>
+                    <div class="turn-card-content">
+                        <h3>Remove Friction</h3>
+                        <p>One workflow, one bottleneck, one handoff at a time. Until the system stops intercepting your intentions.</p>
+                    </div>
                 </div>
                 <div class="turn-card">
-                    <h3>Do What You Love</h3>
-                    <p>When the must is removed, what remains is yours. The work that matters. The people who matter. The life only you can live.</p>
+                    <!-- Icon: Echo Forward mark (circles opening outward) -->
+                    <svg class="turn-card-icon" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="22" r="12" fill="none" stroke="rgba(155, 142, 196, 0.15)" stroke-width="0.8"/>
+                        <circle cx="20" cy="22" r="9" fill="none" stroke="rgba(155, 142, 196, 0.3)" stroke-width="1"/>
+                        <circle cx="26" cy="22" r="6" fill="none" stroke="rgba(155, 142, 196, 0.6)" stroke-width="1.2"/>
+                        <circle cx="34" cy="22" r="2" fill="var(--lavender)" opacity="0.8"/>
+                    </svg>
+                    <div class="turn-card-content">
+                        <h3>Do What You Love</h3>
+                        <p>When the must is removed, what remains is yours. The work that matters. The people who matter. The life only you can live.</p>
+                    </div>
                 </div>
             </div>
         </div>
