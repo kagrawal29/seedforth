@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Forth — Final Logo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0a;
+            --text: #e8e4df;
+            --text-muted: #8a8580;
+            --accent: #c9a96e;
+            --border: rgba(255, 255, 255, 0.06);
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+        .page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-bottom: 3rem;
+        }
+        .label {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        /* Comparison: old vs new */
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .compare-card {
+            padding: 3rem 2rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+        }
+        .compare-card.refined {
+            border-color: rgba(201, 169, 110, 0.2);
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.03), transparent);
+        }
+        .compare-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+        .compare-card.refined .compare-label {
+            color: var(--accent);
+        }
+
+        /* Final lockups */
+        .lockups {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .lockup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+        .lockup.primary {
+            border-color: rgba(201, 169, 110, 0.2);
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.03), transparent);
+            padding: 4rem 2rem;
+        }
+        .lockup-inner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .lockup-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+        .lockup-note {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: -1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Size tests */
+        .sizes {
+            display: flex;
+            align-items: flex-end;
+            gap: 3rem;
+            justify-content: center;
+            padding: 3rem 2rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 4rem;
+            flex-wrap: wrap;
+        }
+        .size-item {
+            text-align: center;
+        }
+        .size-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Context row */
+        .contexts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+        .ctx {
+            padding: 2.5rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .ctx.dark { background: var(--bg); }
+        .ctx.light { background: #f5f2ed; border-color: rgba(0,0,0,0.06); }
+        .ctx.navy { background: #1a1a2e; }
+        .ctx.gold { background: #c9a96e; }
+        .ctx-label {
+            font-size: 0.5rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+        .ctx.dark .ctx-label, .ctx.navy .ctx-label { color: var(--text-muted); }
+        .ctx.light .ctx-label { color: #8a7240; }
+        .ctx.gold .ctx-label { color: rgba(10,10,10,0.4); }
+
+        /* Favicon preview */
+        .favicon-row {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            justify-content: center;
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+        .fav-item {
+            text-align: center;
+        }
+        .fav-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+        .fav-label {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 768px) {
+            .compare { grid-template-columns: 1fr; }
+            .contexts { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <h1>Echo Forward + Space Grotesk</h1>
+        <p class="sub">Final mark refinement. More separation between circles, bolder layers.</p>
+
+        <!-- BEFORE / AFTER -->
+        <div class="label">Before vs After</div>
+        <div class="compare">
+            <div class="compare-card">
+                <div class="compare-label">Previous (tight spacing)</div>
+                <svg viewBox="30 30 130 100" width="240" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="80" cy="80" r="42" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.25"/>
+                    <circle cx="105" cy="80" r="36" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.5"/>
+                    <circle cx="126" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2" opacity="0.8"/>
+                    <circle cx="152" cy="80" r="5.5" fill="#c9a96e"/>
+                </svg>
+            </div>
+            <div class="compare-card refined">
+                <div class="compare-label">Refined (wider spread, bolder)</div>
+                <svg viewBox="10 22 185 116" width="280" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                    <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- PRIMARY LOCKUP -->
+        <div class="label">Primary lockup</div>
+        <div class="lockup primary">
+            <div class="lockup-inner" style="gap: 1.25rem;">
+                <svg viewBox="10 22 185 116" width="120" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                    <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                </svg>
+                <span class="lockup-text" style="font-size: 1.3rem;">Seed Forth</span>
+            </div>
+        </div>
+        <div class="lockup-note">Echo Forward mark (refined) + Space Grotesk 500 / Caps / 0.2em tracking</div>
+
+        <!-- SIZE VARIATIONS -->
+        <div class="lockups">
+            <div class="lockup">
+                <div class="lockup-inner" style="gap: 1.5rem;">
+                    <svg viewBox="10 22 185 116" width="150" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                        <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                    </svg>
+                    <span class="lockup-text" style="font-size: 1.8rem;">Seed Forth</span>
+                </div>
+            </div>
+            <div class="lockup">
+                <div class="lockup-inner">
+                    <svg viewBox="10 22 185 116" width="80" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                        <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                    </svg>
+                    <span class="lockup-text" style="font-size: 0.95rem;">Seed Forth</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARK ONLY AT DIFFERENT SIZES -->
+        <div class="label">Mark scalability</div>
+        <div class="sizes">
+            <div class="size-item">
+                <svg viewBox="10 22 185 116" width="220" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                    <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                </svg>
+                <div class="size-label">Large</div>
+            </div>
+            <div class="size-item">
+                <svg viewBox="10 22 185 116" width="130" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                    <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                </svg>
+                <div class="size-label">Medium</div>
+            </div>
+            <div class="size-item">
+                <svg viewBox="10 22 185 116" width="75" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="2" opacity="0.25"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.5"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.5" opacity="0.9"/>
+                    <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                </svg>
+                <div class="size-label">Small</div>
+            </div>
+            <div class="size-item">
+                <svg viewBox="10 22 185 116" width="48" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="3" opacity="0.3"/>
+                    <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="3" opacity="0.55"/>
+                    <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="3.5" opacity="0.95"/>
+                    <circle cx="182" cy="80" r="7" fill="#c9a96e"/>
+                </svg>
+                <div class="size-label">Tiny</div>
+            </div>
+        </div>
+
+        <!-- BACKGROUND CONTEXTS -->
+        <div class="label">Background contexts</div>
+        <div class="contexts">
+            <div class="ctx dark">
+                <div class="ctx-label">Dark</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <svg viewBox="10 22 185 116" width="64" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                        <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                    </svg>
+                    <span style="font-family: 'Space Grotesk'; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #e8e4df;">Seed Forth</span>
+                </div>
+            </div>
+            <div class="ctx light">
+                <div class="ctx-label">Light</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <svg viewBox="10 22 185 116" width="64" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#6b5a32" stroke-width="1.5" opacity="0.2"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#6b5a32" stroke-width="1.8" opacity="0.45"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#6b5a32" stroke-width="2.2" opacity="0.85"/>
+                        <circle cx="182" cy="80" r="6" fill="#6b5a32"/>
+                    </svg>
+                    <span style="font-family: 'Space Grotesk'; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #2a2520;">Seed Forth</span>
+                </div>
+            </div>
+            <div class="ctx navy">
+                <div class="ctx-label">Navy</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <svg viewBox="10 22 185 116" width="64" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.2"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#c9a96e" stroke-width="1.8" opacity="0.45"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#c9a96e" stroke-width="2.2" opacity="0.85"/>
+                        <circle cx="182" cy="80" r="6" fill="#c9a96e"/>
+                    </svg>
+                    <span style="font-family: 'Space Grotesk'; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #e8e4df;">Seed Forth</span>
+                </div>
+            </div>
+            <div class="ctx gold">
+                <div class="ctx-label">Gold</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <svg viewBox="10 22 185 116" width="64" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="68" cy="80" r="52" fill="none" stroke="#0a0a0a" stroke-width="1.5" opacity="0.15"/>
+                        <circle cx="112" cy="80" r="40" fill="none" stroke="#0a0a0a" stroke-width="1.8" opacity="0.35"/>
+                        <circle cx="150" cy="80" r="28" fill="none" stroke="#0a0a0a" stroke-width="2.2" opacity="0.7"/>
+                        <circle cx="182" cy="80" r="6" fill="#0a0a0a"/>
+                    </svg>
+                    <span style="font-family: 'Space Grotesk'; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #0a0a0a;">Seed Forth</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAVICON -->
+        <div class="label">Favicon / app icon</div>
+        <div class="favicon-row">
+            <div class="fav-item">
+                <div class="fav-box" style="background: var(--bg); border: 1px solid var(--border);">
+                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="16" r="11" fill="none" stroke="#c9a96e" stroke-width="0.8" opacity="0.2"/>
+                        <circle cx="15.5" cy="16" r="8.5" fill="none" stroke="#c9a96e" stroke-width="0.9" opacity="0.45"/>
+                        <circle cx="19.5" cy="16" r="6" fill="none" stroke="#c9a96e" stroke-width="1.1" opacity="0.85"/>
+                        <circle cx="24" cy="16" r="1.8" fill="#c9a96e"/>
+                    </svg>
+                </div>
+                <div class="fav-label">32px</div>
+            </div>
+            <div class="fav-item">
+                <div class="fav-box" style="background: var(--bg); border: 1px solid var(--border); width: 32px; height: 32px;">
+                    <svg viewBox="0 0 32 32" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="16" r="11" fill="none" stroke="#c9a96e" stroke-width="1.2" opacity="0.25"/>
+                        <circle cx="15.5" cy="16" r="8.5" fill="none" stroke="#c9a96e" stroke-width="1.3" opacity="0.5"/>
+                        <circle cx="19.5" cy="16" r="6" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.9"/>
+                        <circle cx="24" cy="16" r="2" fill="#c9a96e"/>
+                    </svg>
+                </div>
+                <div class="fav-label">16px</div>
+            </div>
+            <div class="fav-item">
+                <div class="fav-box" style="background: #f5f2ed; border: 1px solid rgba(0,0,0,0.06);">
+                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="16" r="11" fill="none" stroke="#6b5a32" stroke-width="0.8" opacity="0.2"/>
+                        <circle cx="15.5" cy="16" r="8.5" fill="none" stroke="#6b5a32" stroke-width="0.9" opacity="0.45"/>
+                        <circle cx="19.5" cy="16" r="6" fill="none" stroke="#6b5a32" stroke-width="1.1" opacity="0.85"/>
+                        <circle cx="24" cy="16" r="1.8" fill="#6b5a32"/>
+                    </svg>
+                </div>
+                <div class="fav-label">Light 32px</div>
+            </div>
+            <div class="fav-item">
+                <div class="fav-box" style="background: #c9a96e; border-radius: 12px;">
+                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="16" r="11" fill="none" stroke="#0a0a0a" stroke-width="0.8" opacity="0.15"/>
+                        <circle cx="15.5" cy="16" r="8.5" fill="none" stroke="#0a0a0a" stroke-width="0.9" opacity="0.35"/>
+                        <circle cx="19.5" cy="16" r="6" fill="none" stroke="#0a0a0a" stroke-width="1.1" opacity="0.7"/>
+                        <circle cx="24" cy="16" r="1.8" fill="#0a0a0a"/>
+                    </svg>
+                </div>
+                <div class="fav-label">App icon</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
