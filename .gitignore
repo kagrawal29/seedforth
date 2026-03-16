@@ -1,0 +1,40 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Env
+.env
+.env.local
+
+# Large files
+*.pdf
+*.docx
+*.pptx
+
+# Project subdirectories (separate repos)
+audioworld/
+news-commodity-link/
+tetrahedron/
+Agent-Vinod/
+AI_product_quotes/
+delta-projects/
+Ojas-life/
+performance-markting-dashboard/
+pulse-dashboard/
+Sports Corridor/
+.claude/
+.playwright-mcp/

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Forth — Infinite Agency to Invent Time</title>
+    <meta name="description" content="Seed Forth is a not-for-profit. AI Agents are here to free you from exactly what you want to get free from. Reclaim your time. Fulfill your duty. Be a force of change.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --bg-subtle: #111111;
+            --text: #e8e4df;
+            --text-muted: #8a8580;
+            --accent: #c9a96e;
+            --accent-dim: rgba(201, 169, 110, 0.15);
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ---- NAV ---- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.4s, backdrop-filter 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* ---- HERO ---- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 169, 110, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 2.5rem;
+            font-weight: 500;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 7vw, 5.5rem);
+            font-weight: 400;
+            line-height: 1.15;
+            max-width: 900px;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 580px;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .scroll-cue {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        .scroll-cue .line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--text-muted), transparent);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* ---- SECTIONS ---- */
+        section {
+            padding: 7rem 2rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 400;
+            line-height: 1.25;
+            margin-bottom: 1.5rem;
+            max-width: 700px;
+        }
+
+        .section-text {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 620px;
+            line-height: 1.85;
+            font-weight: 300;
+        }
+
+        /* ---- THE WEIGHT ---- */
+        .weight {
+            background: var(--bg-subtle);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .weight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .weight-quote {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-style: italic;
+            line-height: 1.6;
+            color: var(--text);
+            border-left: 2px solid var(--accent);
+            padding-left: 1.5rem;
+        }
+
+        /* ---- THE SHIFT ---- */
+        .shift-statement {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 400;
+            line-height: 1.4;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .shift-statement strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .shift-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .shift-card {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .shift-card:hover {
+            border-color: rgba(201, 169, 110, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .shift-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            margin-bottom: 0.75rem;
+            font-weight: 400;
+        }
+
+        .shift-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        /* ---- RIPPLE (LEVELS OF IMPACT) ---- */
+        .ripple {
+            text-align: center;
+            background: var(--bg-subtle);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ripple-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            margin-top: 4rem;
+            position: relative;
+        }
+
+        .ripple-ring {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            position: relative;
+            transition: border-color 0.4s, background 0.4s;
+        }
+
+        .ripple-ring:hover {
+            border-color: rgba(201, 169, 110, 0.4);
+            background: var(--accent-dim);
+        }
+
+        .ripple-ring:nth-child(1) { width: 120px; height: 120px; z-index: 7; }
+        .ripple-ring:nth-child(2) { width: 200px; height: 200px; z-index: 6; margin-top: -60px; }
+        .ripple-ring:nth-child(3) { width: 280px; height: 280px; z-index: 5; margin-top: -100px; }
+        .ripple-ring:nth-child(4) { width: 360px; height: 360px; z-index: 4; margin-top: -140px; }
+        .ripple-ring:nth-child(5) { width: 440px; height: 440px; z-index: 3; margin-top: -180px; }
+        .ripple-ring:nth-child(6) { width: 520px; height: 520px; z-index: 2; margin-top: -220px; }
+
+        .ripple-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 500;
+            position: absolute;
+            white-space: nowrap;
+        }
+
+        .ripple-ring:nth-child(1) .ripple-label { color: var(--accent); font-size: 0.8rem; }
+
+        .ripple-caption {
+            margin-top: -200px;
+            padding-top: 260px;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 500px;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* ---- WHAT WE DO ---- */
+        .what-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .what-item {
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-subtle);
+        }
+
+        .what-item h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 0.75rem;
+        }
+
+        .what-item p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+            font-weight: 300;
+        }
+
+        .what-item .num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* ---- PRINCIPLES ---- */
+        .principles {
+            background: var(--bg-subtle);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .principles-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .principle {
+            padding: 2rem;
+            border-left: 2px solid var(--border);
+            transition: border-color 0.3s;
+        }
+
+        .principle:hover {
+            border-color: var(--accent);
+        }
+
+        .principle h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .principle p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        /* ---- CTA ---- */
+        .cta {
+            text-align: center;
+            padding: 8rem 2rem;
+        }
+
+        .cta-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-title em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .cta-text {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .cta-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        /* ---- FOOTER ---- */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-tagline {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .footer-note {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* ---- FADE-IN ANIMATION ---- */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ---- RESPONSIVE ---- */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: var(--bg);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 2rem;
+                z-index: 99;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                font-size: 1.1rem;
+            }
+
+            .nav-menu-btn {
+                display: block;
+                z-index: 101;
+            }
+
+            section {
+                padding: 4rem 1.5rem;
+            }
+
+            .weight-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .shift-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .what-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .principles-list {
+                grid-template-columns: 1fr;
+            }
+
+            .ripple-ring:nth-child(1) { width: 90px; height: 90px; }
+            .ripple-ring:nth-child(2) { width: 150px; height: 150px; margin-top: -45px; }
+            .ripple-ring:nth-child(3) { width: 210px; height: 210px; margin-top: -75px; }
+            .ripple-ring:nth-child(4) { width: 270px; height: 270px; margin-top: -105px; }
+            .ripple-ring:nth-child(5) { width: 330px; height: 330px; margin-top: -135px; }
+            .ripple-ring:nth-child(6) { width: 390px; height: 390px; margin-top: -165px; }
+
+            .ripple-label {
+                font-size: 0.6rem;
+            }
+
+            .ripple-caption {
+                margin-top: -150px;
+                padding-top: 200px;
+            }
+
+            .cta {
+                padding: 5rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav id="nav">
+        <a href="#" class="nav-logo">Seed Forth</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#weight" onclick="closeMenu()">The Weight</a></li>
+            <li><a href="#shift" onclick="closeMenu()">The Shift</a></li>
+            <li><a href="#ripple" onclick="closeMenu()">The Ripple</a></li>
+            <li><a href="#what" onclick="closeMenu()">What We Do</a></li>
+            <li><a href="#cta" onclick="closeMenu()">Begin</a></li>
+        </ul>
+        <button class="nav-menu-btn" id="menuBtn" aria-label="Menu">&#9776;</button>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">Not for Profit</div>
+        <h1>Infinite Agency<br>to <em>Invent Time</em></h1>
+        <p class="hero-sub">
+            AI Agents are here to free you from exactly what you want to get free from.
+            So you can fulfill your duty, do what you love, and become a force of change.
+        </p>
+        <div class="scroll-cue">
+            <span>Explore</span>
+            <div class="line"></div>
+        </div>
+    </section>
+
+    <!-- THE WEIGHT -->
+    <section class="weight" id="weight">
+        <div class="container">
+            <div class="weight-grid fade-in">
+                <div>
+                    <div class="section-label">The Weight</div>
+                    <h2 class="section-title">You are not behind. Your system is.</h2>
+                    <p class="section-text">
+                        Most of what feels like personal failure is systemic friction. The invisible weight of workflows that leak your time, energy, and attention. Day after day. Until the work you chose starts choosing you.
+                    </p>
+                    <br>
+                    <p class="section-text">
+                        The equation running underneath is quiet but constant: my work equals my worth. When that runs unchecked, action becomes survival. And building becomes burning.
+                    </p>
+                </div>
+                <div>
+                    <p class="weight-quote">
+                        "What is the work you are willing to do even without instant gratification? How does your work feel when you are alone with it?"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE SHIFT -->
+    <section id="shift">
+        <div class="container">
+            <div class="section-label fade-in" style="text-align:center;">The Shift</div>
+            <p class="shift-statement fade-in">
+                We are not here to motivate you.<br>
+                We are here to <strong>remove friction</strong>.<br>
+                And return your time with structure.
+            </p>
+            <div class="shift-cards">
+                <div class="shift-card fade-in">
+                    <h3>Reclaim Time</h3>
+                    <p>AI agents take over the repetitive, the draining, the mechanical. Not to replace you. To give you back the hours that belong to your actual life.</p>
+                </div>
+                <div class="shift-card fade-in">
+                    <h3>Remove Friction</h3>
+                    <p>We identify where your systems leak energy. One workflow, one bottleneck, one handoff at a time. Precision over volume. Clarity over hype.</p>
+                </div>
+                <div class="shift-card fade-in">
+                    <h3>Restore Agency</h3>
+                    <p>When your time is yours again, you choose. Choose the work that matters. The people who matter. The contribution only you can make.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE RIPPLE -->
+    <section class="ripple" id="ripple">
+        <div class="container">
+            <div class="section-label fade-in">The Ripple</div>
+            <h2 class="section-title fade-in" style="margin: 0 auto 0.5rem; text-align: center;">Freedom compounds outward</h2>
+            <p class="section-text fade-in" style="margin: 0 auto; text-align: center;">
+                When you reclaim your time, the effect doesn't stop with you.
+            </p>
+            <div class="ripple-visual fade-in">
+                <div class="ripple-ring">
+                    <span class="ripple-label">You</span>
+                </div>
+                <div class="ripple-ring">
+                    <span class="ripple-label">Body &amp; Mind</span>
+                </div>
+                <div class="ripple-ring">
+                    <span class="ripple-label">Family</span>
+                </div>
+                <div class="ripple-ring">
+                    <span class="ripple-label">Community</span>
+                </div>
+                <div class="ripple-ring">
+                    <span class="ripple-label">Nation &amp; Ecosystem</span>
+                </div>
+                <div class="ripple-ring">
+                    <span class="ripple-label">Coming Generations</span>
+                </div>
+            </div>
+            <p class="ripple-caption fade-in">
+                Physical health. Mental clarity. Emotional steadiness. Present for your family. Engaged in your community. Contributing to your nation. Building for those who come after. Clarity compounds socially. This is how human systems actually work.
+            </p>
+        </div>
+    </section>
+
+    <!-- WHAT WE DO -->
+    <section id="what">
+        <div class="container">
+            <div class="section-label fade-in">What We Do</div>
+            <h2 class="section-title fade-in">Service as Capital</h2>
+            <p class="section-text fade-in">
+                We enter as 0-stake partners. No equity. No control. No claim on the outcome. Present through the building, invested in the whole, positioned within none of it. The absence of stake is what makes the presence clean.
+            </p>
+            <div class="what-grid">
+                <div class="what-item fade-in">
+                    <div class="num">01</div>
+                    <h3>System Upgrades</h3>
+                    <p>We upgrade one workflow in your business in 90 minutes. Free. You tell us what it was worth. AI-powered, human-guided. One bottleneck at a time.</p>
+                </div>
+                <div class="what-item fade-in">
+                    <div class="num">02</div>
+                    <h3>Friction Clearing</h3>
+                    <p>Individual, relational, systemic. We identify where energy leaks and design the conditions for coherent action. Clarity precedes everything.</p>
+                </div>
+                <div class="what-item fade-in">
+                    <div class="num">03</div>
+                    <h3>AI Agent Design</h3>
+                    <p>We build intelligent agents that handle the work you want to get free from. Not generic automation. Agents shaped to your exact context and constraints.</p>
+                </div>
+                <div class="what-item fade-in">
+                    <div class="num">04</div>
+                    <h3>Self-Sufficiency</h3>
+                    <p>The measure of success is whether you can sustain momentum without us. We build to leave. That is the only honest position.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRINCIPLES -->
+    <section class="principles" id="principles">
+        <div class="container">
+            <div class="section-label fade-in">How We Hold It</div>
+            <h2 class="section-title fade-in">Dharma as Foundation</h2>
+            <p class="section-text fade-in">
+                Acting in right proportion. Serving without extraction. Building without domination. Participating without ego centrality.
+            </p>
+            <div class="principles-list">
+                <div class="principle fade-in">
+                    <h3>No extraction</h3>
+                    <p>0-stake means no distortion. Full presence without possession. The relationship is sustained by alignment alone.</p>
+                </div>
+                <div class="principle fade-in">
+                    <h3>No dependency</h3>
+                    <p>We have no reason to make ourselves indispensable. The exit is always clean because there was never anything to protect.</p>
+                </div>
+                <div class="principle fade-in">
+                    <h3>No hype</h3>
+                    <p>No sentence exists just to impress. Every sentence must either see you or serve you. Fewer claims, more precision, more respect.</p>
+                </div>
+                <div class="principle fade-in">
+                    <h3>Depth over volume</h3>
+                    <p>Small numbers. Full presence. This is not a positioning choice. It is what the work requires.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="cta">
+        <div class="container">
+            <h2 class="cta-title fade-in">What will you do<br>with the time <em>you get back</em>?</h2>
+            <p class="cta-text fade-in">
+                We take what's leaking life from you, and we return it with structure. That is the abundance we point at. Not money first. Life returned.
+            </p>
+            <a href="mailto:hello@seedforth.org" class="cta-btn fade-in">Start a Conversation</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-logo">Seed Forth</div>
+        <div class="footer-tagline">Service as Capital. Dharma as Foundation. Collective Clarity as Outcome.</div>
+        <div class="footer-note">Not for profit. The seed was sown long ago. The work now is tending.</div>
+    </footer>
+
+    <script>
+        // Nav scroll effect
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // Mobile menu
+        const menuBtn = document.getElementById('menuBtn');
+        const navLinks = document.getElementById('navLinks');
+        menuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+            menuBtn.innerHTML = navLinks.classList.contains('open') ? '&#10005;' : '&#9776;';
+        });
+        function closeMenu() {
+            navLinks.classList.remove('open');
+            menuBtn.innerHTML = '&#9776;';
+        }
+
+        // Fade-in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>
