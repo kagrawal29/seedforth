@@ -357,24 +357,17 @@
 
         /* ---- THE BREAK (transition moment) ---- */
         .the-break {
-            padding: 3rem 1.5rem;
+            padding: 5rem 1.5rem 3rem;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
-        .break-line {
-            width: 1px;
-            height: 60px;
-            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.5), rgba(110, 156, 138, 0.3));
-            margin: 0 auto 2rem;
-        }
-
         .break-visual {
             position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 2rem;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 2.5rem;
         }
 
         .break-visual svg {
@@ -459,7 +452,7 @@
         }
 
         .collapse-before {
-            opacity: 0.45;
+            opacity: 0.6;
         }
 
         .collapse-after {
@@ -490,8 +483,8 @@
         }
 
         /* Before row: warm/rose — friction */
-        .collapse-before .collapse-node.start { color: var(--warm); }
-        .collapse-before .collapse-node.end { color: var(--text-muted); }
+        .collapse-before .collapse-node.start { color: var(--warm); opacity: 0.9; }
+        .collapse-before .collapse-node.end { color: var(--text-muted); opacity: 0.7; }
 
         /* After row: teal — clarity */
         .collapse-after .collapse-node.start { color: var(--accent); }
@@ -508,13 +501,13 @@
             height: 4px;
             border-radius: 50%;
             background: var(--warm);
-            opacity: 0.3;
+            opacity: 0.5;
         }
 
         .collapse-friction-label {
             font-size: 0.5rem;
             color: var(--warm);
-            opacity: 0.45;
+            opacity: 0.6;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
@@ -525,7 +518,7 @@
             height: 1px;
         }
 
-        .collapse-line.dim { background: rgba(212, 115, 110, 0.2); }
+        .collapse-line.dim { background: rgba(212, 115, 110, 0.3); }
         .collapse-line.bright {
             background: linear-gradient(to right, var(--accent), var(--teal));
             width: 50px;
@@ -543,7 +536,7 @@
             letter-spacing: 0.18em;
             text-transform: uppercase;
             color: var(--text-muted);
-            opacity: 0.35;
+            opacity: 0.5;
             margin-bottom: 0.25rem;
         }
 
@@ -1071,12 +1064,12 @@
             }
 
             .the-break {
-                padding: 4rem 2rem;
+                padding: 6rem 2rem 4rem;
             }
 
             .break-visual {
-                width: 140px;
-                height: 140px;
+                width: 160px;
+                height: 160px;
             }
 
             .the-release {
@@ -1218,7 +1211,6 @@
 
     <!-- THE BREAK: transition -->
     <section class="the-break">
-        <div class="break-line fade-in"></div>
         <div class="break-visual fade-in">
             <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                 <!-- Closed clock circle (fading out) -->
