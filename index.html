@@ -29,6 +29,10 @@
             --accent: #c9a96e;
             --accent-dim: rgba(201, 169, 110, 0.12);
             --border: rgba(255, 255, 255, 0.06);
+            --warm: #d4736e;
+            --teal: #6e9c8a;
+            --lavender: #9b8ec4;
+            --sky: #6ea4c9;
         }
 
         html {
@@ -101,27 +105,71 @@
             text-align: center;
             padding: 6rem 2rem 4rem;
             position: relative;
+            overflow: hidden;
         }
 
         .hero::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, rgba(201, 169, 110, 0.04) 0%, transparent 65%);
+            top: -20%;
+            left: -10%;
+            width: 60%;
+            height: 80%;
+            background: radial-gradient(ellipse, rgba(155, 142, 196, 0.07) 0%, transparent 70%);
             pointer-events: none;
         }
 
-        .hero-badge {
-            font-size: 0.72rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
-            font-weight: 400;
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -10%;
+            right: -10%;
+            width: 50%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(201, 169, 110, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.5;
+            animation: float 12s ease-in-out infinite;
+        }
+
+        .hero-orb-1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(201, 169, 110, 0.12), transparent 70%);
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+
+        .hero-orb-2 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(110, 156, 138, 0.1), transparent 70%);
+            top: 30%;
+            right: 10%;
+            animation-delay: -4s;
+        }
+
+        .hero-orb-3 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(155, 142, 196, 0.08), transparent 70%);
+            bottom: 20%;
+            left: 40%;
+            animation-delay: -8s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(15px, -20px); }
+            66% { transform: translate(-10px, 10px); }
         }
 
         .hero h1 {
@@ -131,11 +179,15 @@
             line-height: 1.12;
             max-width: 850px;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .hero h1 em {
             font-style: italic;
-            color: var(--accent);
+            background: linear-gradient(135deg, var(--accent), var(--warm));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero-sub {
@@ -144,6 +196,7 @@
             max-width: 520px;
             line-height: 1.85;
             font-weight: 300;
+            position: relative;
         }
 
         .scroll-cue {
@@ -153,7 +206,7 @@
             transform: translateX(-50%);
             width: 1px;
             height: 48px;
-            background: linear-gradient(to bottom, rgba(138, 133, 128, 0.5), transparent);
+            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.6), transparent);
             animation: pulse 2.5s ease-in-out infinite;
         }
 
@@ -191,9 +244,24 @@
         /* ---- SECTION: MIRROR + TURN ---- */
         .mirror {
             padding: 7rem 2rem;
-            background: var(--bg-subtle);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mirror::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(170deg, rgba(17, 17, 17, 1) 0%, rgba(20, 16, 14, 1) 50%, rgba(17, 17, 17, 1) 100%);
+            z-index: 0;
+        }
+
+        .mirror .container {
+            position: relative;
+            z-index: 1;
         }
 
         .mirror-top {
@@ -225,16 +293,17 @@
             font-style: italic;
             line-height: 1.65;
             color: var(--text);
-            border-left: 2px solid var(--accent);
+            border-left: 2px solid;
+            border-image: linear-gradient(to bottom, var(--accent), var(--warm)) 1;
             padding-left: 1.5rem;
         }
 
         .divider {
-            width: 40px;
-            height: 1px;
-            background: var(--accent);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(to right, var(--accent), var(--teal));
             margin: 0 auto 3rem;
-            opacity: 0.5;
+            border-radius: 1px;
         }
 
         .turn-statement {
@@ -248,7 +317,10 @@
         }
 
         .turn-statement strong {
-            color: var(--accent);
+            background: linear-gradient(135deg, var(--accent), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             font-weight: 600;
         }
 
@@ -261,9 +333,32 @@
         .turn-card {
             padding: 1.75rem;
             border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(17, 17, 17, 0.5);
+            border-radius: 10px;
+            background: rgba(10, 10, 10, 0.6);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.3s;
         }
+
+        .turn-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .turn-card:nth-child(1)::before { background: linear-gradient(to right, var(--accent), transparent); }
+        .turn-card:nth-child(2)::before { background: linear-gradient(to right, var(--teal), transparent); }
+        .turn-card:nth-child(3)::before { background: linear-gradient(to right, var(--lavender), transparent); }
+
+        .turn-card:nth-child(1):hover { border-color: rgba(201, 169, 110, 0.25); }
+        .turn-card:nth-child(2):hover { border-color: rgba(110, 156, 138, 0.25); }
+        .turn-card:nth-child(3):hover { border-color: rgba(155, 142, 196, 0.25); }
+
+        .turn-card:hover { transform: translateY(-2px); }
 
         .turn-card h3 {
             font-size: 0.9rem;
@@ -271,6 +366,10 @@
             margin-bottom: 0.6rem;
             color: var(--text);
         }
+
+        .turn-card:nth-child(1) h3 { color: var(--accent); }
+        .turn-card:nth-child(2) h3 { color: var(--teal); }
+        .turn-card:nth-child(3) h3 { color: var(--lavender); }
 
         .turn-card p {
             font-size: 0.85rem;
@@ -281,8 +380,22 @@
 
         /* ---- SECTION: RIPPLE ---- */
         .ripple {
-            padding: 7rem 2rem;
+            padding: 7rem 2rem 5rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(110, 156, 138, 0.04) 0%, transparent 60%);
+            pointer-events: none;
         }
 
         .ripple-title {
@@ -301,57 +414,76 @@
         }
 
         .ripple-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             position: relative;
-            width: 100%;
-            max-width: 560px;
-            margin: 0 auto;
-            aspect-ratio: 1;
         }
 
-        .ring {
-            position: absolute;
-            border: 1px solid var(--border);
+        .ripple-ring {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transition: border-color 0.4s;
+            position: relative;
+            transition: transform 0.4s, box-shadow 0.4s;
         }
 
-        .ring:nth-child(1) { width: 14%; height: 14%; border-color: rgba(201, 169, 110, 0.4); }
-        .ring:nth-child(2) { width: 30%; height: 30%; }
-        .ring:nth-child(3) { width: 48%; height: 48%; }
-        .ring:nth-child(4) { width: 66%; height: 66%; }
-        .ring:nth-child(5) { width: 84%; height: 84%; }
-        .ring:nth-child(6) { width: 100%; height: 100%; }
+        .ripple-ring:hover {
+            transform: scale(1.02);
+        }
 
-        .ring-label {
-            position: absolute;
-            font-size: 0.68rem;
+        .ripple-ring:nth-child(1) {
+            width: 110px; height: 110px; z-index: 7;
+            border: 2px solid var(--accent);
+            background: radial-gradient(circle, rgba(201, 169, 110, 0.1), transparent 70%);
+            box-shadow: 0 0 30px rgba(201, 169, 110, 0.15);
+        }
+        .ripple-ring:nth-child(2) {
+            width: 200px; height: 200px; z-index: 6; margin-top: -55px;
+            border: 1px solid rgba(212, 115, 110, 0.35);
+            background: radial-gradient(circle, rgba(212, 115, 110, 0.05), transparent 70%);
+        }
+        .ripple-ring:nth-child(3) {
+            width: 290px; height: 290px; z-index: 5; margin-top: -100px;
+            border: 1px solid rgba(110, 156, 138, 0.3);
+            background: radial-gradient(circle, rgba(110, 156, 138, 0.04), transparent 70%);
+        }
+        .ripple-ring:nth-child(4) {
+            width: 380px; height: 380px; z-index: 4; margin-top: -145px;
+            border: 1px solid rgba(155, 142, 196, 0.25);
+            background: radial-gradient(circle, rgba(155, 142, 196, 0.03), transparent 70%);
+        }
+        .ripple-ring:nth-child(5) {
+            width: 470px; height: 470px; z-index: 3; margin-top: -190px;
+            border: 1px solid rgba(110, 164, 201, 0.2);
+            background: radial-gradient(circle, rgba(110, 164, 201, 0.03), transparent 70%);
+        }
+        .ripple-ring:nth-child(6) {
+            width: 560px; height: 560px; z-index: 2; margin-top: -235px;
+            border: 1px solid rgba(201, 169, 110, 0.12);
+            background: radial-gradient(circle, rgba(201, 169, 110, 0.02), transparent 70%);
+        }
+
+        .ripple-label {
+            font-size: 0.72rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 400;
+            font-weight: 500;
+            position: absolute;
             white-space: nowrap;
         }
 
-        .ring:nth-child(1) .ring-label {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--accent);
-            font-weight: 500;
-            font-size: 0.72rem;
-        }
-
-        .ring:nth-child(2) .ring-label { top: 4px; left: 50%; transform: translateX(-50%); }
-        .ring:nth-child(3) .ring-label { top: 4px; left: 50%; transform: translateX(-50%); }
-        .ring:nth-child(4) .ring-label { top: 4px; left: 50%; transform: translateX(-50%); }
-        .ring:nth-child(5) .ring-label { top: 4px; left: 50%; transform: translateX(-50%); }
-        .ring:nth-child(6) .ring-label { top: 4px; left: 50%; transform: translateX(-50%); }
+        .ripple-ring:nth-child(1) .ripple-label { color: var(--accent); font-size: 0.8rem; }
+        .ripple-ring:nth-child(2) .ripple-label { color: var(--warm); }
+        .ripple-ring:nth-child(3) .ripple-label { color: var(--teal); }
+        .ripple-ring:nth-child(4) .ripple-label { color: var(--lavender); }
+        .ripple-ring:nth-child(5) .ripple-label { color: var(--sky); }
+        .ripple-ring:nth-child(6) .ripple-label { color: var(--text-muted); }
 
         .ripple-foot {
-            margin-top: 3rem;
+            margin-top: -200px;
+            padding-top: 260px;
             font-size: 0.95rem;
             color: var(--text-muted);
             max-width: 480px;
@@ -365,8 +497,24 @@
         .cta {
             padding: 7rem 2rem 5rem;
             text-align: center;
-            background: var(--bg-subtle);
-            border-top: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(170deg, rgba(17, 17, 17, 1), rgba(14, 14, 18, 1) 50%, rgba(17, 17, 17, 1));
+            z-index: 0;
+        }
+
+        .cta .container {
+            position: relative;
+            z-index: 1;
         }
 
         .cta-title {
@@ -379,7 +527,10 @@
 
         .cta-title em {
             font-style: italic;
-            color: var(--accent);
+            background: linear-gradient(135deg, var(--accent), var(--warm));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .cta-text {
@@ -405,7 +556,7 @@
             flex: 1;
             padding: 0.9rem 1.2rem;
             background: var(--bg);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             color: var(--text);
             font-family: inherit;
@@ -425,7 +576,7 @@
 
         .waitlist-form button {
             padding: 0.9rem 1.75rem;
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #b8943e);
             border: none;
             color: var(--bg);
             font-family: inherit;
@@ -435,12 +586,13 @@
             text-transform: uppercase;
             border-radius: 4px;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, transform 0.2s;
             white-space: nowrap;
         }
 
         .waitlist-form button:hover {
-            opacity: 0.85;
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
         .waitlist-form button:disabled {
@@ -500,15 +652,25 @@
             }
 
             .ripple {
-                padding: 4.5rem 1.5rem;
+                padding: 4.5rem 1.5rem 3rem;
             }
 
-            .ripple-visual {
-                max-width: 340px;
+            .ripple-ring:nth-child(1) { width: 85px; height: 85px; }
+            .ripple-ring:nth-child(2) { width: 155px; height: 155px; margin-top: -42px; }
+            .ripple-ring:nth-child(3) { width: 225px; height: 225px; margin-top: -78px; }
+            .ripple-ring:nth-child(4) { width: 295px; height: 295px; margin-top: -112px; }
+            .ripple-ring:nth-child(5) { width: 365px; height: 365px; margin-top: -148px; }
+            .ripple-ring:nth-child(6) { width: 400px; height: 400px; margin-top: -182px; }
+
+            .ripple-label {
+                font-size: 0.58rem;
             }
 
-            .ring-label {
-                font-size: 0.55rem !important;
+            .ripple-ring:nth-child(1) .ripple-label { font-size: 0.65rem; }
+
+            .ripple-foot {
+                margin-top: -140px;
+                padding-top: 190px;
             }
 
             .cta {
@@ -534,7 +696,9 @@
 
     <!-- HERO -->
     <section class="hero">
-        <div class="hero-badge">For founders and builders who feel the weight</div>
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-orb hero-orb-3"></div>
         <h1>Infinite Agency<br>to <em>Invent Time</em></h1>
         <p class="hero-sub">
             AI Agents are here to free you from exactly what you want to get free from.
@@ -598,12 +762,12 @@
             <p class="ripple-sub fade-in">When you reclaim your time, the effect doesn't stop with you.</p>
 
             <div class="ripple-visual fade-in">
-                <div class="ring"><span class="ring-label">You</span></div>
-                <div class="ring"><span class="ring-label">Body & Mind</span></div>
-                <div class="ring"><span class="ring-label">Family</span></div>
-                <div class="ring"><span class="ring-label">Community</span></div>
-                <div class="ring"><span class="ring-label">Nation & Ecosystem</span></div>
-                <div class="ring"><span class="ring-label">Coming Generations</span></div>
+                <div class="ripple-ring"><span class="ripple-label">You</span></div>
+                <div class="ripple-ring"><span class="ripple-label">Body &amp; Mind</span></div>
+                <div class="ripple-ring"><span class="ripple-label">Family</span></div>
+                <div class="ripple-ring"><span class="ripple-label">Community</span></div>
+                <div class="ripple-ring"><span class="ripple-label">Nation &amp; Ecosystem</span></div>
+                <div class="ripple-ring"><span class="ripple-label">Coming Generations</span></div>
             </div>
 
             <p class="ripple-foot fade-in">
@@ -657,7 +821,6 @@
             const msg = document.getElementById('waitlistMsg');
             msg.textContent = 'You are on the list. We will reach out.';
             document.getElementById('waitlist').scrollIntoView();
-            // Clean URL
             window.history.replaceState({}, '', window.location.pathname);
         }
     </script>
