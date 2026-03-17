@@ -449,13 +449,14 @@
         /* Gap collapse visual */
         .collapse-visual {
             margin: 0 auto 3rem;
-            max-width: 340px;
+            max-width: 360px;
+            padding: 0 0.5rem;
         }
 
         .collapse-before, .collapse-after {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.3rem;
             justify-content: center;
             flex-wrap: nowrap;
             padding: 1rem 0;
@@ -483,8 +484,8 @@
         }
 
         .collapse-node {
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             font-weight: 500;
             white-space: nowrap;
@@ -501,28 +502,28 @@
         .collapse-friction {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.2rem;
         }
 
         .collapse-dot {
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
             background: var(--warm);
             opacity: 0.6;
         }
 
         .collapse-friction-label {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: var(--warm);
             opacity: 0.75;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.05em;
         }
 
         .collapse-line {
             flex: 0 0 auto;
-            width: 30px;
+            width: 18px;
             height: 1px;
         }
 
@@ -554,13 +555,15 @@
         }
 
         .collapse-anchor {
-            font-size: 0.65rem;
-            letter-spacing: 0.2em;
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
             text-transform: uppercase;
-            color: var(--text);
-            opacity: 0.7;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
+            color: var(--accent);
+            opacity: 1;
+            margin-top: 2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(201, 169, 110, 0.2);
+            font-weight: 500;
         }
 
         /* Release payoff — three beats, no boxes */
