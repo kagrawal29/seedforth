@@ -109,8 +109,20 @@ if (weightMoments) {
 
     let currentMoment = -1;
     let cycleInterval = null;
-    let momentCycles = -1; // starts at -1 so first wrap to index 0 doesn't count as a completed cycle
-    let momentsDone = false;
+    let momentCycles = -1;
+
+    function resetMoments() {
+        clearInterval(cycleInterval);
+        cycleInterval = null;
+        currentMoment = -1;
+        momentCycles = -1;
+        moments.forEach(m => {
+            m.classList.remove('active');
+            m.querySelectorAll('.wm-word').forEach(w => { w.style.transitionDelay = '0s'; });
+        });
+        const cue = document.getElementById('weightScrollCue');
+        if (cue) cue.classList.remove('visible');
+    }
 
     function flashNext() {
         moments.forEach(m => {
@@ -119,17 +131,14 @@ if (weightMoments) {
         });
         currentMoment = (currentMoment + 1) % moments.length;
         if (currentMoment === 0) momentCycles++;
-        // Stop after one full cycle
         if (momentCycles >= 1 && currentMoment === 0) {
             clearInterval(cycleInterval);
             cycleInterval = null;
-            momentsDone = true;
             const last = moments[moments.length - 1];
             last.querySelectorAll('.wm-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.12) + 's';
             });
             last.classList.add('active');
-            // Show scroll cue after cycle, then auto-scroll with generous pause
             const cue = document.getElementById('weightScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 1500);
             if (weightSection) autoScrollToNext(weightSection, 5000);
@@ -142,12 +151,14 @@ if (weightMoments) {
         current.classList.add('active');
     }
 
-    // Only start when section is mostly in view; don't restart if done
     const weightObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !cycleInterval && !momentsDone) {
+            if (entry.isIntersecting && !cycleInterval) {
+                resetMoments();
                 flashNext();
                 cycleInterval = setInterval(flashNext, 3000);
+            } else if (!entry.isIntersecting) {
+                resetMoments();
             }
         });
     }, { threshold: 0.7 });
@@ -168,8 +179,20 @@ if (weightQuestions) {
 
     let currentQ = -1;
     let qInterval = null;
-    let qCycles = -1; // starts at -1 so first wrap to index 0 doesn't count as a completed cycle
-    let questionsDone = false;
+    let qCycles = -1;
+
+    function resetQuestions() {
+        clearInterval(qInterval);
+        qInterval = null;
+        currentQ = -1;
+        qCycles = -1;
+        questions.forEach(q => {
+            q.classList.remove('active', 'exiting');
+            q.querySelectorAll('.wq-word').forEach(w => { w.style.transitionDelay = '0s'; });
+        });
+        const cue = document.getElementById('questionsScrollCue');
+        if (cue) cue.classList.remove('visible');
+    }
 
     function revealNextQuestion() {
         questions.forEach(q => {
@@ -179,17 +202,14 @@ if (weightQuestions) {
 
         currentQ = (currentQ + 1) % questions.length;
         if (currentQ === 0) qCycles++;
-        // Stop after one full cycle
         if (qCycles >= 1 && currentQ === 0) {
             clearInterval(qInterval);
             qInterval = null;
-            questionsDone = true;
             const last = questions[questions.length - 1];
             last.classList.add('active');
             last.querySelectorAll('.wq-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.25) + 's';
             });
-            // Show scroll cue after cycle, then auto-scroll with generous pause
             const cue = document.getElementById('questionsScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 2000);
             if (questionsSection) autoScrollToNext(questionsSection, 6000);
@@ -203,12 +223,14 @@ if (weightQuestions) {
         });
     }
 
-    // Only start when section is mostly in view; don't restart if done
     const qObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !qInterval && !questionsDone) {
+            if (entry.isIntersecting && !qInterval) {
+                resetQuestions();
                 revealNextQuestion();
                 qInterval = setInterval(revealNextQuestion, 5500);
+            } else if (!entry.isIntersecting) {
+                resetQuestions();
             }
         });
     }, { threshold: 0.7 });
