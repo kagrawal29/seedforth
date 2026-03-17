@@ -338,11 +338,29 @@
             position: absolute;
             top: 0;
             left: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
         }
 
         .weight-moment.active {
+            opacity: 1;
+        }
+
+        .wm-word {
+            display: inline;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .weight-moment.active .wm-word {
             opacity: 0.85;
+        }
+
+        .weight-moment.active .wm-word.wm-thing {
+            opacity: 1;
+        }
+
+        .weight-moment.active .wm-word.wm-loss {
+            opacity: 1;
         }
 
         .wm-thing {
@@ -369,38 +387,84 @@
             width: 100%;
         }
 
+        /* Breathing rings motif behind questions */
+        .question-motif {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .motif-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(201, 169, 110, 0.12);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: breathe 6s ease-in-out infinite;
+        }
+
+        .motif-ring:nth-child(1) { width: 120px; height: 120px; animation-delay: 0s; }
+        .motif-ring:nth-child(2) { width: 220px; height: 220px; animation-delay: -1.5s; border-color: rgba(201, 169, 110, 0.09); }
+        .motif-ring:nth-child(3) { width: 340px; height: 340px; animation-delay: -3s; border-color: rgba(110, 156, 138, 0.08); }
+
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.4; }
+            50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        }
+
         .weight-questions {
             text-align: center;
-            max-width: 440px;
+            max-width: 480px;
             margin: 0 auto;
             position: relative;
-            height: 5rem;
-            overflow: hidden;
+            height: 6rem;
+            overflow: visible;
+            z-index: 1;
         }
 
         .weight-question {
             font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
+            font-size: 1.45rem;
             font-style: italic;
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.5;
             position: absolute;
             left: 0;
             right: 0;
             top: 50%;
+            transform: translateY(-50%);
             opacity: 0;
-            transform: translateY(60px);
-            transition: opacity 0.9s ease, transform 0.9s ease;
+        }
+
+        .weight-question .wq-word {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .weight-question.active .wq-word {
+            opacity: 0.85;
+            transform: translateY(0);
         }
 
         .weight-question.active {
-            opacity: 0.8;
-            transform: translateY(-50%);
+            opacity: 1;
         }
 
         .weight-question.exiting {
             opacity: 0;
-            transform: translateY(-60px);
+            transition: opacity 0.6s ease;
+        }
+
+        .weight-question.exiting .wq-word {
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         /* ---- THE BREAK (transition moment) ---- */
@@ -1358,6 +1422,11 @@
     </section>
 
     <section class="weight-questions-section snap-section">
+        <div class="question-motif">
+            <div class="motif-ring"></div>
+            <div class="motif-ring"></div>
+            <div class="motif-ring"></div>
+        </div>
         <div class="container">
             <div class="weight-questions fade-in">
                 <p class="weight-question">How does your work feel when you are alone with it?</p>
@@ -1385,7 +1454,7 @@
         </div>
         <p class="break-statement fade-in">
             Don't put hours in redundant work.<br>
-            <em class="break-highlight">Make hours</em> by using <strong><em>infinite agency</em></strong>.
+            <em class="break-highlight">Make hours</em> with <strong><em>infinite agency</em></strong>.
         </p>
     </section>
 
@@ -1614,20 +1683,61 @@
         const weightMoments = document.querySelector('.weight-moments');
         if (weightMoments) {
             const moments = weightMoments.querySelectorAll('.weight-moment');
+
+            // Wrap words in spans, preserving colored spans
+            moments.forEach(m => {
+                let wordIndex = 0;
+                const fragment = document.createDocumentFragment();
+                m.childNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const parts = node.textContent.split(/(\s+)/);
+                        parts.forEach(part => {
+                            if (part.trim()) {
+                                const s = document.createElement('span');
+                                s.className = 'wm-word';
+                                s.textContent = part;
+                                s.style.transitionDelay = (wordIndex * 0.12) + 's';
+                                wordIndex++;
+                                fragment.appendChild(s);
+                            } else if (part) {
+                                fragment.appendChild(document.createTextNode(part));
+                            }
+                        });
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        const s = document.createElement('span');
+                        s.className = 'wm-word ' + node.className;
+                        s.textContent = node.textContent;
+                        s.style.transitionDelay = (wordIndex * 0.12) + 's';
+                        wordIndex++;
+                        fragment.appendChild(s);
+                    }
+                });
+                m.innerHTML = '';
+                m.appendChild(fragment);
+            });
+
             let currentMoment = -1;
             let cycleInterval = null;
 
             function flashNext() {
-                moments.forEach(m => m.classList.remove('active'));
+                moments.forEach(m => {
+                    m.classList.remove('active');
+                    m.querySelectorAll('.wm-word').forEach(w => { w.style.transitionDelay = '0s'; });
+                });
                 currentMoment = (currentMoment + 1) % moments.length;
-                moments[currentMoment].classList.add('active');
+                const current = moments[currentMoment];
+                // Restore stagger delays
+                current.querySelectorAll('.wm-word').forEach((w, i) => {
+                    w.style.transitionDelay = (i * 0.12) + 's';
+                });
+                current.classList.add('active');
             }
 
             const weightObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && !cycleInterval) {
                         flashNext();
-                        cycleInterval = setInterval(flashNext, 2000);
+                        cycleInterval = setInterval(flashNext, 3000);
                         weightObserver.unobserve(entry.target);
                     }
                 });
@@ -1635,33 +1745,44 @@
             weightObserver.observe(weightMoments);
         }
 
-        // Weight questions — rise from below, one at a time
+        // Weight questions — word-by-word reveal, one question at a time
         const weightQuestions = document.querySelector('.weight-questions');
         if (weightQuestions) {
             const questions = weightQuestions.querySelectorAll('.weight-question');
+            // Wrap each word in a span
+            questions.forEach(q => {
+                const text = q.textContent;
+                const words = text.split(/\s+/);
+                q.innerHTML = words.map(w => '<span class="wq-word">' + w + '</span>').join(' ');
+            });
+
             let currentQ = -1;
             let qInterval = null;
 
-            function riseNextQuestion() {
+            function revealNextQuestion() {
                 if (currentQ >= 0) {
                     questions[currentQ].classList.remove('active');
                     questions[currentQ].classList.add('exiting');
                 }
                 currentQ = (currentQ + 1) % questions.length;
                 questions.forEach((q, i) => {
-                    if (i !== currentQ) {
-                        q.classList.remove('exiting');
-                    }
+                    if (i !== currentQ) q.classList.remove('exiting');
                 });
-                questions[currentQ].classList.remove('exiting');
-                questions[currentQ].classList.add('active');
+                const q = questions[currentQ];
+                q.classList.remove('exiting');
+                q.classList.add('active');
+                // Stagger word reveals — slow, deliberate
+                const words = q.querySelectorAll('.wq-word');
+                words.forEach((w, i) => {
+                    w.style.transitionDelay = (i * 0.25) + 's';
+                });
             }
 
             const qObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && !qInterval) {
-                        riseNextQuestion();
-                        qInterval = setInterval(riseNextQuestion, 3500);
+                        revealNextQuestion();
+                        qInterval = setInterval(revealNextQuestion, 5500);
                         qObserver.unobserve(entry.target);
                     }
                 });
