@@ -196,6 +196,54 @@ if (weightQuestions) {
     qObserver.observe(weightQuestions);
 }
 
+// Collapse stage — sequential Before → Transform → After animation
+const collapseStage = document.getElementById('collapseStage');
+if (collapseStage) {
+    const beforePhase = collapseStage.querySelector('.collapse-before-phase');
+    const transformPhase = collapseStage.querySelector('.collapse-transform-phase');
+    const afterPhase = collapseStage.querySelector('.collapse-after-phase');
+
+    const collapseObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Step 1: Show Before
+                beforePhase.classList.add('active');
+
+                // Step 2: Dissolve Before after 2.5s
+                setTimeout(() => {
+                    beforePhase.classList.remove('active');
+                    beforePhase.classList.add('dissolving');
+                }, 2500);
+
+                // Step 3: Show Transform burst at 3.5s
+                setTimeout(() => {
+                    transformPhase.classList.add('active');
+                }, 3500);
+
+                // Step 4: Dissolve Transform at 6s
+                setTimeout(() => {
+                    transformPhase.classList.remove('active');
+                    transformPhase.classList.add('dissolving');
+                }, 6000);
+
+                // Step 5: Show After at 6.8s
+                setTimeout(() => {
+                    afterPhase.classList.add('active');
+                }, 6800);
+
+                // Step 6: Show scroll cue at 8.5s
+                setTimeout(() => {
+                    const cue = document.getElementById('mechanismScrollCue');
+                    if (cue) cue.classList.add('visible');
+                }, 8500);
+
+                collapseObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    collapseObserver.observe(collapseStage);
+}
+
 // Mechanism beats — flow in one after another
 const mechanismBeats = document.getElementById('mechanismBeats');
 if (mechanismBeats) {
