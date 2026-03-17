@@ -12,6 +12,14 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
+// Auto-scroll helper — smooth scroll to next snap section after delay
+function autoScrollToNext(currentSection, delay) {
+    setTimeout(() => {
+        const next = currentSection.nextElementSibling;
+        if (next) next.scrollIntoView({ behavior: 'smooth' });
+    }, delay);
+}
+
 // Ripple ring touch handling for mobile
 const rings = document.querySelectorAll('.ripple-ring');
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -19,13 +27,11 @@ const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 if (isTouchDevice) {
     rings.forEach(ring => {
         ring.addEventListener('touchstart', (e) => {
-            // Remove touched class from all rings first
             rings.forEach(r => r.classList.remove('touched'));
             ring.classList.add('touched');
         }, { passive: true });
     });
 
-    // Remove touched state when tapping outside
     document.addEventListener('touchstart', (e) => {
         if (!e.target.closest('.ripple-ring')) {
             rings.forEach(r => r.classList.remove('touched'));
@@ -51,7 +57,6 @@ const rippleObserver = new IntersectionObserver((entries) => {
 
 const rippleVisual = document.querySelector('.ripple-visual');
 if (rippleVisual) {
-    // Set initial state for staggered entrance
     rings.forEach(ring => {
         ring.style.opacity = '0';
         ring.style.transform = 'scale(0.85)';
@@ -60,10 +65,11 @@ if (rippleVisual) {
     rippleObserver.observe(rippleVisual);
 }
 
-// Weight moments — one at a time, flash like intrusive thoughts
+// ---- WEIGHT MOMENTS (thoughts) ----
 const weightMoments = document.querySelector('.weight-moments');
 if (weightMoments) {
     const moments = weightMoments.querySelectorAll('.weight-moment');
+    const weightSection = weightMoments.closest('.the-weight');
 
     // Wrap words in spans, preserving colored spans
     moments.forEach(m => {
@@ -108,17 +114,18 @@ if (weightMoments) {
         });
         currentMoment = (currentMoment + 1) % moments.length;
         if (currentMoment === 0) momentCycles++;
-        // Stop after one full cycle — show last thought + scroll cue
+        // Stop after one full cycle
         if (momentCycles >= 1 && currentMoment === 0) {
             clearInterval(cycleInterval);
-            // Show last thought and scroll cue
             const last = moments[moments.length - 1];
             last.querySelectorAll('.wm-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.12) + 's';
             });
             last.classList.add('active');
+            // Show scroll cue after cycle, then auto-scroll
             const cue = document.getElementById('weightScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 1500);
+            if (weightSection) autoScrollToNext(weightSection, 3500);
             return;
         }
         const current = moments[currentMoment];
@@ -140,11 +147,12 @@ if (weightMoments) {
     weightObserver.observe(weightMoments);
 }
 
-// Weight questions — word-by-word reveal, one question at a time
+// ---- WEIGHT QUESTIONS ----
 const weightQuestions = document.querySelector('.weight-questions');
 if (weightQuestions) {
     const questions = weightQuestions.querySelectorAll('.weight-question');
-    // Wrap each word in a span
+    const questionsSection = weightQuestions.closest('.weight-questions-section');
+
     questions.forEach(q => {
         const text = q.textContent;
         const words = text.split(/\s+/);
@@ -156,7 +164,6 @@ if (weightQuestions) {
     let qCycles = 0;
 
     function revealNextQuestion() {
-        // Clear ALL questions first — prevents overlap from stale classes
         questions.forEach(q => {
             q.classList.remove('active', 'exiting');
             q.querySelectorAll('.wq-word').forEach(w => { w.style.transitionDelay = '0s'; });
@@ -164,7 +171,7 @@ if (weightQuestions) {
 
         currentQ = (currentQ + 1) % questions.length;
         if (currentQ === 0) qCycles++;
-        // Stop after one full cycle — keep last question visible + scroll cue
+        // Stop after one full cycle
         if (qCycles >= 1 && currentQ === 0) {
             clearInterval(qInterval);
             const last = questions[questions.length - 1];
@@ -172,8 +179,10 @@ if (weightQuestions) {
             last.querySelectorAll('.wq-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.25) + 's';
             });
+            // Show scroll cue after cycle, then auto-scroll
             const cue = document.getElementById('questionsScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 2000);
+            if (questionsSection) autoScrollToNext(questionsSection, 4000);
             return;
         }
 
@@ -196,62 +205,104 @@ if (weightQuestions) {
     qObserver.observe(weightQuestions);
 }
 
-// Collapse stage — sequential Before → Transform → After animation
+// ---- COLLAPSE STAGE (Before → Transform → After) ----
+// Replays every time user scrolls into view
 const collapseStage = document.getElementById('collapseStage');
 if (collapseStage) {
+    const mechanismSection = collapseStage.closest('.the-mechanism');
     const beforePhase = collapseStage.querySelector('.collapse-before-phase');
     const transformPhase = collapseStage.querySelector('.collapse-transform-phase');
     const afterPhase = collapseStage.querySelector('.collapse-after-phase');
+    let collapseTimeouts = [];
+    let collapseRunning = false;
+
+    function resetCollapseStage() {
+        // Clear pending timeouts
+        collapseTimeouts.forEach(t => clearTimeout(t));
+        collapseTimeouts = [];
+        collapseRunning = false;
+
+        // Reset all phases
+        [beforePhase, transformPhase, afterPhase].forEach(phase => {
+            phase.classList.remove('active', 'dissolving');
+            phase.querySelectorAll('.vflow-node, .vflow-connector').forEach(el => {
+                el.classList.remove('revealed');
+            });
+        });
+
+        // Force reflow so CSS animations can replay
+        void collapseStage.offsetHeight;
+
+        // Hide scroll cue
+        const cue = document.getElementById('mechanismScrollCue');
+        if (cue) cue.classList.remove('visible');
+    }
 
     function revealVflowItems(phase, baseDelay) {
         const items = phase.querySelectorAll('.vflow-node, .vflow-connector');
         items.forEach((item, i) => {
-            setTimeout(() => item.classList.add('revealed'), baseDelay + i * 400);
+            const t = setTimeout(() => item.classList.add('revealed'), baseDelay + i * 400);
+            collapseTimeouts.push(t);
         });
         return baseDelay + items.length * 400;
     }
 
+    function runCollapseAnimation() {
+        if (collapseRunning) return;
+        resetCollapseStage();
+        collapseRunning = true;
+
+        // Step 1: Show Before, stagger vertical items
+        beforePhase.classList.add('active');
+        const beforeEnd = revealVflowItems(beforePhase, 300);
+
+        // Step 2: Dissolve Before
+        const dissolveAt = beforeEnd + 1200;
+        collapseTimeouts.push(setTimeout(() => {
+            beforePhase.classList.remove('active');
+            beforePhase.classList.add('dissolving');
+        }, dissolveAt));
+
+        // Step 3: Launch transformation
+        const launchAt = dissolveAt + 1000;
+        collapseTimeouts.push(setTimeout(() => {
+            transformPhase.classList.add('active');
+        }, launchAt));
+
+        // Step 4: Dissolve transformation
+        const launchEnd = launchAt + 3000;
+        collapseTimeouts.push(setTimeout(() => {
+            transformPhase.classList.remove('active');
+            transformPhase.classList.add('dissolving');
+        }, launchEnd));
+
+        // Step 5: Show After
+        const afterAt = launchEnd + 800;
+        collapseTimeouts.push(setTimeout(() => {
+            afterPhase.classList.add('active');
+            revealVflowItems(afterPhase, 200);
+        }, afterAt));
+
+        // Step 6: Scroll cue + auto-scroll
+        const cueAt = afterAt + 2000;
+        collapseTimeouts.push(setTimeout(() => {
+            const cue = document.getElementById('mechanismScrollCue');
+            if (cue) cue.classList.add('visible');
+            collapseRunning = false;
+        }, cueAt));
+
+        collapseTimeouts.push(setTimeout(() => {
+            if (mechanismSection) autoScrollToNext(mechanismSection, 0);
+        }, cueAt + 2000));
+    }
+
+    // Re-observe: replay on every entry, reset on exit
     const collapseObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                // Step 1: Show Before phase, stagger vertical items
-                beforePhase.classList.add('active');
-                const beforeEnd = revealVflowItems(beforePhase, 300);
-
-                // Step 2: Dissolve Before
-                const dissolveAt = beforeEnd + 1200;
-                setTimeout(() => {
-                    beforePhase.classList.remove('active');
-                    beforePhase.classList.add('dissolving');
-                }, dissolveAt);
-
-                // Step 3: Launch transformation
-                const launchAt = dissolveAt + 1000;
-                setTimeout(() => {
-                    transformPhase.classList.add('active');
-                }, launchAt);
-
-                // Step 4: Dissolve transformation
-                const launchEnd = launchAt + 3000;
-                setTimeout(() => {
-                    transformPhase.classList.remove('active');
-                    transformPhase.classList.add('dissolving');
-                }, launchEnd);
-
-                // Step 5: Show After
-                const afterAt = launchEnd + 800;
-                setTimeout(() => {
-                    afterPhase.classList.add('active');
-                    revealVflowItems(afterPhase, 200);
-                }, afterAt);
-
-                // Step 6: Scroll cue
-                setTimeout(() => {
-                    const cue = document.getElementById('mechanismScrollCue');
-                    if (cue) cue.classList.add('visible');
-                }, afterAt + 2000);
-
-                collapseObserver.unobserve(entry.target);
+                runCollapseAnimation();
+            } else {
+                resetCollapseStage();
             }
         });
     }, { threshold: 0.3 });
@@ -274,7 +325,6 @@ if (mechanismBeats) {
     }, { threshold: 0.2 });
     mechObserver.observe(mechanismBeats);
 }
-
 
 // Show confirmation if redirected back after form submit
 if (new URLSearchParams(window.location.search).get('joined') === '1') {
