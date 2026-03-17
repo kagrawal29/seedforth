@@ -12,11 +12,15 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-// Auto-scroll helper — smooth scroll to next snap section after delay
+// Auto-scroll helper — only scrolls if section is still in view
 function autoScrollToNext(currentSection, delay) {
     setTimeout(() => {
-        const next = currentSection.nextElementSibling;
-        if (next) next.scrollIntoView({ behavior: 'smooth' });
+        const rect = currentSection.getBoundingClientRect();
+        const inView = rect.top >= -100 && rect.top < window.innerHeight * 0.5;
+        if (inView) {
+            const next = currentSection.nextElementSibling;
+            if (next) next.scrollIntoView({ behavior: 'smooth' });
+        }
     }, delay);
 }
 
@@ -106,6 +110,7 @@ if (weightMoments) {
     let currentMoment = -1;
     let cycleInterval = null;
     let momentCycles = 0;
+    let momentsDone = false;
 
     function flashNext() {
         moments.forEach(m => {
@@ -117,15 +122,17 @@ if (weightMoments) {
         // Stop after one full cycle
         if (momentCycles >= 1 && currentMoment === 0) {
             clearInterval(cycleInterval);
+            cycleInterval = null;
+            momentsDone = true;
             const last = moments[moments.length - 1];
             last.querySelectorAll('.wm-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.12) + 's';
             });
             last.classList.add('active');
-            // Show scroll cue after cycle, then auto-scroll
+            // Show scroll cue after cycle, then auto-scroll with generous pause
             const cue = document.getElementById('weightScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 1500);
-            if (weightSection) autoScrollToNext(weightSection, 3500);
+            if (weightSection) autoScrollToNext(weightSection, 5000);
             return;
         }
         const current = moments[currentMoment];
@@ -135,16 +142,16 @@ if (weightMoments) {
         current.classList.add('active');
     }
 
+    // Only start when section is mostly in view; don't restart if done
     const weightObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !cycleInterval) {
+            if (entry.isIntersecting && !cycleInterval && !momentsDone) {
                 flashNext();
                 cycleInterval = setInterval(flashNext, 3000);
-                weightObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.3 });
-    weightObserver.observe(weightMoments);
+    }, { threshold: 0.7 });
+    weightObserver.observe(weightSection || weightMoments);
 }
 
 // ---- WEIGHT QUESTIONS ----
@@ -162,6 +169,7 @@ if (weightQuestions) {
     let currentQ = -1;
     let qInterval = null;
     let qCycles = 0;
+    let questionsDone = false;
 
     function revealNextQuestion() {
         questions.forEach(q => {
@@ -174,15 +182,17 @@ if (weightQuestions) {
         // Stop after one full cycle
         if (qCycles >= 1 && currentQ === 0) {
             clearInterval(qInterval);
+            qInterval = null;
+            questionsDone = true;
             const last = questions[questions.length - 1];
             last.classList.add('active');
             last.querySelectorAll('.wq-word').forEach((w, i) => {
                 w.style.transitionDelay = (i * 0.25) + 's';
             });
-            // Show scroll cue after cycle, then auto-scroll
+            // Show scroll cue after cycle, then auto-scroll with generous pause
             const cue = document.getElementById('questionsScrollCue');
             if (cue) setTimeout(() => cue.classList.add('visible'), 2000);
-            if (questionsSection) autoScrollToNext(questionsSection, 4000);
+            if (questionsSection) autoScrollToNext(questionsSection, 6000);
             return;
         }
 
@@ -193,16 +203,16 @@ if (weightQuestions) {
         });
     }
 
+    // Only start when section is mostly in view; don't restart if done
     const qObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !qInterval) {
+            if (entry.isIntersecting && !qInterval && !questionsDone) {
                 revealNextQuestion();
                 qInterval = setInterval(revealNextQuestion, 5500);
-                qObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.3 });
-    qObserver.observe(weightQuestions);
+    }, { threshold: 0.7 });
+    qObserver.observe(questionsSection || weightQuestions);
 }
 
 // ---- COLLAPSE STAGE (Before → Transform → After) ----
@@ -293,7 +303,7 @@ if (collapseStage) {
 
         collapseTimeouts.push(setTimeout(() => {
             if (mechanismSection) autoScrollToNext(mechanismSection, 0);
-        }, cueAt + 2000));
+        }, cueAt + 3000));
     }
 
     // Re-observe: replay on every entry, reset on exit
@@ -305,7 +315,7 @@ if (collapseStage) {
                 resetCollapseStage();
             }
         });
-    }, { threshold: 0.3 });
+    }, { threshold: 0.6 });
     collapseObserver.observe(collapseStage);
 }
 
