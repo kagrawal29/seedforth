@@ -336,45 +336,38 @@
             opacity: 0.75;
         }
 
-        .weight-quote {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            font-style: italic;
-            line-height: 1.65;
-            color: var(--text);
-            border-left: 2px solid;
-            border-image: linear-gradient(to bottom, var(--accent), var(--warm)) 1;
-            padding-left: 1.5rem;
-            max-width: 400px;
-            opacity: 0.85;
-            margin-top: 45vh;
-            margin-bottom: 3rem;
-        }
-
         .weight-questions {
             text-align: center;
             max-width: 440px;
-            margin: 0 auto;
+            margin: 45vh auto 0;
             position: relative;
-            min-height: 3.5rem;
+            height: 5rem;
+            overflow: hidden;
         }
 
         .weight-question {
             font-family: 'Playfair Display', serif;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-style: italic;
             color: var(--text);
             line-height: 1.6;
             position: absolute;
-            top: 0;
             left: 0;
             right: 0;
+            top: 50%;
             opacity: 0;
-            transition: opacity 0.8s ease;
+            transform: translateY(60px);
+            transition: opacity 0.9s ease, transform 0.9s ease;
         }
 
         .weight-question.active {
-            opacity: 0.7;
+            opacity: 0.8;
+            transform: translateY(-50%);
+        }
+
+        .weight-question.exiting {
+            opacity: 0;
+            transform: translateY(-60px);
         }
 
         /* ---- THE BREAK (transition moment) ---- */
@@ -1116,12 +1109,12 @@
                 margin-bottom: 2.5rem;
             }
 
-            .weight-quote {
+            .weight-question {
                 font-size: 1.4rem;
             }
 
-            .weight-question {
-                font-size: 1.25rem;
+            .weight-questions {
+                height: 6rem;
             }
 
             .the-break {
@@ -1258,11 +1251,8 @@
                 <span class="weight-moment">The evening walk that never happens.</span>
             </div>
 
-            <p class="weight-quote fade-in">
-                "How does your work feel when you are alone with it?"
-            </p>
-
             <div class="weight-questions fade-in">
+                <p class="weight-question">How does your work feel when you are alone with it?</p>
                 <p class="weight-question">When did you last build something that wasn't urgent?</p>
                 <p class="weight-question">What would you do with a week that was yours?</p>
                 <p class="weight-question">Who are you when nothing is due?</p>
@@ -1514,24 +1504,33 @@
             weightObserver.observe(weightMoments);
         }
 
-        // Weight follow-up questions — cycle one at a time, slow and deliberate
+        // Weight questions — rise from below, one at a time
         const weightQuestions = document.querySelector('.weight-questions');
         if (weightQuestions) {
             const questions = weightQuestions.querySelectorAll('.weight-question');
             let currentQ = -1;
             let qInterval = null;
 
-            function showNextQuestion() {
-                questions.forEach(q => q.classList.remove('active'));
+            function riseNextQuestion() {
+                if (currentQ >= 0) {
+                    questions[currentQ].classList.remove('active');
+                    questions[currentQ].classList.add('exiting');
+                }
                 currentQ = (currentQ + 1) % questions.length;
+                questions.forEach((q, i) => {
+                    if (i !== currentQ) {
+                        q.classList.remove('exiting');
+                    }
+                });
+                questions[currentQ].classList.remove('exiting');
                 questions[currentQ].classList.add('active');
             }
 
             const qObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && !qInterval) {
-                        showNextQuestion();
-                        qInterval = setInterval(showNextQuestion, 3500);
+                        riseNextQuestion();
+                        qInterval = setInterval(riseNextQuestion, 3500);
                         qObserver.unobserve(entry.target);
                     }
                 });
