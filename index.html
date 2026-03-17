@@ -37,6 +37,7 @@
 
         html {
             scroll-behavior: smooth;
+            scroll-snap-type: y proximity;
         }
 
         body {
@@ -270,9 +271,17 @@
             transform: translateY(0);
         }
 
+        .snap-section {
+            scroll-snap-align: start;
+        }
+
         /* ---- SECTION: THE WEIGHT (compression half) ---- */
         .the-weight {
             padding: 5rem 1.5rem 3rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             position: relative;
             overflow: hidden;
         }
@@ -320,9 +329,9 @@
 
         .weight-moment {
             display: block;
-            font-size: 0.88rem;
+            font-size: 1.05rem;
             color: var(--text-muted);
-            line-height: 1.5;
+            line-height: 1.6;
             font-weight: 300;
             padding: 0.35rem 0;
             opacity: 0;
@@ -333,13 +342,37 @@
         }
 
         .weight-moment.active {
-            opacity: 0.75;
+            opacity: 0.85;
+        }
+
+        .wm-thing {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .wm-loss {
+            color: var(--warm);
+            font-weight: 400;
+        }
+
+        .weight-questions-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            position: relative;
+            padding: 3rem 1.5rem;
+        }
+
+        .weight-questions-section .container {
+            width: 100%;
         }
 
         .weight-questions {
             text-align: center;
             max-width: 440px;
-            margin: 45vh auto 0;
+            margin: 0 auto;
             position: relative;
             height: 5rem;
             overflow: hidden;
@@ -1226,7 +1259,7 @@
     </nav>
 
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero snap-section">
         <div class="hero-orb hero-orb-1"></div>
         <div class="hero-orb hero-orb-2"></div>
         <div class="hero-orb hero-orb-3"></div>
@@ -1239,18 +1272,22 @@
     </section>
 
     <!-- THE WEIGHT: compression -->
-    <section class="the-weight" id="mirror">
+    <section class="the-weight snap-section" id="mirror">
         <div class="container">
             <div class="weight-label fade-in">The reality</div>
             <h2 class="weight-title fade-in">You are not behind.<br>Your operating system is.</h2>
 
             <div class="weight-moments fade-in">
-                <span class="weight-moment">The idea that died before you opened your laptop.</span>
-                <span class="weight-moment">The book with the same bookmark for three months.</span>
-                <span class="weight-moment">The call you keep meaning to make.</span>
-                <span class="weight-moment">The evening walk that never happens.</span>
+                <span class="weight-moment">The <span class="wm-thing">idea</span> that <span class="wm-loss">died</span> before you opened your laptop.</span>
+                <span class="weight-moment">The <span class="wm-thing">book</span> with the same bookmark for <span class="wm-loss">three months</span>.</span>
+                <span class="weight-moment">The <span class="wm-thing">call</span> you <span class="wm-loss">keep meaning</span> to make.</span>
+                <span class="weight-moment">The <span class="wm-thing">evening walk</span> that <span class="wm-loss">never happens</span>.</span>
             </div>
+        </div>
+    </section>
 
+    <section class="weight-questions-section snap-section">
+        <div class="container">
             <div class="weight-questions fade-in">
                 <p class="weight-question">How does your work feel when you are alone with it?</p>
                 <p class="weight-question">When did you last build something that wasn't urgent?</p>
@@ -1261,7 +1298,7 @@
     </section>
 
     <!-- THE BREAK: transition -->
-    <section class="the-break">
+    <section class="the-break snap-section">
         <div class="break-visual fade-in">
             <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                 <!-- Closed clock circle (fading out) -->
@@ -1282,7 +1319,7 @@
     </section>
 
     <!-- THE RELEASE: expansion -->
-    <section class="the-release">
+    <section class="the-release snap-section">
         <div class="container">
 
             <!-- Gap collapse diagram -->
@@ -1345,7 +1382,7 @@
     </section>
 
     <!-- RIPPLE -->
-    <section class="ripple" id="ripple">
+    <section class="ripple snap-section" id="ripple">
         <div class="container">
             <div class="section-label fade-in">The ripple</div>
             <h2 class="ripple-title fade-in">Agency compounds outward</h2>
