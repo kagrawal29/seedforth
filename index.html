@@ -355,28 +355,27 @@
             text-align: center;
             max-width: 440px;
             margin: 0 auto;
+            position: relative;
+            min-height: 3.5rem;
         }
 
         .weight-question {
             font-family: 'Playfair Display', serif;
-            font-size: 1rem;
+            font-size: 1.15rem;
             font-style: italic;
-            color: var(--text-muted);
+            color: var(--text);
             line-height: 1.6;
-            margin-bottom: 1.5rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
             opacity: 0;
-            transform: translateY(8px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
+            transition: opacity 0.8s ease;
         }
 
-        .weight-question.visible {
-            opacity: 0.6;
-            transform: translateY(0);
+        .weight-question.active {
+            opacity: 0.7;
         }
-
-        .weight-question:nth-child(1) { transition-delay: 0s; }
-        .weight-question:nth-child(2) { transition-delay: 0.4s; }
-        .weight-question:nth-child(3) { transition-delay: 0.8s; }
 
         /* ---- THE BREAK (transition moment) ---- */
         .the-break {
@@ -1122,7 +1121,7 @@
             }
 
             .weight-question {
-                font-size: 1.1rem;
+                font-size: 1.25rem;
             }
 
             .the-break {
@@ -1515,15 +1514,24 @@
             weightObserver.observe(weightMoments);
         }
 
-        // Weight follow-up questions — stagger reveal
+        // Weight follow-up questions — cycle one at a time, slow and deliberate
         const weightQuestions = document.querySelector('.weight-questions');
         if (weightQuestions) {
+            const questions = weightQuestions.querySelectorAll('.weight-question');
+            let currentQ = -1;
+            let qInterval = null;
+
+            function showNextQuestion() {
+                questions.forEach(q => q.classList.remove('active'));
+                currentQ = (currentQ + 1) % questions.length;
+                questions[currentQ].classList.add('active');
+            }
+
             const qObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.querySelectorAll('.weight-question').forEach(q => {
-                            q.classList.add('visible');
-                        });
+                    if (entry.isIntersecting && !qInterval) {
+                        showNextQuestion();
+                        qInterval = setInterval(showNextQuestion, 3500);
                         qObserver.unobserve(entry.target);
                     }
                 });
