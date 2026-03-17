@@ -323,14 +323,24 @@
             line-height: 1.5;
             font-weight: 300;
             padding: 0.35rem 0;
-            opacity: 0.55;
-            transition: opacity 0.3s;
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
         }
 
-        .weight-moment:nth-child(1) { opacity: 0.4; }
-        .weight-moment:nth-child(2) { opacity: 0.5; }
-        .weight-moment:nth-child(3) { opacity: 0.6; }
-        .weight-moment:nth-child(4) { opacity: 0.7; }
+        .weight-moment.visible {
+            transform: translateX(0);
+        }
+
+        .weight-moment:nth-child(1) { transition-delay: 0s; }
+        .weight-moment:nth-child(2) { transition-delay: 0.15s; }
+        .weight-moment:nth-child(3) { transition-delay: 0.3s; }
+        .weight-moment:nth-child(4) { transition-delay: 0.45s; }
+
+        .weight-moment:nth-child(1).visible { opacity: 0.4; }
+        .weight-moment:nth-child(2).visible { opacity: 0.5; }
+        .weight-moment:nth-child(3).visible { opacity: 0.6; }
+        .weight-moment:nth-child(4).visible { opacity: 0.7; }
 
         .weight-verdict {
             font-size: 0.92rem;
@@ -543,6 +553,16 @@
         .collapse-after .collapse-arrow {
             color: var(--teal);
             opacity: 0.8;
+        }
+
+        .collapse-anchor {
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text);
+            opacity: 0.5;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
         }
 
         /* Release payoff — three beats, no boxes */
@@ -1266,6 +1286,7 @@
                     <span class="collapse-arrow">&rarr;</span>
                     <span class="collapse-node end">Impact</span>
                 </div>
+                <div class="collapse-anchor fade-in">This is agency.</div>
             </div>
 
             <!-- Three beats — no boxes -->
@@ -1415,6 +1436,22 @@
                 ring.style.transition = 'opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s';
             });
             rippleObserver.observe(rippleVisual);
+        }
+
+        // Weight moments stagger animation (murmuring reveal)
+        const weightMoments = document.querySelector('.weight-moments');
+        if (weightMoments) {
+            const weightObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.querySelectorAll('.weight-moment').forEach(m => {
+                            m.classList.add('visible');
+                        });
+                        weightObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+            weightObserver.observe(weightMoments);
         }
 
         // Release beats stagger animation
