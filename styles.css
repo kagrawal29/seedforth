@@ -225,15 +225,16 @@ nav.scrolled {
 
 .section-scroll-cue {
     width: 1px;
-    height: 36px;
+    height: 40px;
     background: linear-gradient(to bottom, rgba(201, 169, 110, 0.5), transparent);
     animation: pulse 2.5s ease-in-out infinite;
     opacity: 0;
     transition: opacity 0.8s ease;
     position: absolute;
-    bottom: 3rem;
+    bottom: 2.5rem;
     left: 50%;
     transform: translateX(-50%);
+    pointer-events: none;
 }
 
 .section-scroll-cue.visible {
