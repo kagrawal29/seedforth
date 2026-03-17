@@ -203,39 +203,53 @@ if (collapseStage) {
     const transformPhase = collapseStage.querySelector('.collapse-transform-phase');
     const afterPhase = collapseStage.querySelector('.collapse-after-phase');
 
+    function revealVflowItems(phase, baseDelay) {
+        const items = phase.querySelectorAll('.vflow-node, .vflow-connector');
+        items.forEach((item, i) => {
+            setTimeout(() => item.classList.add('revealed'), baseDelay + i * 400);
+        });
+        return baseDelay + items.length * 400;
+    }
+
     const collapseObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                // Step 1: Show Before
+                // Step 1: Show Before phase, stagger vertical items
                 beforePhase.classList.add('active');
+                const beforeEnd = revealVflowItems(beforePhase, 300);
 
-                // Step 2: Dissolve Before after 2.5s
+                // Step 2: Dissolve Before
+                const dissolveAt = beforeEnd + 1200;
                 setTimeout(() => {
                     beforePhase.classList.remove('active');
                     beforePhase.classList.add('dissolving');
-                }, 2500);
+                }, dissolveAt);
 
-                // Step 3: Show Transform burst at 3.5s
+                // Step 3: Launch transformation
+                const launchAt = dissolveAt + 1000;
                 setTimeout(() => {
                     transformPhase.classList.add('active');
-                }, 3500);
+                }, launchAt);
 
-                // Step 4: Dissolve Transform at 6s
+                // Step 4: Dissolve transformation
+                const launchEnd = launchAt + 3000;
                 setTimeout(() => {
                     transformPhase.classList.remove('active');
                     transformPhase.classList.add('dissolving');
-                }, 6000);
+                }, launchEnd);
 
-                // Step 5: Show After at 6.8s
+                // Step 5: Show After
+                const afterAt = launchEnd + 800;
                 setTimeout(() => {
                     afterPhase.classList.add('active');
-                }, 6800);
+                    revealVflowItems(afterPhase, 200);
+                }, afterAt);
 
-                // Step 6: Show scroll cue at 8.5s
+                // Step 6: Scroll cue
                 setTimeout(() => {
                     const cue = document.getElementById('mechanismScrollCue');
                     if (cue) cue.classList.add('visible');
-                }, 8500);
+                }, afterAt + 2000);
 
                 collapseObserver.unobserve(entry.target);
             }

@@ -570,7 +570,7 @@ nav.scrolled {
     margin: 2rem auto 0;
     text-align: center;
     position: relative;
-    min-height: 160px;
+    min-height: 320px;
 }
 
 .collapse-phase {
@@ -598,139 +598,214 @@ nav.scrolled {
     text-transform: uppercase;
     color: var(--text-muted);
     opacity: 0.65;
-    margin-bottom: 1rem;
-}
-
-.collapse-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    flex-wrap: nowrap;
+    margin-bottom: 1.5rem;
 }
 
 .collapse-node {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     font-weight: 500;
-    white-space: nowrap;
 }
 
 .collapse-node.warm { color: var(--warm); }
 .collapse-node.muted { color: var(--text-muted); opacity: 0.6; }
-.collapse-node.gold { color: var(--accent); }
-.collapse-node.teal { color: var(--teal); font-size: 0.75rem; font-weight: 600; }
+.collapse-node.gold { color: var(--accent); font-size: 0.8rem; }
+.collapse-node.teal { color: var(--teal); font-size: 0.85rem; font-weight: 600; }
 
-.collapse-line {
-    width: 18px;
-    height: 1px;
-    flex-shrink: 0;
-}
-
-.collapse-line.dim {
-    background: rgba(212, 115, 110, 0.35);
-}
-
-.collapse-line.bright {
-    background: linear-gradient(to right, var(--accent), var(--teal));
-    width: 50px;
-    height: 2px;
-}
-
-.collapse-cluster {
+/* Vertical flow */
+.vflow {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0;
 }
 
-.collapse-dot {
+.vflow-node {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.vflow-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0.6rem 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.vflow-dot {
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background: var(--warm);
-    opacity: 0.6;
-}
-
-.collapse-dot-label {
-    font-size: 0.45rem;
-    color: var(--warm);
-    opacity: 0.75;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.collapse-arrow {
-    font-size: 0.7rem;
-    color: var(--text-muted);
     opacity: 0.5;
 }
 
-.collapse-arrow.bright-arrow {
-    color: var(--teal);
-    opacity: 0.9;
+.vflow-dot-label {
+    font-size: 0.45rem;
+    color: var(--warm);
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 0;
 }
 
-/* Transformation burst animation */
+/* After flow — bright connector */
+.bright-connector {
+    padding: 0.5rem 0;
+}
+
+.vflow-line-bright {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--accent), var(--teal));
+    border-radius: 1px;
+}
+
+/* Stagger reveal classes set by JS */
+.vflow-node.revealed,
+.vflow-connector.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ---- Launch / Transformation ---- */
 .collapse-transform-phase {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-top: 1rem;
+    padding-top: 2rem;
 }
 
-.transform-burst {
+.launch-stage {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 200px;
     margin: 0 auto 1.5rem;
 }
 
-.transform-ring {
+/* Vertical trail — rocket exhaust line */
+.launch-trail {
     position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 0;
+    background: linear-gradient(to top, transparent, var(--accent) 40%, var(--teal));
+    border-radius: 1px;
+}
+
+.collapse-transform-phase.active .launch-trail {
+    animation: trail-grow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes trail-grow {
+    0% { height: 0; opacity: 0; }
+    30% { height: 40%; opacity: 1; }
+    100% { height: 100%; opacity: 0.7; }
+}
+
+/* Flare at the top */
+.launch-flare {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 50%) scale(0);
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
+    background: radial-gradient(circle, #fff, var(--accent) 60%, transparent 100%);
+    box-shadow: 0 0 30px var(--accent), 0 0 60px rgba(201, 169, 110, 0.4);
+}
+
+.collapse-transform-phase.active .launch-flare {
+    animation: flare-rise 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+@keyframes flare-rise {
+    0% { transform: translate(-50%, 100%) scale(0); opacity: 0; }
+    20% { transform: translate(-50%, 0%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%, -60%) scale(1.5); opacity: 1; }
+    80% { transform: translate(-50%, -120%) scale(2); opacity: 0.6; }
+    100% { transform: translate(-50%, -180%) scale(0.5); opacity: 0; }
+}
+
+/* Shockwave rings */
+.launch-shockwave {
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
     opacity: 0;
 }
 
-.collapse-transform-phase.active .transform-ring {
-    animation: burst-expand 2s ease-out forwards;
+.launch-shockwave.sw-2 {
+    border-color: var(--teal);
 }
 
-.transform-ring:nth-child(1) {
-    width: 30px;
-    height: 30px;
-    border: 2px solid var(--accent);
-    animation-delay: 0s;
+.collapse-transform-phase.active .launch-shockwave {
+    animation: shockwave 1.4s ease-out 0.8s forwards;
 }
 
-.transform-ring:nth-child(2) {
-    width: 65px;
-    height: 65px;
-    border: 1.5px solid var(--teal);
-    animation-delay: 0.3s;
+.collapse-transform-phase.active .launch-shockwave.sw-2 {
+    animation: shockwave 1.4s ease-out 1.1s forwards;
 }
 
-.transform-ring:nth-child(3) {
-    width: 100px;
-    height: 100px;
-    border: 1px solid var(--lavender);
-    animation-delay: 0.6s;
+@keyframes shockwave {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
 }
 
-.collapse-transform-phase.active .transform-ring:nth-child(1) { animation-delay: 0s; }
-.collapse-transform-phase.active .transform-ring:nth-child(2) { animation-delay: 0.3s; }
-.collapse-transform-phase.active .transform-ring:nth-child(3) { animation-delay: 0.6s; }
+/* Particles scattering */
+.launch-particles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+}
 
-@keyframes burst-expand {
-    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-    30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-    70% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-    100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+.launch-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+}
+
+.collapse-transform-phase.active .launch-particle {
+    animation: particle-scatter 1.2s ease-out forwards;
+}
+
+.launch-particle:nth-child(1) { animation-delay: 0.9s; }
+.launch-particle:nth-child(2) { animation-delay: 1.0s; background: var(--teal); }
+.launch-particle:nth-child(3) { animation-delay: 1.05s; }
+.launch-particle:nth-child(4) { animation-delay: 1.1s; background: var(--teal); }
+.launch-particle:nth-child(5) { animation-delay: 1.15s; background: var(--lavender); }
+.launch-particle:nth-child(6) { animation-delay: 1.2s; }
+
+.launch-particle:nth-child(1) { --px: -35px; --py: -40px; }
+.launch-particle:nth-child(2) { --px: 30px; --py: -35px; }
+.launch-particle:nth-child(3) { --px: -25px; --py: 30px; }
+.launch-particle:nth-child(4) { --px: 40px; --py: 20px; }
+.launch-particle:nth-child(5) { --px: -15px; --py: -50px; }
+.launch-particle:nth-child(6) { --px: 20px; --py: 45px; }
+
+@keyframes particle-scatter {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
 }
 
 .transform-label {
@@ -741,12 +816,14 @@ nav.scrolled {
     color: var(--accent);
     font-weight: 500;
     opacity: 0;
-    transition: opacity 0.6s ease;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .collapse-transform-phase.active .transform-label {
     opacity: 1;
-    transition-delay: 0.5s;
+    transform: translateY(0);
+    transition-delay: 1.2s;
 }
 
 .mechanism-beats {
