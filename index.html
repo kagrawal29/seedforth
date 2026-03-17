@@ -330,6 +330,7 @@
 
         .weight-moment.visible {
             transform: translateX(0);
+            animation: thought-flicker 4s ease-in-out infinite;
         }
 
         .weight-moment:nth-child(1) { transition-delay: 0s; }
@@ -337,10 +338,18 @@
         .weight-moment:nth-child(3) { transition-delay: 0.3s; }
         .weight-moment:nth-child(4) { transition-delay: 0.45s; }
 
-        .weight-moment:nth-child(1).visible { opacity: 0.4; }
-        .weight-moment:nth-child(2).visible { opacity: 0.5; }
-        .weight-moment:nth-child(3).visible { opacity: 0.6; }
-        .weight-moment:nth-child(4).visible { opacity: 0.7; }
+        .weight-moment:nth-child(1).visible { animation-delay: 0s; }
+        .weight-moment:nth-child(2).visible { animation-delay: 1.2s; }
+        .weight-moment:nth-child(3).visible { animation-delay: 2.4s; }
+        .weight-moment:nth-child(4).visible { animation-delay: 3.6s; }
+
+        @keyframes thought-flicker {
+            0%, 100% { opacity: 0.25; }
+            15%, 25% { opacity: 0.7; }
+            40% { opacity: 0.3; }
+            55%, 65% { opacity: 0.6; }
+            80% { opacity: 0.2; }
+        }
 
         .weight-verdict {
             font-size: 0.92rem;
@@ -1276,15 +1285,13 @@
         </div>
         <p class="break-statement fade-in">
             Don't put hours in AI agents.<br>
-            Make hours by using <strong>infinite agency</strong>.
+            <em>Make hours</em> by using <strong><em>infinite agency</em></strong>.
         </p>
     </section>
 
     <!-- THE RELEASE: expansion -->
     <section class="the-release">
         <div class="container">
-
-            <div class="collapse-upgrade fade-in">System upgrade</div>
 
             <!-- Gap collapse diagram -->
             <div class="collapse-visual fade-in">
@@ -1318,6 +1325,8 @@
                     <div class="shift-line"></div>
                     <div class="shift-line"></div>
                 </div>
+
+                <div class="collapse-upgrade fade-in">A Seedforth System Upgrade</div>
 
                 <div class="collapse-label">After</div>
                 <div class="collapse-after">
