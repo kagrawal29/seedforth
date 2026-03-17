@@ -476,7 +476,39 @@
             text-transform: uppercase;
             color: var(--accent);
             font-weight: 500;
-            margin: 2rem 0 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .collapse-shift {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 0;
+            height: 50px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .shift-line {
+            height: 1px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: shift-compress 3.5s ease-in-out infinite;
+        }
+
+        .shift-line:nth-child(1) { width: 70px; background: rgba(212, 115, 110, 0.3); animation-delay: 0s; }
+        .shift-line:nth-child(2) { width: 50px; background: rgba(201, 169, 110, 0.35); animation-delay: 0.12s; }
+        .shift-line:nth-child(3) { width: 35px; background: rgba(201, 169, 110, 0.4); animation-delay: 0.24s; }
+        .shift-line:nth-child(4) { width: 22px; background: rgba(110, 156, 138, 0.5); animation-delay: 0.36s; }
+        .shift-line:nth-child(5) { width: 10px; background: rgba(110, 156, 138, 0.8); animation-delay: 0.48s; }
+
+        @keyframes shift-compress {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-14px); }
+            25% { opacity: 0.8; transform: translateX(-50%) translateY(-4px); }
+            50% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            75% { opacity: 0.8; transform: translateX(-50%) translateY(4px); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(14px); }
         }
 
         .collapse-node {
@@ -1252,6 +1284,8 @@
     <section class="the-release">
         <div class="container">
 
+            <div class="collapse-upgrade fade-in">System upgrade</div>
+
             <!-- Gap collapse diagram -->
             <div class="collapse-visual fade-in">
                 <div class="collapse-label">Before</div>
@@ -1276,7 +1310,15 @@
                     <span class="collapse-node end">Maybe</span>
                 </div>
 
-                <div class="collapse-upgrade fade-in">System upgrade</div>
+                <!-- Shift transition -->
+                <div class="collapse-shift">
+                    <div class="shift-line"></div>
+                    <div class="shift-line"></div>
+                    <div class="shift-line"></div>
+                    <div class="shift-line"></div>
+                    <div class="shift-line"></div>
+                </div>
+
                 <div class="collapse-label">After</div>
                 <div class="collapse-after">
                     <span class="collapse-node start">Intention</span>
