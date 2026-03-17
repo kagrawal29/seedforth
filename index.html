@@ -37,7 +37,7 @@
 
         html {
             scroll-behavior: smooth;
-            scroll-snap-type: y proximity;
+            scroll-snap-type: y mandatory;
         }
 
         body {
@@ -277,11 +277,11 @@
 
         /* ---- SECTION: THE WEIGHT (compression half) ---- */
         .the-weight {
-            padding: 5rem 1.5rem 3rem;
+            padding: 20vh 1.5rem 3rem;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
             overflow: hidden;
         }
@@ -358,11 +358,11 @@
         .weight-questions-section {
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             background: var(--bg);
             position: relative;
-            padding: 3rem 1.5rem;
+            padding: 25vh 1.5rem 3rem;
         }
 
         .weight-questions-section .container {
@@ -405,7 +405,12 @@
 
         /* ---- THE BREAK (transition moment) ---- */
         .the-break {
-            padding: 5rem 1.5rem 3rem;
+            padding: 20vh 1.5rem 3rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -465,9 +470,72 @@
             font-weight: 600;
         }
 
+        /* ---- THE MECHANISM (how it works) ---- */
+        .the-mechanism {
+            padding: 15vh 1.5rem 3rem;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .the-mechanism::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 80% 30%, rgba(110, 156, 138, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, rgba(10, 10, 10, 1) 0%, rgba(14, 12, 10, 1) 100%);
+            z-index: 0;
+        }
+
+        .the-mechanism .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mechanism-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 3rem;
+        }
+
+        .mechanism-beats {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            max-width: 520px;
+        }
+
+        .mechanism-beat {
+            text-align: left;
+        }
+
+        .mechanism-beat-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .mechanism-beat:nth-child(1) .mechanism-beat-label { color: var(--accent); }
+        .mechanism-beat:nth-child(2) .mechanism-beat-label { color: var(--teal); }
+        .mechanism-beat:nth-child(3) .mechanism-beat-label { color: var(--warm); }
+
+        .mechanism-beat-text {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
         /* ---- THE RELEASE (expansion half) ---- */
         .the-release {
-            padding: 3rem 1.5rem 5rem;
+            padding: 15vh 1.5rem 5rem;
+            min-height: 100vh;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -675,7 +743,8 @@
 
         /* ---- SECTION: RIPPLE (mobile-first) ---- */
         .ripple {
-            padding: 4.5rem 1.5rem 3rem;
+            padding: 15vh 1.5rem 3rem;
+            min-height: 100vh;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -855,7 +924,8 @@
 
         /* ---- MANTRA INTERSTITIAL (mobile-first) ---- */
         .mantra {
-            padding: 4.5rem 1.5rem;
+            padding: 18vh 1.5rem 3rem;
+            min-height: 100vh;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -933,7 +1003,8 @@
 
         /* ---- CTA / WAITLIST (mobile-first) ---- */
         .cta {
-            padding: 4.5rem 1.5rem 3.5rem;
+            padding: 18vh 1.5rem 3.5rem;
+            min-height: 100vh;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -1313,9 +1384,32 @@
             </svg>
         </div>
         <p class="break-statement fade-in">
-            Don't put hours in AI agents.<br>
+            Don't put hours in redundant work.<br>
             <em class="break-highlight">Make hours</em> by using <strong><em>infinite agency</em></strong>.
         </p>
+    </section>
+
+    <!-- THE MECHANISM: how it works -->
+    <section class="the-mechanism snap-section">
+        <div class="container">
+            <div class="weight-label fade-in">The mechanism</div>
+            <h2 class="mechanism-title fade-in">Not one tool.<br>A team of AI agents.</h2>
+
+            <div class="mechanism-beats">
+                <div class="mechanism-beat fade-in">
+                    <div class="mechanism-beat-label">Reclaim Time</div>
+                    <p class="mechanism-beat-text">A team of AI agents takes over the repetitive, the draining, the mechanical. Not to replace you. To give you back the hours that belong to your actual life.</p>
+                </div>
+                <div class="mechanism-beat fade-in">
+                    <div class="mechanism-beat-label">Remove Friction</div>
+                    <p class="mechanism-beat-text">They find where your systems leak energy. One workflow, one bottleneck, one handoff at a time. Precision over volume.</p>
+                </div>
+                <div class="mechanism-beat fade-in">
+                    <div class="mechanism-beat-label">Restore Agency</div>
+                    <p class="mechanism-beat-text">When your time is yours again, you choose. The work that matters. The people who matter. The contribution only you can make.</p>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- THE RELEASE: expansion -->
@@ -1407,7 +1501,7 @@
     </section>
 
     <!-- MANTRA -->
-    <section class="mantra">
+    <section class="mantra snap-section">
         <div class="container">
             <div class="mantra-devanagari fade-in">वसुधैव कुटुम्बकम्</div>
             <div class="mantra-transliteration fade-in">Vasudhaiva Kutumbakam</div>
@@ -1421,7 +1515,7 @@
     </section>
 
     <!-- CTA -->
-    <section class="cta" id="waitlist">
+    <section class="cta snap-section" id="waitlist">
         <div class="container">
             <h2 class="cta-title fade-in">What will you do<br>with the time <em>you invent</em>?</h2>
             <p class="cta-text fade-in">
