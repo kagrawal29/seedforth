@@ -240,6 +240,20 @@
             animation: pulse 2.5s ease-in-out infinite;
         }
 
+        .section-scroll-cue {
+            width: 1px;
+            height: 36px;
+            margin: 2.5rem auto 0;
+            background: linear-gradient(to bottom, rgba(201, 169, 110, 0.5), transparent);
+            animation: pulse 2.5s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .section-scroll-cue.visible {
+            opacity: 1;
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
@@ -574,6 +588,14 @@
 
         .mechanism-beat {
             text-align: left;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .mechanism-beat.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .mechanism-beat-label {
@@ -583,7 +605,21 @@
             text-transform: uppercase;
             font-weight: 500;
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
+        .mechanism-beat-label::before {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 1px;
+        }
+
+        .mechanism-beat:nth-child(1) .mechanism-beat-label::before { background: var(--accent); }
+        .mechanism-beat:nth-child(2) .mechanism-beat-label::before { background: var(--teal); }
+        .mechanism-beat:nth-child(3) .mechanism-beat-label::before { background: var(--warm); }
 
         .mechanism-beat:nth-child(1) .mechanism-beat-label { color: var(--accent); }
         .mechanism-beat:nth-child(2) .mechanism-beat-label { color: var(--teal); }
@@ -596,9 +632,9 @@
             font-weight: 300;
         }
 
-        /* ---- THE RELEASE (expansion half) ---- */
+        /* ---- THE RELEASE (payoff) ---- */
         .the-release {
-            padding: 15vh 1.5rem 5rem;
+            padding: 20vh 1.5rem 5rem;
             min-height: 100vh;
             text-align: center;
             position: relative;
@@ -620,161 +656,22 @@
             z-index: 1;
         }
 
-        /* Gap collapse visual */
-        .collapse-visual {
-            margin: 0 auto 3rem;
-            max-width: 360px;
-            padding: 0 0.5rem;
-        }
-
-        .collapse-before, .collapse-after {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            justify-content: center;
-            flex-wrap: nowrap;
-            padding: 1rem 0;
-        }
-
-        .collapse-before {
-            opacity: 0.75;
-        }
-
-        .collapse-after {
-            opacity: 1;
-        }
-
-        .collapse-upgrade {
-            font-size: 0.65rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--accent);
-            font-weight: 500;
-            margin-bottom: 2rem;
-        }
-
-        .collapse-shift {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1.5rem 0;
-            height: 50px;
-            justify-content: center;
-            position: relative;
-        }
-
-        .shift-line {
-            height: 1px;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: shift-compress 3.5s ease-in-out infinite;
-        }
-
-        .shift-line:nth-child(1) { width: 70px; background: rgba(212, 115, 110, 0.3); animation-delay: 0s; }
-        .shift-line:nth-child(2) { width: 50px; background: rgba(201, 169, 110, 0.35); animation-delay: 0.12s; }
-        .shift-line:nth-child(3) { width: 35px; background: rgba(201, 169, 110, 0.4); animation-delay: 0.24s; }
-        .shift-line:nth-child(4) { width: 22px; background: rgba(110, 156, 138, 0.5); animation-delay: 0.36s; }
-        .shift-line:nth-child(5) { width: 10px; background: rgba(110, 156, 138, 0.8); animation-delay: 0.48s; }
-
-        @keyframes shift-compress {
-            0% { opacity: 0; transform: translateX(-50%) translateY(-14px); }
-            25% { opacity: 0.8; transform: translateX(-50%) translateY(-4px); }
-            50% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            75% { opacity: 0.8; transform: translateX(-50%) translateY(4px); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(14px); }
-        }
-
-        .collapse-node {
-            font-size: 0.6rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        /* Before row: warm/rose — friction */
-        .collapse-before .collapse-node.start { color: var(--warm); }
-        .collapse-before .collapse-node.end { color: var(--text-muted); }
-
-        /* After row: teal — clarity */
-        .collapse-after .collapse-node.start { color: var(--accent); }
-        .collapse-after .collapse-node.end { color: var(--teal); font-size: 0.75rem; font-weight: 600; }
-
-        .collapse-friction {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-        }
-
-        .collapse-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: var(--warm);
-            opacity: 0.6;
-        }
-
-        .collapse-friction-label {
-            font-size: 0.5rem;
-            color: var(--warm);
-            opacity: 0.75;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .collapse-line {
-            flex: 0 0 auto;
-            width: 18px;
-            height: 1px;
-        }
-
-        .collapse-line.dim { background: rgba(212, 115, 110, 0.35); }
-        .collapse-line.bright {
-            background: linear-gradient(to right, var(--accent), var(--teal));
-            width: 50px;
-            height: 2px;
-        }
-
-        .collapse-arrow {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            opacity: 0.5;
-        }
-
-        .collapse-label {
-            font-size: 0.6rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            opacity: 0.65;
-            margin-bottom: 0.25rem;
-        }
-
-        .collapse-after .collapse-arrow {
-            color: var(--teal);
-            opacity: 0.9;
-        }
-
-        .collapse-anchor {
-            font-size: 0.85rem;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
+        .release-anchor {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 400;
+            letter-spacing: 0.02em;
             color: var(--text);
-            opacity: 1;
-            margin-top: 2rem;
-            padding-top: 1.2rem;
-            border-top: 1px solid rgba(201, 169, 110, 0.2);
-            font-weight: 500;
+            margin-bottom: 3.5rem;
+            line-height: 1.2;
         }
 
-        /* Release payoff — three beats, no boxes */
         .release-flow {
-            font-size: 1rem;
-            line-height: 2.4;
+            font-size: 1.1rem;
+            line-height: 2.6;
             color: var(--text);
             font-weight: 300;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
         }
 
         .release-beat {
@@ -790,10 +687,9 @@
         }
 
         .release-beat:nth-child(1) { transition-delay: 0s; color: var(--accent); }
-        .release-beat:nth-child(2) { transition-delay: 0.2s; color: var(--teal); }
-        .release-beat:nth-child(3) { transition-delay: 0.4s; color: var(--lavender); }
+        .release-beat:nth-child(2) { transition-delay: 0.3s; color: var(--teal); }
+        .release-beat:nth-child(3) { transition-delay: 0.6s; color: var(--lavender); }
 
-        /* Acceleration line */
         .release-accel {
             font-family: 'Playfair Display', serif;
             font-size: clamp(1.1rem, 3vw, 1.4rem);
@@ -802,7 +698,7 @@
             max-width: 420px;
             margin: 0 auto;
             line-height: 1.65;
-            opacity: 0.8;
+            opacity: 0.7;
         }
 
         /* ---- SECTION: RIPPLE (mobile-first) ---- */
@@ -1418,6 +1314,7 @@
                 <span class="weight-moment">The <span class="wm-thing">call</span> you <span class="wm-loss">keep meaning</span> to make.</span>
                 <span class="weight-moment">The <span class="wm-thing">evening walk</span> that <span class="wm-loss">never happens</span>.</span>
             </div>
+            <div class="section-scroll-cue" id="weightScrollCue"></div>
         </div>
     </section>
 
@@ -1434,6 +1331,7 @@
                 <p class="weight-question">What would you do with a week that was yours?</p>
                 <p class="weight-question">Who are you when nothing is due?</p>
             </div>
+            <div class="section-scroll-cue" id="questionsScrollCue"></div>
         </div>
     </section>
 
@@ -1458,79 +1356,34 @@
         </p>
     </section>
 
-    <!-- THE MECHANISM: how it works -->
+    <!-- INFINITE AGENCY: how it works -->
     <section class="the-mechanism snap-section">
         <div class="container">
-            <div class="weight-label fade-in">The mechanism</div>
+            <div class="weight-label fade-in">Infinite Agency</div>
             <h2 class="mechanism-title fade-in">Not one tool.<br>A team of AI agents.</h2>
 
-            <div class="mechanism-beats">
-                <div class="mechanism-beat fade-in">
+            <div class="mechanism-beats" id="mechanismBeats">
+                <div class="mechanism-beat">
                     <div class="mechanism-beat-label">Reclaim Time</div>
-                    <p class="mechanism-beat-text">A team of AI agents takes over the repetitive, the draining, the mechanical. Not to replace you. To give you back the hours that belong to your actual life.</p>
+                    <p class="mechanism-beat-text">They take over the repetitive, the draining, the mechanical. Your hours come back to you.</p>
                 </div>
-                <div class="mechanism-beat fade-in">
+                <div class="mechanism-beat">
                     <div class="mechanism-beat-label">Remove Friction</div>
-                    <p class="mechanism-beat-text">They find where your systems leak energy. One workflow, one bottleneck, one handoff at a time. Precision over volume.</p>
+                    <p class="mechanism-beat-text">One workflow, one bottleneck, one handoff. They find where your systems leak energy and seal it.</p>
                 </div>
-                <div class="mechanism-beat fade-in">
+                <div class="mechanism-beat">
                     <div class="mechanism-beat-label">Restore Agency</div>
-                    <p class="mechanism-beat-text">When your time is yours again, you choose. The work that matters. The people who matter. The contribution only you can make.</p>
+                    <p class="mechanism-beat-text">When your time is yours again, you choose. The work that matters. The people who matter.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- THE RELEASE: expansion -->
+    <!-- THE RELEASE: payoff -->
     <section class="the-release snap-section">
         <div class="container">
+            <h2 class="release-anchor fade-in">This is agency.</h2>
 
-            <!-- Gap collapse diagram -->
-            <div class="collapse-visual fade-in">
-                <div class="collapse-label">Before</div>
-                <div class="collapse-before">
-                    <span class="collapse-node start">Intention</span>
-                    <span class="collapse-line dim"></span>
-                    <span class="collapse-friction">
-                        <span class="collapse-dot"></span>
-                        <span class="collapse-dot"></span>
-                        <span class="collapse-friction-label">friction</span>
-                        <span class="collapse-dot"></span>
-                        <span class="collapse-dot"></span>
-                    </span>
-                    <span class="collapse-line dim"></span>
-                    <span class="collapse-friction">
-                        <span class="collapse-dot"></span>
-                        <span class="collapse-friction-label">delay</span>
-                        <span class="collapse-dot"></span>
-                    </span>
-                    <span class="collapse-line dim"></span>
-                    <span class="collapse-arrow">&rarr;</span>
-                    <span class="collapse-node end">Maybe</span>
-                </div>
-
-                <!-- Shift transition -->
-                <div class="collapse-shift">
-                    <div class="shift-line"></div>
-                    <div class="shift-line"></div>
-                    <div class="shift-line"></div>
-                    <div class="shift-line"></div>
-                    <div class="shift-line"></div>
-                </div>
-
-                <div class="collapse-upgrade fade-in">Seedforth System Upgrade</div>
-
-                <div class="collapse-label">After</div>
-                <div class="collapse-after">
-                    <span class="collapse-node start">Intention</span>
-                    <span class="collapse-line bright"></span>
-                    <span class="collapse-arrow">&rarr;</span>
-                    <span class="collapse-node end">Impact</span>
-                </div>
-                <div class="collapse-anchor fade-in">This is agency.</div>
-            </div>
-
-            <!-- Three beats — no boxes -->
             <div class="release-flow fade-in" id="releaseFlow">
                 <span class="release-beat">Your hours come back.</span>
                 <span class="release-beat">The friction dissolves.</span>
@@ -1540,7 +1393,6 @@
             <p class="release-accel fade-in">
                 The distance between what you see and what you change collapses.
             </p>
-
         </div>
     </section>
 
@@ -1718,6 +1570,7 @@
 
             let currentMoment = -1;
             let cycleInterval = null;
+            let momentCycles = 0;
 
             function flashNext() {
                 moments.forEach(m => {
@@ -1725,8 +1578,21 @@
                     m.querySelectorAll('.wm-word').forEach(w => { w.style.transitionDelay = '0s'; });
                 });
                 currentMoment = (currentMoment + 1) % moments.length;
+                if (currentMoment === 0) momentCycles++;
+                // Stop after one full cycle — show last thought + scroll cue
+                if (momentCycles >= 1 && currentMoment === 0) {
+                    clearInterval(cycleInterval);
+                    // Show last thought and scroll cue
+                    const last = moments[moments.length - 1];
+                    last.querySelectorAll('.wm-word').forEach((w, i) => {
+                        w.style.transitionDelay = (i * 0.12) + 's';
+                    });
+                    last.classList.add('active');
+                    const cue = document.getElementById('weightScrollCue');
+                    if (cue) setTimeout(() => cue.classList.add('visible'), 1500);
+                    return;
+                }
                 const current = moments[currentMoment];
-                // Restore stagger delays
                 current.querySelectorAll('.wm-word').forEach((w, i) => {
                     w.style.transitionDelay = (i * 0.12) + 's';
                 });
@@ -1758,6 +1624,7 @@
 
             let currentQ = -1;
             let qInterval = null;
+            let qCycles = 0;
 
             function revealNextQuestion() {
                 if (currentQ >= 0) {
@@ -1765,13 +1632,26 @@
                     questions[currentQ].classList.add('exiting');
                 }
                 currentQ = (currentQ + 1) % questions.length;
+                if (currentQ === 0) qCycles++;
+                // Stop after one full cycle — keep last question visible + scroll cue
+                if (qCycles >= 1 && currentQ === 0) {
+                    clearInterval(qInterval);
+                    const last = questions[questions.length - 1];
+                    last.classList.remove('exiting');
+                    last.classList.add('active');
+                    last.querySelectorAll('.wq-word').forEach((w, i) => {
+                        w.style.transitionDelay = (i * 0.25) + 's';
+                    });
+                    const cue = document.getElementById('questionsScrollCue');
+                    if (cue) setTimeout(() => cue.classList.add('visible'), 2000);
+                    return;
+                }
                 questions.forEach((q, i) => {
                     if (i !== currentQ) q.classList.remove('exiting');
                 });
                 const q = questions[currentQ];
                 q.classList.remove('exiting');
                 q.classList.add('active');
-                // Stagger word reveals — slow, deliberate
                 const words = q.querySelectorAll('.wq-word');
                 words.forEach((w, i) => {
                     w.style.transitionDelay = (i * 0.25) + 's';
@@ -1788,6 +1668,23 @@
                 });
             }, { threshold: 0.3 });
             qObserver.observe(weightQuestions);
+        }
+
+        // Mechanism beats — flow in one after another
+        const mechanismBeats = document.getElementById('mechanismBeats');
+        if (mechanismBeats) {
+            const beats = mechanismBeats.querySelectorAll('.mechanism-beat');
+            const mechObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        beats.forEach((beat, i) => {
+                            setTimeout(() => beat.classList.add('visible'), i * 600);
+                        });
+                        mechObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.2 });
+            mechObserver.observe(mechanismBeats);
         }
 
         // Release beats stagger animation
