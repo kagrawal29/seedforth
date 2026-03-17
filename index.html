@@ -336,16 +336,6 @@
             opacity: 0.75;
         }
 
-        .weight-verdict {
-            font-size: 0.92rem;
-            color: var(--text);
-            line-height: 1.7;
-            font-weight: 400;
-            max-width: 480px;
-            margin-top: 0.5rem;
-            margin-bottom: 2.5rem;
-        }
-
         .weight-quote {
             font-family: 'Playfair Display', serif;
             font-size: 1.2rem;
@@ -357,7 +347,36 @@
             padding-left: 1.5rem;
             max-width: 400px;
             opacity: 0.85;
+            margin-top: 3rem;
+            margin-bottom: 3rem;
         }
+
+        .weight-questions {
+            text-align: center;
+            max-width: 440px;
+            margin: 0 auto;
+        }
+
+        .weight-question {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .weight-question.visible {
+            opacity: 0.6;
+            transform: translateY(0);
+        }
+
+        .weight-question:nth-child(1) { transition-delay: 0s; }
+        .weight-question:nth-child(2) { transition-delay: 0.4s; }
+        .weight-question:nth-child(3) { transition-delay: 0.8s; }
 
         /* ---- THE BREAK (transition moment) ---- */
         .the-break {
@@ -1098,16 +1117,12 @@
                 margin-bottom: 2.5rem;
             }
 
-            .weight-content {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 4rem;
-                align-items: start;
-            }
-
             .weight-quote {
                 font-size: 1.4rem;
-                margin-top: 1rem;
+            }
+
+            .weight-question {
+                font-size: 1.1rem;
             }
 
             .the-break {
@@ -1235,24 +1250,23 @@
     <section class="the-weight" id="mirror">
         <div class="container">
             <div class="weight-label fade-in">The reality</div>
-            <h2 class="weight-title fade-in">You are not behind.<br>Your system is.</h2>
-            <div class="weight-content">
-                <div>
-                    <div class="weight-moments fade-in">
-                        <span class="weight-moment">The idea that died before you opened your laptop.</span>
-                        <span class="weight-moment">The book with the same bookmark for three months.</span>
-                        <span class="weight-moment">The call you keep meaning to make.</span>
-                        <span class="weight-moment">The evening walk that never happens.</span>
-                    </div>
-                    <p class="weight-verdict fade-in">
-                        Not failures of discipline. The system intercepted every one.
-                    </p>
-                </div>
-                <div>
-                    <p class="weight-quote fade-in">
-                        "How does your work feel when you are alone with it?"
-                    </p>
-                </div>
+            <h2 class="weight-title fade-in">You are not behind.<br>Your operating system is.</h2>
+
+            <div class="weight-moments fade-in">
+                <span class="weight-moment">The idea that died before you opened your laptop.</span>
+                <span class="weight-moment">The book with the same bookmark for three months.</span>
+                <span class="weight-moment">The call you keep meaning to make.</span>
+                <span class="weight-moment">The evening walk that never happens.</span>
+            </div>
+
+            <p class="weight-quote fade-in">
+                "How does your work feel when you are alone with it?"
+            </p>
+
+            <div class="weight-questions fade-in">
+                <p class="weight-question">When did you last build something that wasn't urgent?</p>
+                <p class="weight-question">What would you do with a week that was yours?</p>
+                <p class="weight-question">Who are you when nothing is due?</p>
             </div>
         </div>
     </section>
@@ -1499,6 +1513,22 @@
                 });
             }, { threshold: 0.3 });
             weightObserver.observe(weightMoments);
+        }
+
+        // Weight follow-up questions — stagger reveal
+        const weightQuestions = document.querySelector('.weight-questions');
+        if (weightQuestions) {
+            const qObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.querySelectorAll('.weight-question').forEach(q => {
+                            q.classList.add('visible');
+                        });
+                        qObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+            qObserver.observe(weightQuestions);
         }
 
         // Release beats stagger animation
