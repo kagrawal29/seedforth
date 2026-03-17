@@ -109,7 +109,7 @@ if (weightMoments) {
 
     let currentMoment = -1;
     let cycleInterval = null;
-    let momentCycles = 0;
+    let momentCycles = -1; // starts at -1 so first wrap to index 0 doesn't count as a completed cycle
     let momentsDone = false;
 
     function flashNext() {
@@ -168,7 +168,7 @@ if (weightQuestions) {
 
     let currentQ = -1;
     let qInterval = null;
-    let qCycles = 0;
+    let qCycles = -1; // starts at -1 so first wrap to index 0 doesn't count as a completed cycle
     let questionsDone = false;
 
     function revealNextQuestion() {
