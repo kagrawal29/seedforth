@@ -12,10 +12,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# Build
-dist/
-build/
-
 # Env
 .env
 .env.local
@@ -24,21 +20,39 @@ build/
 *.pdf
 *.docx
 *.pptx
-
-# Screenshots
 *.png
 
-# Project subdirectories (separate repos)
-audioworld/
-news-commodity-link/
-tetrahedron/
+# Website (separate repo: kagrawal29/seedforth-website)
+website/
+
+# Loose website files (legacy, to be cleaned up)
+index.html
+script.js
+styles.css
+sound.js
+infinite-agency.md
+logo-exploration.html
+logo-final.html
+
+# Docs folder
+docs/
+
+# Project subdirectories (each has its own git repo)
 Agent-Vinod/
+ai_camera_proposal/
 AI_product_quotes/
+arie/
+audioworld/
 delta-projects/
+ember/
+news-commodity-link/
 Ojas-life/
 performance-markting-dashboard/
 pulse-dashboard/
 Sports Corridor/
+tetrahedron/
+
+# Tool/deployment artifacts
 .claude/
 .playwright-mcp/
-.vercel
+.vercel/
