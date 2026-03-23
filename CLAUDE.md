@@ -34,6 +34,7 @@ SeedForth/
   performance-markting-dashboard/  # Marketing dashboard mockup
   pulse-dashboard/       # Next.js dashboard
   Sports Corridor/       # Business plans
+  solveOS/               # Problem Solving as a Service — lead gen intelligence
   tetrahedron/           # Remote server orchestrator
 ```
 
@@ -53,6 +54,8 @@ SeedForth/
 | Ojas Life | `Ojas-life/` | `kagrawal29/ojas-life` | Brand identity & business docs | — | Config-only |
 | Perf Marketing | `performance-markting-dashboard/` | `kagrawal29/performance-marketing-dashboard` | Marketing dashboard mockup | — | Config-only |
 | Sports Corridor | `Sports Corridor/` | `kagrawal29/sports-corridor` | Business plans | — | Config-only |
+| Solve OS | `solveOS/` | `kagrawal29/solve-os` | Problem Solving as a Service — lead gen intelligence and opportunity matching | Python | Active |
+| AI Camera Proposal | `ai_camera_proposal/` | local only | AI road inspection proposal docs | — | Config-only |
 | Delta Hub | `delta-projects/delta-hub/` | `kagrawal29/delta-hub` | Delta ecosystem hub | — | Hibernating |
 
 ### Relationships
@@ -60,6 +63,7 @@ SeedForth/
 - **arie** is the single-user prototype; **ember** is the multi-tenant production version
 - **tetrahedron** orchestrates **audioworld** on a remote server
 - **delta-projects/** is a container folder — individual projects inside have their own repos
+- **Solve OS** is SeedForth's commercial entry product — uses LinkedIn signals to match problems to solvers, lead gen first
 
 ### Per-Project CLAUDE.md
 
