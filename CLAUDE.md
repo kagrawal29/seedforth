@@ -8,6 +8,8 @@ This is the parent repo for all SeedForth projects. It contains no application c
 - Concise communication — lead with the answer
 - Every project has its own git repo (local or remote)
 - All remote repos are private under `kagrawal29/`
+- Never request `delete_repo` scope on GitHub CLI
+- Docs and strategy before code when scaffolding new projects
 
 ## Directory Structure
 
@@ -65,18 +67,30 @@ SeedForth/
 - **delta-projects/** is a container folder — individual projects inside have their own repos
 - **Solve OS** is SeedForth's commercial entry product — uses LinkedIn signals to match problems to solvers, lead gen first
 
-### Per-Project CLAUDE.md
+### Per-Project CLAUDE.md — Session Continuity
 
-Each project with active development should have its own `CLAUDE.md` at its root describing project-specific conventions, architecture, and current state.
+Each project with active development MUST have its own `CLAUDE.md` at its root. This is how project-specific agents pick up and continue without losing context.
+
+A project CLAUDE.md must include:
+- **Current State** — what phase the project is in, what exists, what doesn't
+- **Next Steps** — ordered list of what to do next, so a fresh session knows exactly where to start
+- Project overview, architecture, conventions, data models
+- Infrastructure details (APIs, MCP servers, storage)
+
+When setting up a new project, always create a CLAUDE.md with current state and next steps. When finishing a work session on a project, update the current state and next steps before stopping. This way, `cd <project> && claude` starts a session that can continue autonomously.
+
+MCP servers and tools should be configured in `<project>/.claude/settings.json` so they auto-connect when working from that directory.
 
 ## Workflows
 
 ### Adding a new project
 1. Create folder in SeedForth root (or clone existing repo)
 2. `git init` if new, or ensure `.git/` exists
-3. Add entry to the Project Registry table above
-4. Add folder to `.gitignore`
-5. Optionally create remote: `gh repo create kagrawal29/<name> --private --source=. --push`
+3. Create `CLAUDE.md` with current state, next steps, and project overview
+4. Configure MCP servers in `<project>/.claude/settings.json` if the project needs external APIs
+5. Add entry to the Project Registry table above
+6. Add folder to `.gitignore`
+7. Optionally create remote: `gh repo create kagrawal29/<name> --private --source=. --push`
 
 ### Working on a project
 1. `cd <project-folder>/`
