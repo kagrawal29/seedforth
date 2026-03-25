@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+delta.env
+*.key
+*.pem
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Delta runtime
+delta-registry.json
+delta-last-fired.json
+/tmp/delta/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

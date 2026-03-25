@@ -1,0 +1,14 @@
+[Unit]
+Description=Delta Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/delta
+EnvironmentFile=/opt/delta/delta.env
+ExecStart=/usr/bin/python3 -m delta.app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
