@@ -26,7 +26,7 @@ from delta import commands
 from delta.lifecycle import (
     is_claude_running, is_session_alive, get_project_health,
     start_claude_code, stop_claude_code,
-    create_tmux_session,
+    create_tmux_session, _allocate_port, start_ttyd,
 )
 from delta.project_bridge import ProjectBridge
 from delta.provisioner import provision, provision_in_channel, teardown, restore, LOCAL_MODE, LOCAL_PROJECTS_DIR
@@ -122,6 +122,7 @@ def _stop_typing(channel_id: str) -> None:
 HUB_NAME = "__hub__"
 HUB_TMUX_SESSION = os.getenv("HUB_TMUX_SESSION", "delta-hub")
 HUB_TMUX_PANE = f"{HUB_TMUX_SESSION}:lead"
+HUB_TTYD_PORT = int(os.getenv("HUB_TTYD_PORT", "7702"))
 _TEMPLATE_DIR = os.getenv("DELTA_TEMPLATE_DIR", "project-template")
 _HUB_TEMPLATE_PATH = Path(__file__).parent.parent / _TEMPLATE_DIR / "HUB_CLAUDE.md"
 _HUB_LINUX_USER_DEFAULT = os.getenv("HUB_LINUX_USER", "proj-delta-hub")
@@ -883,6 +884,10 @@ def _init_hub() -> None:
     start_claude_code(str(hub), HUB_TMUX_PANE,
                       linux_user=hub_linux_user or None)
 
+    # Start web terminal for the hub
+    if not LOCAL_MODE:
+        start_ttyd(HUB_NAME, HUB_TMUX_SESSION, HUB_TTYD_PORT)
+
     # Create bridge (not in registry -- special entry in bridges dict)
     bridge = ProjectBridge(
         name=HUB_NAME,
@@ -1169,9 +1174,33 @@ async def _hub_snapshot_loop():
 
                 projects.append(project_data)
 
+            # Include the hub (DM router) as an instance
+            hub_bridge = bridges.get(HUB_NAME)
+            hub_health = "unknown"
+            if hub_bridge:
+                hub_health = "running" if hub_bridge.is_project_active() else "stopped"
+            hub_data = {
+                "name": "__hub__",
+                "status": "active",
+                "health": hub_health,
+                "owner_discord_id": "",
+                "discord_channel_id": "",
+                "github_repo": "",
+                "last_activity": datetime.now(timezone.utc).isoformat(),
+                "ttyd_port": HUB_TTYD_PORT if not LOCAL_MODE else 0,
+                "is_hub": True,
+                "tmux_session": HUB_TMUX_SESSION,
+                "tmux_lead_pane": HUB_TMUX_PANE,
+                "project_dir": str(_hub_dir()),
+            }
+            hub_logs = _read_project_recent_logs(str(_hub_dir()))
+            if hub_logs:
+                hub_data["recent_logs"] = hub_logs
+
             snapshot = {
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "projects": projects,
+                "hub": hub_data,
             }
 
             snapshot_path = _hub_dir() / "delta-config" / "registry-snapshot.json"
@@ -1724,6 +1753,7 @@ def _restore_active_projects() -> int:
 
     After a systemd service restart, tmux sessions are gone but the registry
     still lists projects as active. This function detects that and restores them.
+    Also ensures ttyd is running for active projects.
     Returns the number of projects restored.
     """
     restored = 0
@@ -1736,6 +1766,12 @@ def _restore_active_projects() -> int:
         claude_running = is_claude_running(info.tmux_lead_pane)
 
         if session_alive and claude_running:
+            # Ensure ttyd is running even if project was already up
+            if not info.ttyd_port:
+                port = _allocate_port(registry)
+                if start_ttyd(name, info.tmux_session, port):
+                    registry.update(name, ttyd_port=port)
+                    logger.info(f"Started ttyd for already-running {name} on port {port}")
             logger.info(f"Project {name} already running, skipping restore")
             continue
 
@@ -1749,6 +1785,12 @@ def _restore_active_projects() -> int:
                 info.project_dir, info.tmux_lead_pane,
                 linux_user=info.linux_user or None,
             )
+
+        # Start web terminal
+        port = info.ttyd_port or _allocate_port(registry)
+        if start_ttyd(name, info.tmux_session, port):
+            if not info.ttyd_port:
+                registry.update(name, ttyd_port=port)
 
         restored += 1
 
