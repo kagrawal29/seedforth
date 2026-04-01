@@ -297,6 +297,184 @@ async def _handle_connect_command(
     logger.info(f"Connection flow for {project_name}/{toolkit}: {'connected' if connected else 'timeout/failed'}")
 
 
+async def _handle_gh_auth_command(
+    project_name: str, bridge: ProjectBridge, channel_id: str
+) -> None:
+    """Handle an agent's request to authenticate GitHub CLI for its user.
+
+    Runs `gh auth login --web` as the project's linux user, captures
+    the device URL and one-time code, sends them to Discord, then polls
+    for completion.
+    """
+    info = registry.get(project_name)
+    if not info:
+        return
+
+    linux_user = info.linux_user or ""
+
+    # Build the gh auth command
+    # --git-protocol https avoids SSH key setup
+    gh_cmd = ["gh", "auth", "login", "--web", "--git-protocol", "https"]
+    if linux_user and not LOCAL_MODE:
+        # Run as the project's linux user
+        gh_cmd = ["sudo", "-u", linux_user] + gh_cmd
+
+    # Suppress silence nudges while waiting for auth
+    bridge.connection_pending = True
+    authed = False
+
+    try:
+        proc = subprocess.Popen(
+            gh_cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        # gh auth login --web writes the device code prompt to stderr
+        # Read stderr in a non-blocking way to capture the URL and code
+        import select  # noqa: E402 -- stdlib, used only in this handler
+        stderr_output = ""
+        device_url = ""
+        user_code = ""
+
+        # Give it up to 15 seconds to produce the device code
+        deadline = time.time() + 15
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                # Process exited early (maybe gh not installed)
+                stderr_output += proc.stderr.read()
+                break
+            ready, _, _ = select.select([proc.stderr], [], [], 1.0)
+            if ready:
+                chunk = proc.stderr.read(4096)
+                if chunk:
+                    stderr_output += chunk
+                    # Check if we have the code
+                    if "one-time code" in stderr_output.lower() or "enter the code" in stderr_output.lower():
+                        break
+
+        # Parse the device code from stderr
+        # gh output format: "First copy your one-time code: XXXX-YYYY"
+        # and "https://github.com/login/device"
+        for line in stderr_output.split("\n"):
+            line_lower = line.lower().strip()
+            if "github.com/login/device" in line:
+                # Extract URL
+                url_match = re.search(r'(https://github\.com/login/device\S*)', line)
+                if url_match:
+                    device_url = url_match.group(1)
+                elif not device_url:
+                    device_url = "https://github.com/login/device"
+            if "code:" in line_lower or "code :" in line_lower:
+                # Extract code -- usually "XXXX-YYYY" at the end
+                code_match = re.search(r'([A-Z0-9]{4}-[A-Z0-9]{4})', line)
+                if code_match:
+                    user_code = code_match.group(1)
+
+        if not device_url:
+            device_url = "https://github.com/login/device"
+
+        # Send to Discord
+        ch = client.get_channel(int(channel_id)) if channel_id else None
+        if not ch:
+            try:
+                ch = await client.fetch_channel(int(channel_id))
+            except Exception:
+                logger.warning(f"Could not find channel {channel_id} for gh auth")
+                proc.kill()
+                bridge.connection_pending = False
+                return
+
+        if user_code:
+            await ch.send(
+                f"go to {device_url} and enter code: **{user_code}**\n"
+                f"this connects your github account so i can work with your repos."
+            )
+        elif proc.poll() is not None:
+            # gh exited early -- might already be authed or gh not installed
+            stdout_remaining = proc.stdout.read()
+            all_output = stderr_output + stdout_remaining
+            if "already logged in" in all_output.lower() or "logged in" in all_output.lower():
+                bridge.write_inbox(
+                    channel_id, "delta:system",
+                    "GitHub CLI is already authenticated. You can use gh commands."
+                )
+                bridge.connection_pending = False
+                return
+            else:
+                await ch.send(
+                    "could not start github auth. the `gh` cli might not be installed on the server."
+                )
+                bridge.write_inbox(
+                    channel_id, "delta:system",
+                    f"GitHub auth failed to start. Output: {all_output[:300]}"
+                )
+                bridge.connection_pending = False
+                return
+        else:
+            await ch.send(
+                f"go to {device_url} to authenticate github.\n"
+                f"could not capture the one-time code automatically -- check your terminal."
+            )
+
+        # Poll for auth completion (every 10s, up to 5 min)
+        max_polls = 30
+        authed = False
+        for _ in range(max_polls):
+            await asyncio.sleep(10)
+            # Check if gh auth status succeeds
+            status_cmd = ["gh", "auth", "status"]
+            if linux_user and not LOCAL_MODE:
+                status_cmd = ["sudo", "-u", linux_user] + status_cmd
+            try:
+                result = subprocess.run(
+                    status_cmd, capture_output=True, text=True, timeout=10,
+                )
+                if result.returncode == 0:
+                    authed = True
+                    break
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+
+        # Clean up the login process if still running
+        if proc.poll() is None:
+            proc.kill()
+
+        bridge.connection_pending = False
+
+        if authed:
+            await ch.send("github connected.")
+            bridge.write_inbox(
+                channel_id, "delta:system",
+                "GitHub CLI authenticated. You can now use `gh` for repo operations, PR creation, issue tracking."
+            )
+            # Nudge agent
+            try:
+                msg_files = sorted(bridge.inbox_dir.glob("*.json"))
+                if msg_files:
+                    bridge.send_to_lead(msg_files[-1].stem)
+            except Exception:
+                pass
+        else:
+            await ch.send("github auth timed out. no worries, just let me know when you want to try again.")
+            bridge.write_inbox(
+                channel_id, "delta:system",
+                "GitHub auth timed out. Offer to try again later."
+            )
+
+    except Exception as e:
+        logger.error(f"gh auth handler error for {project_name}: {e}")
+        bridge.connection_pending = False
+        bridge.write_inbox(
+            channel_id, "delta:system",
+            f"GitHub auth failed: {e}"
+        )
+
+    logger.info(f"GitHub auth flow for {project_name}: {'authed' if authed else 'timeout/failed'}")
+
+
 async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
     """Handle Chiron's onboarding_complete signal.
 
@@ -429,6 +607,17 @@ def _start_watchers(project_name: str) -> None:
                 bridge.send_to_lead(bridge._random_id())
             except Exception:
                 pass
+            return
+        if command == "gh_auth_start":
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            if not channel_id:
+                info = registry.get(project_name)
+                channel_id = info.discord_channel_id if info else ""
+            if channel_id:
+                asyncio.run_coroutine_threadsafe(
+                    _handle_gh_auth_command(project_name, bridge, channel_id),
+                    loop,
+                )
             return
         if command in ("create_project", "new_project"):
             # Project agent requesting a new project -- provision it
@@ -1048,6 +1237,19 @@ def _start_hub_watchers() -> None:
                 )
             return
 
+        if command == "gh_auth_start":
+            # Hub or agent requesting GitHub CLI auth
+            target_project = data.get("project_name", data.get("name", ""))
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            if target_project:
+                target_bridge = _get_or_create_bridge(target_project)
+                if target_bridge and channel_id:
+                    asyncio.run_coroutine_threadsafe(
+                        _handle_gh_auth_command(target_project, target_bridge, channel_id),
+                        loop,
+                    )
+            return
+
         if command == "new_project":
             # Hub is requesting a new project
             name = data.get("name", "")
@@ -1144,11 +1346,22 @@ def _start_hub_watchers() -> None:
             return
 
         if command == "forward":
-            # Hub wants to forward a message to a project
+            # Forward a message to another project
             target = data.get("target_project", "")
             text = data.get("text", "")
             user = data.get("user", "")
             reply_channel = data.get("reply_channel", "")
+            source_project = data.get("source_project", "")
+
+            # Access control: source and target must share the same owner
+            # Hub (__hub__) can forward to any project (it's the orchestrator)
+            if source_project and source_project != HUB_NAME:
+                source_info = registry.get(source_project)
+                target_info = registry.get(target)
+                if (source_info and target_info
+                        and source_info.owner_discord_id != target_info.owner_discord_id):
+                    logger.warning(f"Forward blocked: {source_project} -> {target} (different owners)")
+                    return
 
             target_bridge = _get_or_create_bridge(target)
             if target_bridge:
@@ -1295,6 +1508,114 @@ def _read_project_recent_commits(project_dir: str, max_commits: int = 5) -> list
         return []
 
 
+def _read_project_claude_md(project_dir: str, max_chars: int = 3000) -> str:
+    """Read first max_chars of CLAUDE.md from a project directory."""
+    claude_md_path = Path(project_dir) / "CLAUDE.md"
+    if not claude_md_path.exists():
+        return ""
+    try:
+        return claude_md_path.read_text()[:max_chars]
+    except OSError:
+        return ""
+
+
+def _read_project_memory_files(project_dir: str, max_chars: int = 2000) -> str:
+    """Read all .md files from memory/ dir, concatenated with headers.
+
+    Returns a string like:
+        ## profile.md
+        <content>
+
+        ## time-architecture.md
+        <content>
+    Truncated to max_chars total.
+    """
+    memory_dir = Path(project_dir) / "memory"
+    if not memory_dir.is_dir():
+        return ""
+    parts = []
+    total = 0
+    for md_file in sorted(memory_dir.glob("*.md")):
+        try:
+            header = f"## {md_file.name}\n"
+            content = md_file.read_text()
+            chunk = header + content + "\n"
+            if total + len(chunk) > max_chars:
+                remaining = max_chars - total
+                if remaining > len(header) + 50:  # worth including partial
+                    parts.append(chunk[:remaining])
+                break
+            parts.append(chunk)
+            total += len(chunk)
+        except OSError:
+            continue
+    return "".join(parts)
+
+
+# Snapshot depth limits
+_SNAPSHOT_LIMITS = {
+    "standard": {
+        "seed_chars": 500,
+        "schedule_tasks": 15,
+        "schedule_chars": 100,
+        "log_entries": 10,
+        "log_chars": 200,
+        "commits": 5,
+    },
+    "deep": {
+        "seed_chars": 1500,
+        "schedule_tasks": 15,
+        "schedule_chars": 100,
+        "log_entries": 20,
+        "log_chars": 400,
+        "commits": 10,
+    },
+}
+
+
+def _build_enriched_snapshot(project_dir: str, depth: str = "standard") -> dict:
+    """Build snapshot data for a project at the given depth.
+
+    depth="standard": current limits (for hub)
+    depth="deep": enriched limits (for persistent agents) with CLAUDE.md and memory
+    """
+    limits = _SNAPSHOT_LIMITS.get(depth, _SNAPSHOT_LIMITS["standard"])
+    result = {}
+
+    seed = _read_project_seed(project_dir, max_chars=limits["seed_chars"])
+    if seed:
+        result["seed"] = seed
+
+    schedule = _read_project_schedule(project_dir, max_tasks=limits["schedule_tasks"])
+    if schedule:
+        # Re-truncate what field to the depth-appropriate limit
+        for t in schedule:
+            if "what" in t:
+                t["what"] = t["what"][:limits["schedule_chars"]]
+        result["schedule"] = schedule
+
+    recent_logs = _read_project_recent_logs(project_dir, max_entries=limits["log_entries"])
+    if recent_logs:
+        for entry in recent_logs:
+            if "text" in entry:
+                entry["text"] = entry["text"][:limits["log_chars"]]
+        result["recent_logs"] = recent_logs
+
+    recent_commits = _read_project_recent_commits(project_dir, max_commits=limits["commits"])
+    if recent_commits:
+        result["recent_commits"] = recent_commits
+
+    if depth == "deep":
+        claude_md = _read_project_claude_md(project_dir)
+        if claude_md:
+            result["claude_md"] = claude_md
+        memory_summary = _read_project_memory_files(project_dir)
+        if memory_summary:
+            result["memory_summary"] = memory_summary
+
+    return result
+
+
 async def _hub_snapshot_loop():
     """Write a registry snapshot to the hub's delta-config every 60s."""
     global _auth_alert_sent, _auth_alert_time
@@ -1328,18 +1649,8 @@ async def _hub_snapshot_loop():
                 # Enrich with project internals (read as root)
                 project_dir = info.project_dir
                 if project_dir:
-                    seed = _read_project_seed(project_dir)
-                    if seed:
-                        project_data["seed"] = seed
-                    schedule = _read_project_schedule(project_dir)
-                    if schedule:
-                        project_data["schedule"] = schedule
-                    recent_logs = _read_project_recent_logs(project_dir)
-                    if recent_logs:
-                        project_data["recent_logs"] = recent_logs
-                    recent_commits = _read_project_recent_commits(project_dir)
-                    if recent_commits:
-                        project_data["recent_commits"] = recent_commits
+                    enriched = _build_enriched_snapshot(project_dir, depth="standard")
+                    project_data.update(enriched)
 
                     # Read onboarding state for chiron projects
                     if getattr(info, "project_type", "standard") == "chiron":
@@ -1395,7 +1706,20 @@ async def _hub_snapshot_loop():
                 owner = info.owner_discord_id
                 if not owner:
                     continue
-                user_projects = [p for p in projects if p.get("owner_discord_id") == owner]
+                # Build deep-enriched copies of user's projects
+                user_projects = []
+                for p in projects:
+                    if p.get("owner_discord_id") != owner:
+                        continue
+                    p_info = registry.get(p["name"])
+                    p_dir = p_info.project_dir if p_info else ""
+                    if p_dir:
+                        deep = _build_enriched_snapshot(p_dir, depth="deep")
+                        enriched_p = dict(p)
+                        enriched_p.update(deep)
+                        user_projects.append(enriched_p)
+                    else:
+                        user_projects.append(p)
                 user_snapshot = {
                     "updated_at": datetime.now(timezone.utc).isoformat(),
                     "projects": user_projects,
