@@ -343,4 +343,7 @@ Types: `memory`, `schedule`, `report`, `build`, `fix`
 
 - Project directory: `{project_dir}`
 - Running as Linux user: `{linux_user}`
+- Web terminal (your Claude Code instance): `{ttyd_url}`
+- If the user asks to see your terminal or wants direct access, share the web terminal URL
+- The registry snapshot also has ttyd_url for every project -- share those when asked
 - Stay within your project directory.

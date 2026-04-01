@@ -733,6 +733,8 @@ generates response, not just acknowledgment.
 
 - Project directory: `{project_dir}`
 - Running as Linux user: `{linux_user}`
+- Web terminal (your Claude Code instance): `{ttyd_url}`
+- If the user asks to see your terminal or wants direct access, share the web terminal URL
 - Stay within your project directory. Other projects can't see in here.
 
 ## What matters

@@ -44,6 +44,15 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 ADMIN_DISCORD_ID = os.getenv("ADMIN_DISCORD_ID", "")
 REGISTRY_PATH = os.getenv("DELTA_REGISTRY_PATH", str(_delta_dir / "delta-registry.json"))
 _LAST_FIRED_PATH = Path(REGISTRY_PATH).parent / "delta-last-fired.json"
+DELTA_SERVER_HOST = os.getenv("DELTA_SERVER_HOST", "")
+
+
+def _get_ttyd_url(project_name: str) -> str:
+    """Return the web terminal URL for a project, or empty string if unavailable."""
+    info = registry.get(project_name)
+    if not info or not getattr(info, "ttyd_port", 0) or not DELTA_SERVER_HOST:
+        return ""
+    return f"http://{DELTA_SERVER_HOST}:{info.ttyd_port}"
 
 # -- Globals -----------------------------------------------------------------
 
@@ -510,6 +519,7 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
         linux_user=info.linux_user or os.getenv("USER", "local"),
         discord_channel_id=info.discord_channel_id,
         profile_summary=profile_summary or "(onboarding profile available in memory/)",
+        ttyd_url=_get_ttyd_url(info.name),
     )
 
     # Overwrite CLAUDE.md
@@ -553,19 +563,32 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
     # Update registry
     registry.update(project_name, project_type="persistent")
 
-    # Notify user in Discord
+    # Send completion message to user's DM
+    owner_id = info.owner_discord_id
+    if owner_id:
+        try:
+            user = await client.fetch_user(int(owner_id))
+            dm_channel = await user.create_dm()
+            await dm_channel.send(
+                "onboarding complete. your personal agent is live. just DM me anytime."
+            )
+        except Exception as e:
+            logger.warning(f"Could not DM user about onboarding completion: {e}")
+
+    # Post final message in onboarding channel and archive it
     try:
         channel = client.get_channel(int(channel_id))
         if not channel:
             channel = await client.fetch_channel(int(channel_id))
         if channel:
             await channel.send(
-                "onboarding complete. your personal agent is active. "
-                "it knows your roles, goals, time patterns, and how you like to work. "
-                "same channel, new brain."
+                "onboarding complete. this channel is now archived. "
+                "talk to your agent via DM from now on."
             )
+            await channel.edit(archived=True)
+            logger.info(f"Archived onboarding channel {channel_id} for {project_name}")
     except Exception as e:
-        logger.warning(f"Could not notify user about onboarding completion: {e}")
+        logger.warning(f"Could not archive onboarding channel: {e}")
 
     logger.info(f"Onboarding complete for {project_name}, transitioned to persistent agent")
 
@@ -1645,6 +1668,9 @@ async def _hub_snapshot_loop():
                     "ttyd_port": getattr(info, "ttyd_port", 0),
                     "project_type": getattr(info, "project_type", "standard"),
                 }
+
+                if DELTA_SERVER_HOST and getattr(info, "ttyd_port", 0):
+                    project_data["ttyd_url"] = f"http://{DELTA_SERVER_HOST}:{info.ttyd_port}"
 
                 # Enrich with project internals (read as root)
                 project_dir = info.project_dir

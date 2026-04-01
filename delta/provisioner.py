@@ -232,6 +232,11 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     tmux_session = f"proj-{name}"
     tmux_pane = f"{tmux_session}:lead"
 
+    # Allocate ttyd port early so we can include the URL in CLAUDE.md
+    port = _allocate_port(registry)
+    server_host = os.getenv("DELTA_SERVER_HOST", "")
+    ttyd_url = f"http://{server_host}:{port}" if server_host and port else ""
+
     # Write CLAUDE.md from template -- select template based on project_type
     if project_type == "chiron":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_ONBOARDING.md"
@@ -245,6 +250,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
             "project_dir": project_dir,
             "linux_user": username or os.getenv("USER", "local"),
             "discord_channel_id": discord_channel_id,
+            "ttyd_url": ttyd_url,
         }
         if project_type == "chiron":
             format_vars["admin_brief"] = admin_brief or "(no admin brief provided)"
@@ -328,8 +334,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     start_claude_code(project_dir, tmux_pane,
                       linux_user=username if username else None)
 
-    # Start per-project web terminal
-    port = _allocate_port(registry)
+    # Start per-project web terminal (port allocated earlier for CLAUDE.md)
     start_ttyd(name, tmux_session, port)
 
     # Register
@@ -448,11 +453,15 @@ def refresh_templates(registry) -> int:
             logger.info(f"Skipping {name} (project_type={info.project_type})")
             continue
 
+        server_host = os.getenv("DELTA_SERVER_HOST", "")
+        ttyd_port = getattr(info, "ttyd_port", 0)
+        ttyd_url = f"http://{server_host}:{ttyd_port}" if server_host and ttyd_port else ""
         claude_md = template.format(
             project_name=info.name,
             project_dir=info.project_dir,
             linux_user=info.linux_user or os.getenv("USER", "local"),
             discord_channel_id=info.discord_channel_id,
+            ttyd_url=ttyd_url,
         )
 
         claude_md_path = Path(info.project_dir) / "CLAUDE.md"
