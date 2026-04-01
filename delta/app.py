@@ -376,15 +376,14 @@ def _gh_auth_start_subprocess(gh_cmd: list[str]) -> tuple[str, str, str, bool]:
             stdout_out = ""
         stderr_output += stdout_out
 
-    # Keep proc reference for cleanup -- store pid
-    if not exited_early:
-        # Kill the process since we got what we need (or timed out)
-        # The polling phase will use gh auth status instead
-        pass
-    try:
-        proc.kill()
-    except OSError:
-        pass
+    # If process is still running, leave it alive -- it needs to complete the
+    # OAuth handshake and save the token to ~/.config/gh/. Killing it here
+    # is why auth appeared to succeed on GitHub's side but never registered.
+    if exited_early:
+        try:
+            proc.kill()
+        except OSError:
+            pass
 
     if not device_url:
         device_url = "https://github.com/login/device"
