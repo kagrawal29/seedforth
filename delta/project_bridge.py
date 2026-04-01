@@ -95,6 +95,9 @@ class ProjectBridge:
         # Track for silence detection -- only for real user messages
         if not user.startswith("delta:"):
             self.last_inbox_time = time.time()
+        # Reset idle timer so resource manager sees activity from both
+        # Discord messages and bridge-injected test messages
+        self.touch_activity()
         return msg_id
 
     def touch_activity(self) -> None:
@@ -238,6 +241,7 @@ class ProjectBridge:
                         data = json.loads(path.read_text())
                         callback(data)
                         self.last_outbox_time = time.time()
+                        self.touch_activity()
                         self._log_exchange(
                             "out", "delta", data.get("text", ""),
                             data.get("id", ""), data.get("channel", ""),
