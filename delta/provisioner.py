@@ -135,7 +135,8 @@ def _initial_schedule(name: str) -> dict:
     }
 
 
-def _setup_project_dirs(name: str, github_repo: str = "") -> tuple[str, str, str]:
+def _setup_project_dirs(name: str, github_repo: str = "",
+                        project_type: str = "standard") -> tuple[str, str, str]:
     """Create project directory, delta-config dirs, and git repo.
 
     Returns (project_dir, data_dir, linux_username).
@@ -172,6 +173,10 @@ def _setup_project_dirs(name: str, github_repo: str = "") -> tuple[str, str, str
         if not schedule_file.exists():
             schedule_file.write_text(json.dumps(_initial_schedule(name), indent=2))
 
+        # Chiron projects need memory/ and memory/checklists/ directories
+        if project_type == "chiron":
+            (project_path / "memory" / "checklists").mkdir(parents=True, exist_ok=True)
+
         project_dir = str(project_path)
         data_dir = str(data_path)
 
@@ -199,6 +204,8 @@ def _setup_project_dirs(name: str, github_repo: str = "") -> tuple[str, str, str
                 raise RuntimeError(f"mkdir failed: {result.stderr.strip()}")
 
         run_as_user(username, f"mkdir -p {data_dir}/inbox {data_dir}/outbox {data_dir}/logs {data_dir}/followups {data_dir}/progress")
+        if project_type == "chiron":
+            run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
         # Write schedule.json directly (avoid shell quoting issues with apostrophes)
         schedule_path = Path(data_dir) / "schedule.json"
         schedule_path.write_text(json.dumps(_initial_schedule(name), indent=2))
@@ -214,7 +221,9 @@ def _setup_project_dirs(name: str, github_repo: str = "") -> tuple[str, str, str
 def _finalize_project(name: str, project_dir: str, data_dir: str,
                       username: str, discord_channel_id: str,
                       github_repo: str, owner_discord_id: str,
-                      is_dream_space: bool, registry: Registry) -> ProjectInfo:
+                      is_dream_space: bool, registry: Registry,
+                      project_type: str = "standard",
+                      admin_brief: str = "") -> ProjectInfo:
     """Write CLAUDE.md, create tmux session, start Claude Code, register.
 
     Common tail shared by provision() and provision_in_channel().
@@ -223,15 +232,23 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     tmux_session = f"proj-{name}"
     tmux_pane = f"{tmux_session}:lead"
 
-    # Write CLAUDE.md from template
-    if _TEMPLATE_PATH.exists():
-        template = _TEMPLATE_PATH.read_text()
-        claude_md = template.format(
-            project_name=name,
-            project_dir=project_dir,
-            linux_user=username or os.getenv("USER", "local"),
-            discord_channel_id=discord_channel_id,
-        )
+    # Write CLAUDE.md from template -- select template based on project_type
+    if project_type == "chiron":
+        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_ONBOARDING.md"
+    else:
+        template_file = _TEMPLATE_PATH  # standard CLAUDE.md
+
+    if template_file.exists():
+        template = template_file.read_text()
+        format_vars = {
+            "project_name": name,
+            "project_dir": project_dir,
+            "linux_user": username or os.getenv("USER", "local"),
+            "discord_channel_id": discord_channel_id,
+        }
+        if project_type == "chiron":
+            format_vars["admin_brief"] = admin_brief or "(no admin brief provided)"
+        claude_md = template.format(**format_vars)
         claude_md_path = Path(project_dir) / "CLAUDE.md"
         claude_md_path.write_text(claude_md)
 
@@ -329,6 +346,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         owner_discord_id=owner_discord_id,
         is_dream_space=is_dream_space,
         ttyd_port=port,
+        project_type=project_type,
     )
     registry.add(info)
 
@@ -337,7 +355,9 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
 
 async def provision(name: str, registry: Registry, discord_bot, guild,
                     owner_discord_id: str, github_repo: str = "",
-                    is_dream_space: bool = False) -> ProjectInfo:
+                    is_dream_space: bool = False,
+                    project_type: str = "standard",
+                    admin_brief: str = "") -> ProjectInfo:
     """Provision a new project end-to-end.
 
     Creates a new Discord channel, sets up project files, launches Claude Code.
@@ -351,7 +371,9 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
     if registry.get(name):
         raise ValueError(f"Project '{name}' already exists")
 
-    project_dir, data_dir, username = _setup_project_dirs(name, github_repo)
+    project_dir, data_dir, username = _setup_project_dirs(
+        name, github_repo, project_type=project_type,
+    )
 
     # Create private Discord channel
     discord_channel_id = ""
@@ -365,6 +387,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
     info = _finalize_project(
         name, project_dir, data_dir, username, discord_channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
+        project_type=project_type, admin_brief=admin_brief,
     )
     logger.info(f"Project {name} provisioned and registered")
     return info
@@ -373,7 +396,9 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
 async def provision_in_channel(name: str, registry: Registry, discord_bot, guild,
                                owner_discord_id: str, channel_id: str,
                                github_repo: str = "",
-                               is_dream_space: bool = False) -> ProjectInfo:
+                               is_dream_space: bool = False,
+                               project_type: str = "standard",
+                               admin_brief: str = "") -> ProjectInfo:
     """Provision a project using an existing Discord channel.
 
     Same as provision() but skips channel creation and uses the given channel_id.
@@ -382,11 +407,14 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
     if registry.get(name):
         raise ValueError(f"Project '{name}' already exists")
 
-    project_dir, data_dir, username = _setup_project_dirs(name, github_repo)
+    project_dir, data_dir, username = _setup_project_dirs(
+        name, github_repo, project_type=project_type,
+    )
 
     info = _finalize_project(
         name, project_dir, data_dir, username, channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
+        project_type=project_type, admin_brief=admin_brief,
     )
     logger.info(f"Project {name} provisioned in existing channel {channel_id}")
     return info
@@ -397,6 +425,7 @@ def refresh_templates(registry) -> int:
 
     Use after updating project-template/CLAUDE.md to push changes to
     existing projects. Commits the update in each project's git repo.
+    Skips chiron projects (they have their own template lifecycle).
     Returns the number of projects updated.
     """
     if not _TEMPLATE_PATH.exists():
@@ -409,6 +438,12 @@ def refresh_templates(registry) -> int:
     for name in registry.list_projects():
         info = registry.get(name)
         if not info:
+            continue
+
+        # Skip chiron projects -- their CLAUDE.md is managed by the
+        # onboarding/transition lifecycle, not bulk refresh
+        if getattr(info, "project_type", "standard") in ("chiron", "persistent"):
+            logger.info(f"Skipping {name} (project_type={info.project_type})")
             continue
 
         claude_md = template.format(

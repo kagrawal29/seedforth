@@ -128,6 +128,7 @@ _HUB_TEMPLATE_PATH = Path(__file__).parent.parent / _TEMPLATE_DIR / "HUB_CLAUDE.
 _HUB_LINUX_USER_DEFAULT = os.getenv("HUB_LINUX_USER", "proj-delta-hub")
 _HUB_DIR_SERVER = os.getenv("HUB_DIR", "/opt/delta/hub")
 _HUB_DIR_NAME = os.getenv("HUB_DIR_NAME", "delta-hub")
+ONBOARDING_CHANNEL_ID = os.getenv("ONBOARDING_CHANNEL_ID", "")  # #seedforth-onboarding
 
 def _hub_dir() -> Path:
     if LOCAL_MODE:
@@ -296,6 +297,101 @@ async def _handle_connect_command(
     logger.info(f"Connection flow for {project_name}/{toolkit}: {'connected' if connected else 'timeout/failed'}")
 
 
+async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
+    """Handle Chiron's onboarding_complete signal.
+
+    1. Read YAML outputs from memory/
+    2. Load CHIRON_PERSISTENT.md template
+    3. Inject profile_summary
+    4. Overwrite CLAUDE.md
+    5. Restart Claude Code
+    6. Update registry project_type to "persistent"
+    7. Notify user in Discord
+    """
+    info = registry.get(project_name)
+    if not info:
+        logger.warning(f"onboarding_complete for unknown project {project_name}")
+        return
+
+    project_dir = Path(info.project_dir)
+    profile_summary = data.get("profile_summary", "")
+    channel_id = data.get("channel", info.discord_channel_id)
+
+    # Load the persistent template
+    persistent_template_path = (
+        Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_PERSISTENT.md"
+    )
+    if not persistent_template_path.exists():
+        logger.error(f"CHIRON_PERSISTENT.md not found at {persistent_template_path}")
+        return
+
+    template = persistent_template_path.read_text()
+    claude_md = template.format(
+        project_name=info.name,
+        project_dir=info.project_dir,
+        linux_user=info.linux_user or os.getenv("USER", "local"),
+        discord_channel_id=info.discord_channel_id,
+        profile_summary=profile_summary or "(onboarding profile available in memory/)",
+    )
+
+    # Overwrite CLAUDE.md
+    claude_md_path = project_dir / "CLAUDE.md"
+    claude_md_path.write_text(claude_md)
+
+    # Fix ownership on server
+    if info.linux_user:
+        subprocess.run(
+            ["chown", f"{info.linux_user}:", str(claude_md_path)],
+            capture_output=True, text=True,
+        )
+
+    # Git commit the transition
+    if info.linux_user:
+        from delta.isolation import run_as_user
+        run_as_user(info.linux_user, f"git -C {info.project_dir} add -A")
+        run_as_user(
+            info.linux_user,
+            f'git -C {info.project_dir} commit -m "chiron: onboarding complete, transition to persistent agent"',
+        )
+    else:
+        subprocess.run(
+            ["git", "-C", info.project_dir, "add", "-A"],
+            capture_output=True, text=True,
+        )
+        subprocess.run(
+            ["git", "-C", info.project_dir, "commit", "-m",
+             "chiron: onboarding complete, transition to persistent agent"],
+            capture_output=True, text=True,
+        )
+
+    # Stop and restart Claude Code (picks up new CLAUDE.md)
+    stop_claude_code(info.tmux_lead_pane, grace=5)
+    await asyncio.sleep(2)
+    start_claude_code(
+        info.project_dir, info.tmux_lead_pane,
+        linux_user=info.linux_user or None,
+    )
+
+    # Update registry
+    registry.update(project_name, project_type="persistent")
+
+    # Notify user in Discord
+    try:
+        channel = client.get_channel(int(channel_id))
+        if not channel:
+            channel = await client.fetch_channel(int(channel_id))
+        if channel:
+            await channel.send(
+                "onboarding complete. your personal agent is active. "
+                "it knows your roles, goals, time patterns, and how you like to work. "
+                "same channel, new brain."
+            )
+    except Exception as e:
+        logger.warning(f"Could not notify user about onboarding completion: {e}")
+
+    logger.info(f"Onboarding complete for {project_name}, transitioned to persistent agent")
+
+
 def _start_watchers(project_name: str) -> None:
     bridge = _get_or_create_bridge(project_name)
     if not bridge:
@@ -306,6 +402,11 @@ def _start_watchers(project_name: str) -> None:
     def _outbox_callback(data: dict) -> None:
         # -- Command interception: agent sends structured commands --
         command = data.get("command")
+        if command == "onboarding_complete":
+            asyncio.run_coroutine_threadsafe(
+                _handle_onboarding_complete(project_name, data), loop,
+            )
+            return
         if command == "connect":
             toolkit = data.get("toolkit", "")
             if not toolkit:
@@ -910,6 +1011,15 @@ def _start_hub_watchers() -> None:
     def _hub_outbox_callback(data: dict) -> None:
         command = data.get("command")
 
+        if command == "onboarding_complete":
+            # Chiron finished onboarding via hub outbox
+            project_name = data.get("project_name", data.get("name", ""))
+            if project_name:
+                asyncio.run_coroutine_threadsafe(
+                    _handle_onboarding_complete(project_name, data), loop,
+                )
+            return
+
         if command == "new_project":
             # Hub is requesting a new project
             name = data.get("name", "")
@@ -917,6 +1027,8 @@ def _start_hub_watchers() -> None:
             reply_channel = data.get("reply_channel", "")
             github_repo = data.get("github_repo", "")
             use_channel = data.get("use_channel", "")
+            project_type = data.get("project_type", "standard")
+            admin_brief = data.get("admin_brief", "")
 
             async def _provision():
                 try:
@@ -931,6 +1043,8 @@ def _start_hub_watchers() -> None:
                             channel_id=use_channel,
                             github_repo=github_repo,
                             is_dream_space=True,
+                            project_type=project_type,
+                            admin_brief=admin_brief,
                         )
                     else:
                         info = await provision(
@@ -940,6 +1054,8 @@ def _start_hub_watchers() -> None:
                             guild=guild,
                             owner_discord_id=owner,
                             github_repo=github_repo,
+                            project_type=project_type,
+                            admin_brief=admin_brief,
                         )
                     _start_watchers(name)
                     # Write confirmation back to hub inbox
@@ -1154,6 +1270,7 @@ async def _hub_snapshot_loop():
                     "last_activity": info.last_activity,
                     "health": health_str,
                     "ttyd_port": getattr(info, "ttyd_port", 0),
+                    "project_type": getattr(info, "project_type", "standard"),
                 }
 
                 # Enrich with project internals (read as root)
@@ -1171,6 +1288,16 @@ async def _hub_snapshot_loop():
                     recent_commits = _read_project_recent_commits(project_dir)
                     if recent_commits:
                         project_data["recent_commits"] = recent_commits
+
+                    # Read onboarding state for chiron projects
+                    if getattr(info, "project_type", "standard") == "chiron":
+                        onboarding_state_path = Path(project_dir) / "memory" / "onboarding-state.json"
+                        if onboarding_state_path.exists():
+                            try:
+                                onboarding_state = json.loads(onboarding_state_path.read_text())
+                                project_data["onboarding_state"] = onboarding_state
+                            except (json.JSONDecodeError, OSError):
+                                pass
 
                 projects.append(project_data)
 
@@ -1902,6 +2029,62 @@ async def on_message(message: discord.Message):
             await message.channel.send(
                 "Something's off on my end. Try again in a moment."
             )
+        return
+
+    # -- Onboarding intake: admin posts in #seedforth-onboarding --
+    if ONBOARDING_CHANNEL_ID and channel_id == ONBOARDING_CHANNEL_ID:
+        is_admin = user_id == ADMIN_DISCORD_ID
+        if not is_admin:
+            return  # Only admins can trigger onboarding
+
+        # Parse: "Onboard @user -- description" or "@user description"
+        # Extract mentioned user and the rest as admin_brief
+        mentioned_users = message.mentions
+        if not mentioned_users:
+            await message.channel.send(
+                "Mention a user to onboard. Example: `Onboard @john -- runs a consulting firm`"
+            )
+            return
+
+        target_user = mentioned_users[0]
+        # Strip the mention and leading keywords to get the brief
+        brief_text = re.sub(r"<@!?\d+>", "", text).strip()
+        brief_text = re.sub(r"^(?:onboard|start|begin)\s*", "", brief_text, flags=re.IGNORECASE).strip()
+        brief_text = re.sub(r"^--?\s*", "", brief_text).strip()
+
+        project_slug = f"chiron-{target_user.name.lower().replace(' ', '-')[:20]}"
+
+        # Route to hub as a structured onboarding request
+        hub_bridge = bridges.get(HUB_NAME)
+        if hub_bridge:
+            onboard_request = json.dumps({
+                "id": f"onboard-{int(time.time())}",
+                "channel": channel_id,
+                "user": user_id,
+                "text": f"Create a chiron onboarding project for user {target_user.mention} "
+                        f"(ID: {target_user.id}). Project name: {project_slug}. "
+                        f"Admin brief: {brief_text}",
+                "channel_type": "channel",
+                "onboarding_request": {
+                    "target_user_id": str(target_user.id),
+                    "target_user_name": target_user.name,
+                    "project_slug": project_slug,
+                    "admin_brief": brief_text,
+                },
+            })
+            msg_path = hub_bridge.inbox_dir / f"onboard-{int(time.time())}.json"
+            msg_path.write_text(onboard_request)
+            if hub_bridge.is_project_active():
+                try:
+                    hub_bridge.send_to_lead(f"onboard-{int(time.time())}")
+                except Exception:
+                    pass
+            await message.channel.send(
+                f"Starting onboarding for {target_user.mention}. "
+                f"Creating channel #chiron-{target_user.name.lower()}..."
+            )
+        else:
+            await message.channel.send("Hub not ready. Try again in a moment.")
         return
 
     # -- Channel messages: check if this is a project channel --

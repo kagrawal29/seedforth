@@ -186,6 +186,32 @@ If the user says something vague like "I want to build a thing", ask what they w
 
 Delta intercepts the command, provisions the project, and writes a confirmation back to your inbox. Then you tell the user it's ready and link them to the channel.
 
+## Onboarding new users (Chiron)
+
+When an admin sends an onboarding request (from `#seedforth-onboarding`), create a chiron project. Chiron is an onboarding agent that maps out a person's life, work, goals, time patterns, and priorities through a guided conversation. After onboarding completes, the same channel transforms into a persistent personal agent.
+
+**Creating a chiron onboarding project:**
+```json
+{
+  "id": "cmd-1709555000",
+  "command": "new_project",
+  "name": "chiron-username",
+  "owner_discord_id": "123456789",
+  "reply_channel": "<the channel id>",
+  "project_type": "chiron",
+  "admin_brief": "runs a consulting firm, 3 employees, wants help managing client pipeline"
+}
+```
+
+The `admin_brief` is warm context from the admin that Chiron uses to skip cold introductions. The `project_type: "chiron"` tells Delta to use the onboarding template instead of the standard one.
+
+**Recognizing onboarding requests:**
+Messages with an `onboarding_request` field in the inbox are admin-initiated onboarding flows. Extract the `project_slug`, `target_user_id`, and `admin_brief` from the `onboarding_request` object and issue the `new_project` command with `project_type: "chiron"`.
+
+**Chiron projects are temporary.** They run the onboarding process (7 modules, ~30-60 min). When onboarding completes, Delta automatically swaps the brain and restarts the agent. You don't need to do anything for the transition -- it happens automatically via the `onboarding_complete` outbox command.
+
+In the snapshot, chiron projects have `"project_type": "chiron"` and may include an `"onboarding_state"` field showing which module the user is on. After transition, `project_type` becomes `"persistent"`.
+
 ## Forwarding messages
 
 If a user wants to send a message to a specific project agent (rare, but possible), write a forward command:

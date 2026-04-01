@@ -15,6 +15,7 @@ class ProjectInfo:
         "tmux_lead_pane", "nudge_prefix", "github_repo",
         "linux_user", "discord_channel_id", "owner_discord_id", "created_at",
         "is_dream_space", "status", "last_activity", "ttyd_port",
+        "project_type",
     )
 
     def __init__(self, name: str, project_dir: str, data_dir: str,
@@ -23,7 +24,8 @@ class ProjectInfo:
                  linux_user: str = "", discord_channel_id: str = "",
                  owner_discord_id: str = "", created_at: str = "",
                  is_dream_space: bool = False, status: str = "active",
-                 last_activity: str = "", ttyd_port: int = 0):
+                 last_activity: str = "", ttyd_port: int = 0,
+                 project_type: str = "standard"):
         self.name = name
         self.project_dir = project_dir
         self.data_dir = data_dir
@@ -39,6 +41,7 @@ class ProjectInfo:
         self.status = status
         self.last_activity = last_activity or self.created_at
         self.ttyd_port = ttyd_port
+        self.project_type = project_type
 
     def to_dict(self) -> dict:
         return {
@@ -57,6 +60,7 @@ class ProjectInfo:
             "status": self.status,
             "last_activity": self.last_activity,
             "ttyd_port": self.ttyd_port,
+            "project_type": self.project_type,
         }
 
     @classmethod
@@ -77,6 +81,7 @@ class ProjectInfo:
             status=d.get("status", "active"),
             last_activity=d.get("last_activity", ""),
             ttyd_port=d.get("ttyd_port", 0),
+            project_type=d.get("project_type", "standard"),
         )
 
 
