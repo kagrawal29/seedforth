@@ -351,7 +351,7 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
         run_as_user(info.linux_user, f"git -C {info.project_dir} add -A")
         run_as_user(
             info.linux_user,
-            f'git -C {info.project_dir} commit -m "chiron: onboarding complete, transition to persistent agent"',
+            f'git -C {info.project_dir} commit -m "onboarding: complete, transition to persistent agent"',
         )
     else:
         subprocess.run(
@@ -360,7 +360,7 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
         )
         subprocess.run(
             ["git", "-C", info.project_dir, "commit", "-m",
-             "chiron: onboarding complete, transition to persistent agent"],
+             "onboarding: complete, transition to persistent agent"],
             capture_output=True, text=True,
         )
 
@@ -434,6 +434,9 @@ def _start_watchers(project_name: str) -> None:
             # Project agent requesting a new project -- provision it
             proj_name = data.get("name", "")
             description = data.get("description", "")
+            proj_type = data.get("project_type", "standard")
+            proj_admin_brief = data.get("admin_brief", "")
+            proj_target_user_id = data.get("target_user_id", "")
             info = registry.get(project_name)
             owner = info.owner_discord_id if info else ""
             source_channel = info.discord_channel_id if info else data.get("channel", "")
@@ -447,6 +450,9 @@ def _start_watchers(project_name: str) -> None:
                         discord_bot=client,
                         guild=guild,
                         owner_discord_id=owner,
+                        project_type=proj_type,
+                        admin_brief=proj_admin_brief,
+                        target_user_id=proj_target_user_id,
                     )
                     _start_watchers(proj_name)
                     # Seed the new project with context if provided
@@ -456,6 +462,28 @@ def _start_watchers(project_name: str) -> None:
                             seed_path.write_text(f"# {proj_name}\n\n{description}\n")
                         except OSError:
                             pass
+
+                    # Send welcome message in the new channel for onboarding projects
+                    if proj_type == "chiron" and new_info.discord_channel_id:
+                        try:
+                            new_channel = client.get_channel(int(new_info.discord_channel_id))
+                            if not new_channel:
+                                new_channel = await client.fetch_channel(int(new_info.discord_channel_id))
+                            if new_channel:
+                                if proj_target_user_id:
+                                    welcome = (
+                                        f"hey <@{proj_target_user_id}>. i'm Delta, your personal agent. "
+                                        f"let's get to know each other."
+                                    )
+                                else:
+                                    welcome = (
+                                        "hey. i'm Delta, your personal agent. "
+                                        "let's get to know each other."
+                                    )
+                                await new_channel.send(welcome)
+                        except Exception as e:
+                            logger.warning(f"Could not send welcome in {proj_name}: {e}")
+
                     # Notify the requesting agent
                     confirm = (
                         f"Project **{proj_name}** created. "
@@ -1029,6 +1057,7 @@ def _start_hub_watchers() -> None:
             use_channel = data.get("use_channel", "")
             project_type = data.get("project_type", "standard")
             admin_brief = data.get("admin_brief", "")
+            target_user_id = data.get("target_user_id", "")
 
             async def _provision():
                 try:
@@ -1056,8 +1085,31 @@ def _start_hub_watchers() -> None:
                             github_repo=github_repo,
                             project_type=project_type,
                             admin_brief=admin_brief,
+                            target_user_id=target_user_id,
                         )
                     _start_watchers(name)
+
+                    # Send welcome message in the new channel for onboarding projects
+                    if project_type == "chiron" and info.discord_channel_id:
+                        try:
+                            new_channel = client.get_channel(int(info.discord_channel_id))
+                            if not new_channel:
+                                new_channel = await client.fetch_channel(int(info.discord_channel_id))
+                            if new_channel:
+                                if target_user_id:
+                                    welcome = (
+                                        f"hey <@{target_user_id}>. i'm Delta, your personal agent. "
+                                        f"let's get to know each other."
+                                    )
+                                else:
+                                    welcome = (
+                                        "hey. i'm Delta, your personal agent. "
+                                        "let's get to know each other."
+                                    )
+                                await new_channel.send(welcome)
+                        except Exception as e:
+                            logger.warning(f"Could not send welcome in {name}: {e}")
+
                     # Write confirmation back to hub inbox
                     hub_bridge = bridges.get(HUB_NAME)
                     if hub_bridge:
@@ -2138,22 +2190,52 @@ async def on_message(message: discord.Message):
         if not is_admin:
             return  # Only admins can trigger onboarding
 
-        # Parse: "Onboard @user -- description" or "@user description"
-        # Extract mentioned user and the rest as admin_brief
-        mentioned_users = message.mentions
-        if not mentioned_users:
-            await message.channel.send(
-                "Mention a user to onboard. Example: `Onboard @john -- runs a consulting firm`"
-            )
-            return
+        # Extract target user: filter out @Delta (bot) from mentions
+        bot_id = str(client.user.id) if client.user else ""
+        real_mentions = [m for m in message.mentions if str(m.id) != bot_id]
 
-        target_user = mentioned_users[0]
-        # Strip the mention and leading keywords to get the brief
+        target_user_id_str = ""
+        target_display_name = ""
+
+        if real_mentions:
+            # A real user was mentioned -- use their display name
+            target_user = real_mentions[0]
+            target_user_id_str = str(target_user.id)
+            target_display_name = target_user.display_name or target_user.name
+        else:
+            # No real user mentioned -- extract name from text
+            # Strip all mentions, strip keywords, grab first capitalized word
+            name_text = re.sub(r"<@!?\d+>", "", text).strip()
+            name_text = re.sub(
+                r"\b(?:onboard|onboarding|start|begin|hey|can you|help me|my friend|my colleague|he\'s|she\'s|they\'re|an?|the)\b",
+                "", name_text, flags=re.IGNORECASE,
+            ).strip()
+            name_text = re.sub(r"^[,\-\s]+", "", name_text).strip()
+            # Find first capitalized word (likely a name)
+            name_match = re.search(r"\b([A-Z][a-z]+)\b", name_text)
+            if name_match:
+                target_display_name = name_match.group(1)
+            else:
+                await message.channel.send(
+                    "Who should I onboard? Mention them or include their name. "
+                    "Example: `onboard @alex -- runs a consulting firm` or "
+                    "`onboard Alex, he's an accountant`"
+                )
+                return
+
+        # Build slug from display name
+        slug_name = re.sub(r"[^a-z0-9]+", "-", target_display_name.lower()).strip("-")[:20]
+        project_slug = f"onboarding-{slug_name}"
+
+        # Extract admin brief: strip mentions, keywords, and the target name
         brief_text = re.sub(r"<@!?\d+>", "", text).strip()
         brief_text = re.sub(r"^(?:onboard|start|begin)\s*", "", brief_text, flags=re.IGNORECASE).strip()
         brief_text = re.sub(r"^--?\s*", "", brief_text).strip()
-
-        project_slug = f"chiron-{target_user.name.lower().replace(' ', '-')[:20]}"
+        # Remove the target name from the brief if it appears at the start
+        brief_text = re.sub(
+            rf"^{re.escape(target_display_name)}\s*[,\-]?\s*",
+            "", brief_text, flags=re.IGNORECASE,
+        ).strip()
 
         # Route to hub as a structured onboarding request
         hub_bridge = bridges.get(HUB_NAME)
@@ -2162,13 +2244,13 @@ async def on_message(message: discord.Message):
                 "id": f"onboard-{int(time.time())}",
                 "channel": channel_id,
                 "user": user_id,
-                "text": f"Create a chiron onboarding project for user {target_user.mention} "
-                        f"(ID: {target_user.id}). Project name: {project_slug}. "
+                "text": f"Create a chiron onboarding project for {target_display_name}. "
+                        f"Project name: {project_slug}. "
                         f"Admin brief: {brief_text}",
                 "channel_type": "channel",
                 "onboarding_request": {
-                    "target_user_id": str(target_user.id),
-                    "target_user_name": target_user.name,
+                    "target_user_id": target_user_id_str,
+                    "target_user_name": target_display_name,
                     "project_slug": project_slug,
                     "admin_brief": brief_text,
                 },
@@ -2181,8 +2263,8 @@ async def on_message(message: discord.Message):
                 except Exception:
                     pass
             await message.channel.send(
-                f"Starting onboarding for {target_user.mention}. "
-                f"Creating channel #chiron-{target_user.name.lower()}..."
+                f"Starting onboarding for {target_display_name}. "
+                f"Creating channel #proj-{project_slug}..."
             )
         else:
             await message.channel.send("Hub not ready. Try again in a moment.")

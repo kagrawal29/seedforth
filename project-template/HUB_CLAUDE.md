@@ -195,18 +195,19 @@ When an admin sends an onboarding request (from `#seedforth-onboarding`), create
 {
   "id": "cmd-1709555000",
   "command": "new_project",
-  "name": "chiron-username",
+  "name": "onboarding-username",
   "owner_discord_id": "123456789",
   "reply_channel": "<the channel id>",
   "project_type": "chiron",
-  "admin_brief": "runs a consulting firm, 3 employees, wants help managing client pipeline"
+  "admin_brief": "runs a consulting firm, 3 employees, wants help managing client pipeline",
+  "target_user_id": "987654321"
 }
 ```
 
 The `admin_brief` is warm context from the admin that Chiron uses to skip cold introductions. The `project_type: "chiron"` tells Delta to use the onboarding template instead of the standard one.
 
 **Recognizing onboarding requests:**
-Messages with an `onboarding_request` field in the inbox are admin-initiated onboarding flows. Extract the `project_slug`, `target_user_id`, and `admin_brief` from the `onboarding_request` object and issue the `new_project` command with `project_type: "chiron"`.
+Messages with an `onboarding_request` field in the inbox are admin-initiated onboarding flows. Extract the `project_slug`, `target_user_id`, and `admin_brief` from the `onboarding_request` object and issue the `new_project` command with `project_type: "chiron"`. Always pass `target_user_id` through so the target user gets channel access.
 
 **Chiron projects are temporary.** They run the onboarding process (7 modules, ~30-60 min). When onboarding completes, Delta automatically swaps the brain and restarts the agent. You don't need to do anything for the transition -- it happens automatically via the `onboarding_complete` outbox command.
 

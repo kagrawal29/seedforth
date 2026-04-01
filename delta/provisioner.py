@@ -357,7 +357,8 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
                     owner_discord_id: str, github_repo: str = "",
                     is_dream_space: bool = False,
                     project_type: str = "standard",
-                    admin_brief: str = "") -> ProjectInfo:
+                    admin_brief: str = "",
+                    target_user_id: str = "") -> ProjectInfo:
     """Provision a new project end-to-end.
 
     Creates a new Discord channel, sets up project files, launches Claude Code.
@@ -381,6 +382,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
         logger.info(f"Creating Discord channel for {name}")
         channel = await _create_project_channel(
             discord_bot, guild, name, owner_discord_id,
+            target_user_id=target_user_id,
         )
         discord_channel_id = str(channel.id)
 
@@ -739,8 +741,9 @@ async def teardown(name: str, registry: Registry, discord_bot, guild) -> bool:
 
 
 async def _create_project_channel(discord_bot, guild, project_name: str,
-                                   owner_discord_id: str):
-    """Create a private Discord channel visible only to bot + owner."""
+                                   owner_discord_id: str,
+                                   target_user_id: str = ""):
+    """Create a private Discord channel visible only to bot + owner + target user."""
     import discord
 
     # Find or create "Delta Projects" category
@@ -769,6 +772,16 @@ async def _create_project_channel(discord_bot, guild, project_name: str,
         )
     except Exception:
         logger.warning(f"Could not find member {owner_discord_id} for channel permissions")
+
+    # Add target user permissions (e.g. person being onboarded)
+    if target_user_id and target_user_id != owner_discord_id:
+        try:
+            target_member = await guild.fetch_member(int(target_user_id))
+            overwrites[target_member] = discord.PermissionOverwrite(
+                read_messages=True, send_messages=True,
+            )
+        except Exception:
+            logger.warning(f"Could not find target member {target_user_id} for channel permissions")
 
     channel = await guild.create_text_channel(
         name=f"proj-{project_name}",
