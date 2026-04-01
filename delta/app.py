@@ -1335,6 +1335,28 @@ async def _hub_snapshot_loop():
             # Ensure hub user can read the snapshot (written by root on server)
             os.chmod(str(snapshot_path), 0o644)
 
+            # Write per-user snapshots for persistent agents
+            for name in registry.list_projects():
+                info = registry.get(name)
+                if not info or info.project_type != "persistent":
+                    continue
+                owner = info.owner_discord_id
+                if not owner:
+                    continue
+                user_projects = [p for p in projects if p.get("owner_discord_id") == owner]
+                user_snapshot = {
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "projects": user_projects,
+                }
+                try:
+                    user_snapshot_path = Path(info.project_dir) / "delta-config" / "registry-snapshot.json"
+                    user_snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+                    user_snapshot_path.write_text(json.dumps(user_snapshot, indent=2))
+                    if info.linux_user:
+                        os.chmod(str(user_snapshot_path), 0o644)
+                except OSError as e:
+                    logger.warning(f"Could not write snapshot for {name}: {e}")
+
             # Health check: restart hub Claude Code if it died or is stuck
             hub_bridge = bridges.get(HUB_NAME)
             if hub_bridge:
@@ -1961,6 +1983,79 @@ async def on_ready():
     client.loop.create_task(resource_manager_loop(client, registry, bridges))
 
 
+async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
+    """Route a DM to the user's persistent agent instead of hub."""
+    project_name = project.name
+    logger.info(f"DM from {message.author} -> persistent agent {project_name}")
+
+    # Wake from hibernation if needed
+    if project.status == "hibernated":
+        hub_bridge = bridges.get(HUB_NAME)
+        if hub_bridge:
+            auth_err = hub_bridge.check_auth_error()
+            if auth_err:
+                logger.warning(f"Auth failure before waking {project_name}: {auth_err}")
+                await message.channel.send(
+                    "I'm having trouble connecting right now. The admin has been notified."
+                )
+                return
+        logger.info(f"Restoring hibernated persistent agent '{project_name}' on DM")
+        await message.channel.send("waking up, one sec")
+        restore(project_name, registry)
+        _start_watchers(project_name)
+        await asyncio.sleep(8)
+        proj_check = registry.get(project_name)
+        if proj_check and not is_claude_running(proj_check.tmux_lead_pane):
+            logger.warning(f"Post-boot check failed for persistent agent {project_name}")
+            await message.channel.send(
+                "Had trouble waking up. Try again in a moment."
+            )
+            return
+
+    bridge = _get_or_create_bridge(project_name)
+    if not bridge:
+        logger.error(f"Could not create bridge for persistent agent {project_name}, falling back to hub")
+        # Fall back to hub
+        hub_bridge = bridges.get(HUB_NAME)
+        if hub_bridge:
+            hub_bridge.touch_activity()
+            msg_id = hub_bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+            _start_typing(message.channel, channel_id)
+            if hub_bridge.is_project_active():
+                try:
+                    hub_bridge.send_to_lead(msg_id)
+                except Exception:
+                    pass
+        return
+
+    # Check auth
+    auth_err = bridge.check_auth_error()
+    if auth_err:
+        logger.warning(f"Auth failure on persistent agent {project_name}: {auth_err}")
+        await message.channel.send(
+            "I'm having trouble connecting right now. The admin has been notified."
+        )
+        return
+
+    # Ensure watchers are running
+    _start_watchers(project_name)
+
+    bridge.touch_activity()
+    msg_id = bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+    _start_typing(message.channel, channel_id)
+    if bridge.is_project_active():
+        try:
+            bridge.send_to_lead(msg_id)
+        except Exception as e:
+            logger.warning(f"Nudge to persistent agent {project_name} failed: {e}")
+    else:
+        logger.warning(f"Persistent agent {project_name} not running, cannot process DM")
+        _stop_typing(channel_id)
+        await message.channel.send(
+            "I'm waking up, give me a sec. Try again in a moment."
+        )
+
+
 @client.event
 async def on_message(message: discord.Message):
     if message.author.bot:
@@ -1975,7 +2070,7 @@ async def on_message(message: discord.Message):
     channel_id = str(message.channel.id)
     user_id = str(message.author.id)
 
-    # -- DMs: route to hub orchestrator --
+    # -- DMs: route to persistent agent or hub orchestrator --
     if is_dm:
         # Admin commands still handled directly (bypass hub)
         cmd_result = commands.parse(text)
@@ -1983,6 +2078,12 @@ async def on_message(message: discord.Message):
             cmd_name, cmd_args = cmd_result
             logger.info(f"Command from {message.author}: {cmd_name}")
             await _handle_command(cmd_name, cmd_args, message)
+            return
+
+        # Check if user has a persistent agent (e.g. chiron-<name>)
+        persistent = registry.find_persistent_by_owner(user_id)
+        if persistent:
+            await _route_dm_to_persistent(persistent, message, channel_id, user_id, text)
             return
 
         # First-contact instant greeting for new users (no projects yet).

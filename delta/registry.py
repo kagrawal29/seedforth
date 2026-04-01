@@ -146,6 +146,16 @@ class Registry:
                 if p.owner_discord_id == discord_user_id
             ]
 
+    def find_persistent_by_owner(self, discord_user_id: str) -> "ProjectInfo | None":
+        """Find the persistent agent for a Discord user, if any."""
+        with self._lock:
+            for p in self._projects.values():
+                if (p.owner_discord_id == discord_user_id
+                        and p.project_type == "persistent"
+                        and p.status in ("active", "hibernated")):
+                    return p
+            return None
+
     def find_hibernated_by_owner(self, discord_user_id: str) -> list[ProjectInfo]:
         """Find hibernated dream spaces owned by a Discord user."""
         with self._lock:

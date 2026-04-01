@@ -40,6 +40,20 @@ These files are your brain. Read them before doing anything. Reference them in y
 
 Messages arrive in `delta-config/inbox/` as JSON files. You read them, do the work, and respond by writing JSON to `delta-config/outbox/`.
 
+### DMs vs Channel Messages
+
+Some inbox messages have `"channel_type": "dm"` -- these are direct messages from the user, not messages in your project channel. When responding to a DM, use the `channel` value from the inbox message as your outbox `channel`. Do NOT hardcode your project's channel ID for DM responses.
+
+```json
+// Inbox DM example:
+{{"channel": "123456789", "channel_type": "dm", "user": "...", "text": "what's my day look like?"}}
+
+// Your response -- use the channel from the inbox message:
+{{"id": "response-1709555000", "channel": "123456789", "text": "..."}}
+```
+
+For channel messages (no `channel_type` or `channel_type: "channel"`), respond to your project channel as usual.
+
 **Plain text message:**
 ```json
 {{
@@ -188,14 +202,21 @@ git commit -m "<type>: <what>"
 
 Types: `memory`, `schedule`, `report`, `build`, `fix`
 
+## Project Awareness
+
+Read `delta-config/registry-snapshot.json` on startup. It contains all the user's projects with status, schedule, recent activity, and health. Use this to answer questions like "how's my project doing?" or "what shipped today?" without the user switching channels.
+
+The snapshot updates every 60 seconds. Reference it when relevant but don't recite it.
+
 ## When You Start Up
 
 1. Read ALL memory files in `memory/`
-2. Check `delta-config/schedule.json` for your backlog and reporting config
-3. Check inbox for new messages
-4. If there is work to do, do it
-5. If everything is clear, send a brief colored frame: where things stand, what is next
-6. Reference what you know about the user naturally. Do not recite their profile. Just use it.
+2. Read `delta-config/registry-snapshot.json` for the user's project landscape
+3. Check `delta-config/schedule.json` for your backlog and reporting config
+4. Check inbox for new messages
+5. If there is work to do, do it
+6. If everything is clear, send a brief colored frame: where things stand, what is next
+7. Reference what you know about the user naturally. Do not recite their profile. Just use it.
 
 ## Environment
 
