@@ -306,6 +306,92 @@ async def _handle_connect_command(
     logger.info(f"Connection flow for {project_name}/{toolkit}: {'connected' if connected else 'timeout/failed'}")
 
 
+def _gh_auth_start_subprocess(gh_cmd: list[str]) -> tuple[str, str, str, bool]:
+    """Run gh auth login in a thread-safe blocking way.
+
+    Returns (device_url, user_code, stderr_output, exited_early).
+    This runs in a thread via asyncio.to_thread so it never blocks the
+    event loop.
+    """
+    import os as _os
+
+    proc = subprocess.Popen(
+        gh_cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    stderr_output = ""
+    device_url = ""
+    user_code = ""
+
+    # Set stderr to non-blocking so os.read won't hang
+    fd = proc.stderr.fileno()
+    import fcntl
+    flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, flags | _os.O_NONBLOCK)
+
+    # Give it up to 15 seconds to produce the device code
+    deadline = time.time() + 15
+    while time.time() < deadline:
+        if proc.poll() is not None:
+            # Process exited early -- read remaining
+            try:
+                remaining = _os.read(fd, 65536)
+                stderr_output += remaining.decode("utf-8", errors="replace")
+            except (BlockingIOError, OSError):
+                pass
+            break
+        try:
+            chunk = _os.read(fd, 4096)
+            if chunk:
+                stderr_output += chunk.decode("utf-8", errors="replace")
+                if "one-time code" in stderr_output.lower() or "enter the code" in stderr_output.lower():
+                    break
+        except (BlockingIOError, OSError):
+            pass
+        time.sleep(0.5)
+
+    # Parse the device code from stderr
+    for line in stderr_output.split("\n"):
+        line_lower = line.lower().strip()
+        if "github.com/login/device" in line:
+            url_match = re.search(r'(https://github\.com/login/device\S*)', line)
+            if url_match:
+                device_url = url_match.group(1)
+            elif not device_url:
+                device_url = "https://github.com/login/device"
+        if "code:" in line_lower or "code :" in line_lower:
+            code_match = re.search(r'([A-Z0-9]{4}-[A-Z0-9]{4})', line)
+            if code_match:
+                user_code = code_match.group(1)
+
+    exited_early = proc.poll() is not None
+
+    if exited_early:
+        try:
+            stdout_out = proc.stdout.read().decode("utf-8", errors="replace") if proc.stdout else ""
+        except Exception:
+            stdout_out = ""
+        stderr_output += stdout_out
+
+    # Keep proc reference for cleanup -- store pid
+    if not exited_early:
+        # Kill the process since we got what we need (or timed out)
+        # The polling phase will use gh auth status instead
+        pass
+    try:
+        proc.kill()
+    except OSError:
+        pass
+
+    if not device_url:
+        device_url = "https://github.com/login/device"
+
+    return device_url, user_code, stderr_output, exited_early
+
+
 async def _handle_gh_auth_command(
     project_name: str, bridge: ProjectBridge, channel_id: str
 ) -> None:
@@ -313,7 +399,8 @@ async def _handle_gh_auth_command(
 
     Runs `gh auth login --web` as the project's linux user, captures
     the device URL and one-time code, sends them to Discord, then polls
-    for completion.
+    for completion. All blocking subprocess work runs in a thread to
+    avoid freezing the Discord event loop.
     """
     info = registry.get(project_name)
     if not info:
@@ -325,7 +412,6 @@ async def _handle_gh_auth_command(
     # --git-protocol https avoids SSH key setup
     gh_cmd = ["gh", "auth", "login", "--web", "--git-protocol", "https"]
     if linux_user and not LOCAL_MODE:
-        # Run as the project's linux user
         gh_cmd = ["sudo", "-u", linux_user] + gh_cmd
 
     # Suppress silence nudges while waiting for auth
@@ -333,57 +419,10 @@ async def _handle_gh_auth_command(
     authed = False
 
     try:
-        proc = subprocess.Popen(
-            gh_cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+        # Run the blocking subprocess work in a thread
+        device_url, user_code, stderr_output, exited_early = await asyncio.to_thread(
+            _gh_auth_start_subprocess, gh_cmd
         )
-
-        # gh auth login --web writes the device code prompt to stderr
-        # Read stderr in a non-blocking way to capture the URL and code
-        import select  # noqa: E402 -- stdlib, used only in this handler
-        stderr_output = ""
-        device_url = ""
-        user_code = ""
-
-        # Give it up to 15 seconds to produce the device code
-        deadline = time.time() + 15
-        while time.time() < deadline:
-            if proc.poll() is not None:
-                # Process exited early (maybe gh not installed)
-                stderr_output += proc.stderr.read()
-                break
-            ready, _, _ = select.select([proc.stderr], [], [], 1.0)
-            if ready:
-                chunk = proc.stderr.read(4096)
-                if chunk:
-                    stderr_output += chunk
-                    # Check if we have the code
-                    if "one-time code" in stderr_output.lower() or "enter the code" in stderr_output.lower():
-                        break
-
-        # Parse the device code from stderr
-        # gh output format: "First copy your one-time code: XXXX-YYYY"
-        # and "https://github.com/login/device"
-        for line in stderr_output.split("\n"):
-            line_lower = line.lower().strip()
-            if "github.com/login/device" in line:
-                # Extract URL
-                url_match = re.search(r'(https://github\.com/login/device\S*)', line)
-                if url_match:
-                    device_url = url_match.group(1)
-                elif not device_url:
-                    device_url = "https://github.com/login/device"
-            if "code:" in line_lower or "code :" in line_lower:
-                # Extract code -- usually "XXXX-YYYY" at the end
-                code_match = re.search(r'([A-Z0-9]{4}-[A-Z0-9]{4})', line)
-                if code_match:
-                    user_code = code_match.group(1)
-
-        if not device_url:
-            device_url = "https://github.com/login/device"
 
         # Send to Discord
         ch = client.get_channel(int(channel_id)) if channel_id else None
@@ -392,7 +431,6 @@ async def _handle_gh_auth_command(
                 ch = await client.fetch_channel(int(channel_id))
             except Exception:
                 logger.warning(f"Could not find channel {channel_id} for gh auth")
-                proc.kill()
                 bridge.connection_pending = False
                 return
 
@@ -401,11 +439,8 @@ async def _handle_gh_auth_command(
                 f"go to {device_url} and enter code: **{user_code}**\n"
                 f"this connects your github account so i can work with your repos."
             )
-        elif proc.poll() is not None:
-            # gh exited early -- might already be authed or gh not installed
-            stdout_remaining = proc.stdout.read()
-            all_output = stderr_output + stdout_remaining
-            if "already logged in" in all_output.lower() or "logged in" in all_output.lower():
+        elif exited_early:
+            if "already logged in" in stderr_output.lower() or "logged in" in stderr_output.lower():
                 bridge.write_inbox(
                     channel_id, "delta:system",
                     "GitHub CLI is already authenticated. You can use gh commands."
@@ -418,7 +453,7 @@ async def _handle_gh_auth_command(
                 )
                 bridge.write_inbox(
                     channel_id, "delta:system",
-                    f"GitHub auth failed to start. Output: {all_output[:300]}"
+                    f"GitHub auth failed to start. Output: {stderr_output[:300]}"
                 )
                 bridge.connection_pending = False
                 return
@@ -433,12 +468,12 @@ async def _handle_gh_auth_command(
         authed = False
         for _ in range(max_polls):
             await asyncio.sleep(10)
-            # Check if gh auth status succeeds
             status_cmd = ["gh", "auth", "status"]
             if linux_user and not LOCAL_MODE:
                 status_cmd = ["sudo", "-u", linux_user] + status_cmd
             try:
-                result = subprocess.run(
+                result = await asyncio.to_thread(
+                    subprocess.run,
                     status_cmd, capture_output=True, text=True, timeout=10,
                 )
                 if result.returncode == 0:
@@ -446,10 +481,6 @@ async def _handle_gh_auth_command(
                     break
             except (subprocess.TimeoutExpired, OSError):
                 pass
-
-        # Clean up the login process if still running
-        if proc.poll() is None:
-            proc.kill()
 
         bridge.connection_pending = False
 
@@ -459,7 +490,6 @@ async def _handle_gh_auth_command(
                 channel_id, "delta:system",
                 "GitHub CLI authenticated. You can now use `gh` for repo operations, PR creation, issue tracking."
             )
-            # Nudge agent
             try:
                 msg_files = sorted(bridge.inbox_dir.glob("*.json"))
                 if msg_files:
