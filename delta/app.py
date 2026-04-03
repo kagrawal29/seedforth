@@ -34,6 +34,7 @@ from delta.registry import Registry
 from delta.resource_manager import resource_manager_loop
 from delta.router import Router
 from delta import connections
+from delta import unipile as unipile_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("delta")
@@ -138,6 +139,7 @@ _HUB_LINUX_USER_DEFAULT = os.getenv("HUB_LINUX_USER", "proj-delta-hub")
 _HUB_DIR_SERVER = os.getenv("HUB_DIR", "/opt/delta/hub")
 _HUB_DIR_NAME = os.getenv("HUB_DIR_NAME", "delta-hub")
 ONBOARDING_CHANNEL_ID = os.getenv("ONBOARDING_CHANNEL_ID", "")  # #seedforth-onboarding
+LINKEDIN_ONBOARDING_CHANNEL_ID = os.getenv("LINKEDIN_ONBOARDING_CHANNEL_ID", "")
 
 def _hub_dir() -> Path:
     if LOCAL_MODE:
@@ -210,6 +212,82 @@ def _resolve_files(data: dict, project_dir: str) -> list[discord.File]:
         except OSError as e:
             logger.warning(f"[outbox] Could not read file {resolved}: {e}")
     return result
+
+
+# -- LinkedIn onboarding handling --------------------------------------------
+
+async def _handle_linkedin_onboarding(message: discord.Message) -> None:
+    """Handle a message in the LinkedIn onboarding channel.
+
+    Generates a Unipile hosted auth link, posts it to the channel,
+    then polls for a new LinkedIn account and provisions a project.
+    """
+    channel = message.channel
+
+    try:
+        dsn, api_key = unipile_client.get_config()
+    except ValueError:
+        await channel.send("UNIPILE_DSN or UNIPILE_API_KEY not configured.")
+        return
+
+    # Snapshot current accounts before generating link
+    try:
+        existing = unipile_client.list_accounts(dsn, api_key)
+        known_ids = {a["id"] for a in existing}
+    except Exception as e:
+        logger.warning(f"Failed to list Unipile accounts: {e}")
+        known_ids = set()
+
+    # Generate hosted auth link
+    try:
+        auth_url = unipile_client.generate_hosted_auth_link(dsn, api_key)
+    except Exception as e:
+        logger.warning(f"Failed to generate Unipile auth link: {e}")
+        await channel.send(f"Failed to generate LinkedIn auth link: {e}")
+        return
+
+    await channel.send(
+        f"connect your LinkedIn account here:\n{auth_url}\n\n"
+        f"i'll automatically set up your project once you authenticate."
+    )
+
+    # Poll for new account (15 min window)
+    new_account = await unipile_client.poll_for_new_account(
+        dsn, api_key, known_ids, check_interval=30, timeout=900
+    )
+
+    if not new_account:
+        await channel.send("no new LinkedIn account detected after 15 minutes. try again when ready.")
+        return
+
+    # Determine project name
+    display = unipile_client.account_display_name(new_account)
+    project_name = f"linkedin-{display}"
+    account_id = new_account.get("id", "")
+
+    await channel.send(f"linkedin account connected. provisioning `{project_name}`...")
+
+    # Provision the project
+    guild = message.guild
+    owner_id = str(message.author.id)
+    try:
+        info = await provision(
+            name=project_name,
+            registry=registry,
+            discord_bot=client,
+            guild=guild,
+            owner_discord_id=owner_id,
+            project_type="linkedin",
+            admin_brief=f"LinkedIn agent for account: {new_account.get('name', display)} (Unipile ID: {account_id})",
+            unipile_account_id=account_id,
+        )
+        _start_watchers(project_name)
+        proj_channel = guild.get_channel(int(info.discord_channel_id))
+        mention = proj_channel.mention if proj_channel else f"#{project_name}"
+        await channel.send(f"done. {mention} is live.")
+    except Exception as e:
+        logger.error(f"Failed to provision {project_name}: {e}")
+        await channel.send(f"provisioning failed: {e}")
 
 
 # -- Connection command handling ----------------------------------------------
@@ -2561,6 +2639,12 @@ async def on_message(message: discord.Message):
             await message.channel.send(
                 "Something's off on my end. Try again in a moment."
             )
+        return
+
+    # -- LinkedIn onboarding: any user can connect a LinkedIn account --
+    if LINKEDIN_ONBOARDING_CHANNEL_ID and channel_id == LINKEDIN_ONBOARDING_CHANNEL_ID:
+        if not message.author.bot:
+            asyncio.ensure_future(_handle_linkedin_onboarding(message))
         return
 
     # -- Onboarding intake: admin posts in #seedforth-onboarding --

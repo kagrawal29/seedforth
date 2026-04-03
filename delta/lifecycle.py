@@ -58,7 +58,8 @@ def is_claude_running(tmux_pane: str) -> bool:
 
 
 def start_claude_code(project_dir: str, tmux_pane: str,
-                      linux_user: str | None = None) -> bool:
+                      linux_user: str | None = None,
+                      extra_env: dict | None = None) -> bool:
     """Start Claude Code in the given tmux pane.
 
     If linux_user is provided, runs as that user via sudo -u.
@@ -96,6 +97,9 @@ def start_claude_code(project_dir: str, tmux_pane: str,
                         f.write(f"export VERCEL_TOKEN={vercel_token}\n")
                     if rube_token:
                         f.write(f"export RUBE_BEARER_TOKEN={rube_token}\n")
+                    if extra_env:
+                        for k, v in extra_env.items():
+                            f.write(f"export {k}={v}\n")
                 os.chmod(token_file, stat.S_IRUSR | stat.S_IWUSR)
                 subprocess.run(["chown", f"{linux_user}:", token_file],
                                capture_output=True, text=True)
@@ -118,6 +122,9 @@ def start_claude_code(project_dir: str, tmux_pane: str,
             env_parts.append(f'export VERCEL_TOKEN="{vercel_token}"')
         if rube_token:
             env_parts.append(f'export RUBE_BEARER_TOKEN="{rube_token}"')
+        if extra_env:
+            for k, v in extra_env.items():
+                env_parts.append(f'export {k}="{v}"')
         env_prefix = "; ".join(env_parts) + "; " if env_parts else ""
         cmd = f'{env_prefix}cd "{project_dir}" && claude --dangerously-skip-permissions'
 

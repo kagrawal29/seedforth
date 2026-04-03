@@ -223,7 +223,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
                       github_repo: str, owner_discord_id: str,
                       is_dream_space: bool, registry: Registry,
                       project_type: str = "standard",
-                      admin_brief: str = "") -> ProjectInfo:
+                      admin_brief: str = "",
+                      unipile_account_id: str = "") -> ProjectInfo:
     """Write CLAUDE.md, create tmux session, start Claude Code, register.
 
     Common tail shared by provision() and provision_in_channel().
@@ -240,6 +241,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     # Write CLAUDE.md from template -- select template based on project_type
     if project_type == "chiron":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_ONBOARDING.md"
+    elif project_type == "linkedin":
+        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "LINKEDIN_CLAUDE.md"
     else:
         template_file = _TEMPLATE_PATH  # standard CLAUDE.md
 
@@ -254,6 +257,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         }
         if project_type == "chiron":
             format_vars["admin_brief"] = admin_brief or "(no admin brief provided)"
+        if project_type == "linkedin":
+            format_vars["unipile_account_id"] = unipile_account_id
         claude_md = template.format(**format_vars)
         claude_md_path = Path(project_dir) / "CLAUDE.md"
         claude_md_path.write_text(claude_md)
@@ -331,8 +336,16 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     create_tmux_session(tmux_session)
 
     logger.info(f"Starting Claude Code in {tmux_pane}")
+    extra_env: dict = {}
+    if project_type == "linkedin" and unipile_account_id:
+        extra_env["UNIPILE_ACCOUNT_ID"] = unipile_account_id
+        for key in ("UNIPILE_DSN", "UNIPILE_API_KEY"):
+            val = os.environ.get(key, "")
+            if val:
+                extra_env[key] = val
     start_claude_code(project_dir, tmux_pane,
-                      linux_user=username if username else None)
+                      linux_user=username if username else None,
+                      extra_env=extra_env if extra_env else None)
 
     # Start per-project web terminal (port allocated earlier for CLAUDE.md)
     start_ttyd(name, tmux_session, port)
@@ -363,7 +376,8 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
                     is_dream_space: bool = False,
                     project_type: str = "standard",
                     admin_brief: str = "",
-                    target_user_id: str = "") -> ProjectInfo:
+                    target_user_id: str = "",
+                    unipile_account_id: str = "") -> ProjectInfo:
     """Provision a new project end-to-end.
 
     Creates a new Discord channel, sets up project files, launches Claude Code.
@@ -395,6 +409,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
         name, project_dir, data_dir, username, discord_channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
         project_type=project_type, admin_brief=admin_brief,
+        unipile_account_id=unipile_account_id,
     )
     logger.info(f"Project {name} provisioned and registered")
     return info
@@ -405,7 +420,8 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
                                github_repo: str = "",
                                is_dream_space: bool = False,
                                project_type: str = "standard",
-                               admin_brief: str = "") -> ProjectInfo:
+                               admin_brief: str = "",
+                               unipile_account_id: str = "") -> ProjectInfo:
     """Provision a project using an existing Discord channel.
 
     Same as provision() but skips channel creation and uses the given channel_id.
@@ -422,6 +438,7 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
         name, project_dir, data_dir, username, channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
         project_type=project_type, admin_brief=admin_brief,
+        unipile_account_id=unipile_account_id,
     )
     logger.info(f"Project {name} provisioned in existing channel {channel_id}")
     return info
