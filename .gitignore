@@ -3,6 +3,7 @@
 delta.env
 *.key
 *.pem
+bot-tokens.json
 
 # OS
 .DS_Store
@@ -14,9 +15,10 @@ delta.env
 # Claude Code
 .claude/
 
-# Delta runtime
+# Delta runtime state (generated, not tracked)
 delta-registry.json
 delta-last-fired.json
+hub/
 /tmp/delta/
 
 # Python

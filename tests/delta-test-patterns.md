@@ -1,6 +1,6 @@
-# Delta Testing Patterns -- Reusable for Agent Vinod
+# Delta Testing Patterns
 
-Extracted from the Delta/Tetrahedron codebase. 212 unit tests, 60+ E2E tests, 4 UX research sprints, 5 Playwright scripts, 150+ screenshots.
+Extracted from the Delta codebase. 262 unit tests, 60+ E2E test cases.
 
 ---
 
@@ -8,24 +8,26 @@ Extracted from the Delta/Tetrahedron codebase. 212 unit tests, 60+ E2E tests, 4 
 
 ### 1.1 Test file structure
 
-14 test files in `tests/`, each covering one module:
+16 test files in `tests/`, each covering one module:
 
 | File | Module | Test count | Pattern |
 |------|--------|-----------|---------|
-| test_bridge.py | charlie.bridge | 10 | Filesystem I/O, polling loops |
-| test_schedule.py | conductor.schedule | 12 | Time/timezone logic |
-| test_conductor.py | conductor.conductor | 7 | State machine transitions |
-| test_isolation.py | delta.isolation | 8 | Subprocess mocking |
-| test_registry.py | delta.registry | 12 | JSON persistence, CRUD |
-| test_commands.py | delta.commands | 22 | Parser combinatorics |
-| test_lifecycle.py | delta.lifecycle | 12 | Process management mocking |
-| test_router.py | delta.router | 7 | Lookup resolution |
-| test_project_bridge.py | delta.project_bridge | 12 | Bridge I/O, auth detection |
+| test_commands.py | delta.commands | 24 | Parser combinatorics |
 | test_connections.py | delta.connections | 16 | SDK wrapper mocking |
-| test_schedule_delta.py | delta.app (schedule) | 50+ | Schedule timing, persistence |
-| test_teardown_cleanup.py | delta.provisioner | 5 | Async teardown, safety checks |
+| test_dm_persistent_routing.py | delta.app (DM routing) | 32 | DM session persistence |
+| test_enriched_snapshot.py | delta.app (snapshot) | 18 | Registry snapshot enrichment |
+| test_forward_access_control.py | delta.app (forwarding) | 5 | Message forwarding permissions |
+| test_gh_auth.py | delta.app (GitHub) | 8 | GitHub auth flow |
+| test_isolation.py | delta.isolation | 9 | Subprocess mocking |
+| test_last_fired.py | delta.app (last_fired) | 7 | Persistence roundtrip |
+| test_lifecycle.py | delta.lifecycle | 14 | Process management mocking |
+| test_onboarding_intake.py | delta.app (onboarding) | 10 | Chiron onboarding flow |
+| test_project_bridge.py | delta.project_bridge | 15 | Bridge I/O, auth detection |
+| test_registry.py | delta.registry | 12 | JSON persistence, CRUD |
 | test_restore_on_startup.py | delta.app (restore) | 6 | Restore state machine |
-| test_last_fired.py | delta.app (last_fired) | 6 | Persistence roundtrip |
+| test_router.py | delta.router | 6 | Lookup resolution |
+| test_schedule_delta.py | delta.app (schedule) | 76 | Schedule timing, persistence |
+| test_teardown_cleanup.py | delta.provisioner | 4 | Async teardown, safety checks |
 
 ### 1.2 Fixture patterns
 
@@ -73,7 +75,7 @@ def bridge(tmp_path):
     )
 ```
 
-**Reusable for Vinod:** Any module that reads from filesystem (inbox/outbox, config files, schedules) should use `tmp_path` fixtures with pre-created directory structure.
+Any module that reads from filesystem (inbox/outbox, config files, schedules) should use `tmp_path` fixtures with pre-created directory structure.
 
 ### 1.3 Mocking patterns
 
@@ -228,7 +230,7 @@ with pytest.raises(RuntimeError, match="useradd failed"):
 
 **Subprocess mock tests**: test_isolation.py, test_lifecycle.py. Mock `subprocess.run` to test command construction without running actual commands.
 
-**State machine tests**: test_conductor.py, test_restore_on_startup.py. Mock multiple dependencies to test transition logic.
+**State machine tests**: test_restore_on_startup.py. Mock multiple dependencies to test transition logic.
 
 **Async tests**: test_teardown_cleanup.py. Use `@pytest.mark.asyncio` with `AsyncMock` and multiple `patch` context managers.
 
@@ -267,7 +269,7 @@ def test_parse_list():
     assert parse("list") == ("list", {})
 ```
 
-**Reusable for Vinod:** Use classes when testing a single method across many edge cases (auth detection, schedule timing). Use functions for combinatorial testing (command parsing).
+Use classes when testing a single method across many edge cases (auth detection, schedule timing). Use functions for combinatorial testing (command parsing).
 
 ### 1.7 Robustness testing patterns
 
@@ -882,42 +884,12 @@ The testing infrastructure evolved in clear phases:
 
 ---
 
-## 11. Reusable Patterns for Agent Vinod
+## 11. Reusable Patterns for New Projects
 
-### What to copy directly
+These patterns transfer well to any SeedForth agent project:
 
 1. **conftest.py fixture structure.** tmp_path for filesystem isolation, monkeypatch for env vars, fixtures returning paths.
-
-2. **Mock layering for SDK wrappers.** The connections.py pattern (mock_composio / mock_composio_none fixtures) works for any external SDK (Slack, Discord, OpenAI, etc).
-
-3. **Behavior map methodology.** Write the behavior map for Vinod FIRST. Map every code path. Then derive the test plan from it.
-
-4. **Trust score framework.** Define 4-6 dimensions relevant to Vinod's domain. Weight them. Score each test. Track the composite over sprints.
-
-5. **Playwright CDP boilerplate.** The ensure_chrome_cdp / get_discord_page pattern works for any browser-based E2E testing.
-
-6. **Screenshot naming convention.** `{context}-{step}-{description}.png` with subdirectories per sprint.
-
-7. **Bug tracking in test results.** Table format: #, bug, root cause, fix, status.
-
-### What to adapt
-
-1. **Discord selectors need updating per platform.** The `[role="textbox"]`, `[data-list-item-id^="guildsnav___"]` selectors are Discord-specific. Vinod will need its own selector map for its target platform.
-
-2. **Timing constants.** Delta's 30-120s wait for Claude Code response is specific to its architecture. Vinod will have different latency profiles.
-
-3. **Scoring rubrics.** Accompaniment scoring (gap-based) makes sense for any async bot. But the specific gap thresholds (35s, 50s, 90s) need calibration for Vinod's use case.
-
-4. **Phase ordering.** Delta's 8-phase test plan reflects its specific state dependencies (create project -> use project -> teardown). Vinod will have its own dependency graph.
-
-### What to build fresh
-
-1. **Programmatic message assertion.** Don't rely on screenshots alone. Extract message text from the DOM and assert in code.
-
-2. **pytest integration for E2E.** Wrap browser tests in pytest fixtures so they integrate with the test runner. Use pytest-playwright if applicable.
-
-3. **Retry logic for flaky browser interactions.** @mention autocomplete, server icon clicks, channel navigation -- all need retry wrappers.
-
-4. **Test data cleanup.** Automated cleanup of test projects, screenshots, and temp files after test runs.
-
-5. **Multi-user testing.** If Vinod has multi-user scenarios, set up a second test account from the start.
+2. **Mock layering for SDK wrappers.** The connections.py pattern (mock_composio / mock_composio_none fixtures) works for any external SDK.
+3. **Behavior map methodology.** Write the behavior map FIRST. Map every code path. Then derive the test plan from it.
+4. **Playwright CDP boilerplate.** The ensure_chrome_cdp / get_discord_page pattern works for any browser-based E2E testing.
+5. **Bug tracking in test results.** Table format: #, bug, root cause, fix, status.
