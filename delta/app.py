@@ -2682,7 +2682,7 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
         # Double-check: another DM may have triggered provisioning while waiting
         personal = registry.find_personal_by_owner(user_id)
         if personal:
-            await _route_dm_to_persistent(personal, message, channel_id, user_id, text)
+            await _route_dm_to_persistent(personal, message, channel_id, user_id, text, attachments_data)
             return
 
         # Instant greeting (user sees this in <1s while provisioning happens)
@@ -2740,8 +2740,8 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
             )
 
 
-async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
-    """Route a DM to the user's persistent agent instead of hub."""
+async def _route_dm_to_persistent(project, message, channel_id, user_id, text, attachments_data=None):
+    """Route a DM to the user's personal/persistent agent."""
     project_name = project.name
     logger.info(f"DM from {message.author} -> persistent agent {project_name}")
 
@@ -2860,7 +2860,7 @@ async def on_message(message: discord.Message):
         # Check if user has a personal or persistent agent
         personal = registry.find_personal_by_owner(user_id)
         if personal:
-            await _route_dm_to_persistent(personal, message, channel_id, user_id, text)
+            await _route_dm_to_persistent(personal, message, channel_id, user_id, text, attachments_data)
             return
 
         # No personal agent yet -- auto-provision one
