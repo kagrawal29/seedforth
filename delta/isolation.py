@@ -56,7 +56,13 @@ def create_user(project_name: str) -> str:
     elif result.returncode != 0:
         raise RuntimeError(f"useradd failed: {result.stderr.strip()}")
 
-    subprocess.run(["sudo", "chmod", "750", home], capture_output=True, text=True)
+    # Set home dir group to delta so the bot can write during provisioning
+    # and read inbox/outbox during operation. chmod 770 gives full access to
+    # both the project user and the delta bot.
+    subprocess.run(["sudo", "chown", f"{username}:delta", home],
+                   capture_output=True, text=True)
+    # 2770 = rwxrwx--- with setgid so subdirs inherit the delta group
+    subprocess.run(["sudo", "chmod", "2770", home], capture_output=True, text=True)
 
     # Symlink Claude auth so project user inherits root's Max subscription.
     # Use sudo for all operations since delta user can't stat inside 750 home dirs.

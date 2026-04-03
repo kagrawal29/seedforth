@@ -357,11 +357,11 @@ def _setup_project_dirs(name: str, github_repo: str = "",
             run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
         if project_type == "linkedin":
             run_as_user(username, f"mkdir -p {project_dir}/data")
-        # Write schedule.json directly (avoid shell quoting issues with apostrophes)
+        # Write schedule.json (delta user has group write via 2770 home dir)
         schedule_path = Path(data_dir) / "schedule.json"
         schedule_path.write_text(json.dumps(_initial_schedule(name), indent=2))
         import subprocess as _sp
-        _sp.run(["sudo", "chown", f"{username}:", str(schedule_path)],
+        _sp.run(["sudo", "chown", f"{username}:delta", str(schedule_path)],
                 capture_output=True, text=True)
 
         _init_git_repo(Path(project_dir), linux_user=username)
