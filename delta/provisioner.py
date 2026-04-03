@@ -357,12 +357,15 @@ def _setup_project_dirs(name: str, github_repo: str = "",
             run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
         if project_type == "linkedin":
             run_as_user(username, f"mkdir -p {project_dir}/data")
-        # Write schedule.json (delta user has group write via 2770 home dir)
+        # Fix group ownership on entire project tree so delta user can write
+        # (run_as_user creates dirs as proj-{name}:proj-{name}, need delta group)
+        import subprocess as _sp
+        _sp.run(["sudo", "chgrp", "-R", "delta", project_dir], capture_output=True, text=True)
+        _sp.run(["sudo", "chmod", "-R", "g+rwX", project_dir], capture_output=True, text=True)
+
+        # Write schedule.json (now writable by delta via group)
         schedule_path = Path(data_dir) / "schedule.json"
         schedule_path.write_text(json.dumps(_initial_schedule(name), indent=2))
-        import subprocess as _sp
-        _sp.run(["sudo", "chown", f"{username}:delta", str(schedule_path)],
-                capture_output=True, text=True)
 
         _init_git_repo(Path(project_dir), linux_user=username)
 
