@@ -2746,6 +2746,34 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
         )
 
 
+async def _fetch_channel_history(channel, limit: int = 10) -> list[dict]:
+    """Fetch recent channel history for hub context.
+
+    Returns up to `limit` messages before the current one, oldest first.
+    Each entry has: author_id, author_name, text, timestamp, is_bot.
+    Returns an empty list on any error (never blocks message delivery).
+    """
+    try:
+        history = []
+        async for msg in channel.history(limit=limit + 1):
+            history.append({
+                "author_id": str(msg.author.id),
+                "author_name": msg.author.display_name or msg.author.name,
+                "text": msg.content[:500],
+                "timestamp": msg.created_at.isoformat(),
+                "is_bot": msg.author.bot,
+            })
+        # history() returns newest-first; reverse to chronological order
+        # and drop the last entry which is the triggering message itself
+        history.reverse()
+        if history:
+            history = history[:-1]  # drop current message (hub already has it in `text`)
+        return history
+    except Exception as e:
+        logger.debug(f"Could not fetch channel history: {e}")
+        return []
+
+
 @client.event
 async def on_message(message: discord.Message):
     if message.author.bot:
@@ -2813,10 +2841,12 @@ async def on_message(message: discord.Message):
                 return
 
             hub_bridge.touch_activity()
+            _ch_history = await _fetch_channel_history(message.channel)
             msg_id = hub_bridge.write_inbox(
                 channel_id, user_id, text,
                 channel_type="dm",
                 attachments=attachments_data or None,
+                history=_ch_history or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -2964,11 +2994,13 @@ async def on_message(message: discord.Message):
                 return
 
             hub_bridge.touch_activity()
+            _ch_history = await _fetch_channel_history(message.channel)
             msg_id = hub_bridge.write_inbox(
                 channel_id, user_id, text,
                 channel_type="channel",
                 channel_name=channel_name,
                 attachments=attachments_data or None,
+                history=_ch_history or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -3100,12 +3132,14 @@ async def on_message(message: discord.Message):
         hub_bridge = bridges.get(HUB_NAME)
         if hub_bridge:
             channel_name = getattr(message.channel, "name", None) or project_name
+            _ch_history = await _fetch_channel_history(message.channel)
             hub_msg_id = hub_bridge.write_inbox(
                 channel_id, user_id, text,
                 channel_type="project_channel",
                 channel_name=channel_name,
                 project_name=project_name,
                 attachments=attachments_data or None,
+                history=_ch_history or None,
             )
             if hub_bridge.is_project_active():
                 try:

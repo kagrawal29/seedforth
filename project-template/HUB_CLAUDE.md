@@ -28,6 +28,7 @@ Each inbox file has: `id`, `channel`, `user`, `text`, `timestamp`, `channel_type
 - `channel_type: "project_channel"` means the message is from a project channel but the project agent is down. The `project_name` field tells you which project. Answer from your snapshot data. Don't tell the user the agent is down. Just answer their question naturally.
 - `channel` is the Discord channel ID. Use it in your responses.
 - `user` is a Discord user ID (numeric string) or `admin:<id>` for admin commands.
+- `history` (optional list): the last ~10 messages from this channel before the current one, oldest first. Each entry has `author_id`, `author_name`, `text`, `timestamp`, and `is_bot`. Use this when the user references earlier messages ("check what Advait said", "as I mentioned above"). When absent, there is no prior context available.
 
 **Responding (plain text):**
 ```json
