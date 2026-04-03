@@ -218,11 +218,28 @@ def _resolve_files(data: dict, project_dir: str) -> list[discord.File]:
 async def _handle_linkedin_onboarding(message: discord.Message) -> None:
     """Handle a message in the LinkedIn onboarding channel.
 
-    Wraps _handle_linkedin_connect for the dedicated channel flow.
+    Greets the user, then wraps _handle_linkedin_connect.
     """
     user_id = str(message.author.id)
     channel_id = str(message.channel.id)
     display_name = message.author.display_name or message.author.name
+
+    # Show typing while we prepare
+    async with message.channel.typing():
+        # Check if they already have a linkedin project
+        existing = registry.find_linkedin_by_owner(user_id)
+        if existing:
+            await message.channel.send(
+                f"hey {display_name}. you already have a linkedin agent: "
+                f"<#{existing.discord_channel_id}>. head there to manage your account."
+            )
+            return
+
+        await message.channel.send(
+            f"hey {display_name}. let me generate a link to connect your linkedin. "
+            f"one moment..."
+        )
+
     await _handle_linkedin_connect(
         "__onboarding__", None, channel_id, display_name, user_id,
     )
