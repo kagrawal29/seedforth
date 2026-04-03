@@ -717,10 +717,10 @@ async def _handle_gh_auth_command(
 
 
 async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
-    """Handle Chiron's onboarding_complete signal.
+    """Handle personal agent onboarding_complete signal.
 
     1. Read YAML outputs from memory/
-    2. Load CHIRON_PERSISTENT.md template
+    2. Load PERSONAL_AGENT.md template
     3. Inject profile_summary
     4. Overwrite CLAUDE.md
     5. Restart Claude Code
@@ -738,10 +738,10 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
 
     # Load the persistent template
     persistent_template_path = (
-        Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_PERSISTENT.md"
+        Path(__file__).parent.parent / _TEMPLATE_DIR / "PERSONAL_AGENT.md"
     )
     if not persistent_template_path.exists():
-        logger.error(f"CHIRON_PERSISTENT.md not found at {persistent_template_path}")
+        logger.error(f"PERSONAL_AGENT.md not found at {persistent_template_path}")
         return
 
     template = persistent_template_path.read_text()
@@ -924,7 +924,7 @@ def _start_watchers(project_name: str) -> None:
                             pass
 
                     # Send welcome message in the new channel for onboarding projects
-                    if proj_type == "chiron" and new_info.discord_channel_id:
+                    if proj_type == "personal" and new_info.discord_channel_id:
                         try:
                             new_channel = client.get_channel(int(new_info.discord_channel_id))
                             if not new_channel:
@@ -1500,7 +1500,7 @@ def _start_hub_watchers() -> None:
         command = data.get("command")
 
         if command == "onboarding_complete":
-            # Chiron finished onboarding via hub outbox
+            # Personal agent finished onboarding via hub outbox
             project_name = data.get("project_name", data.get("name", ""))
             if project_name:
                 asyncio.run_coroutine_threadsafe(
@@ -1577,7 +1577,7 @@ def _start_hub_watchers() -> None:
                     _start_watchers(name)
 
                     # Send welcome message in the new channel for onboarding projects
-                    if project_type == "chiron" and info.discord_channel_id:
+                    if project_type == "personal" and info.discord_channel_id:
                         try:
                             new_channel = client.get_channel(int(info.discord_channel_id))
                             if not new_channel:
@@ -1940,8 +1940,8 @@ async def _hub_snapshot_loop():
                     enriched = _build_enriched_snapshot(project_dir, depth="standard")
                     project_data.update(enriched)
 
-                    # Read onboarding state for chiron projects
-                    if getattr(info, "project_type", "standard") == "chiron":
+                    # Read onboarding state for personal agent projects
+                    if getattr(info, "project_type", "standard") == "personal":
                         onboarding_state_path = Path(project_dir) / "memory" / "onboarding-state.json"
                         if onboarding_state_path.exists():
                             try:
@@ -2784,7 +2784,7 @@ async def on_message(message: discord.Message):
             await _handle_command(cmd_name, cmd_args, message)
             return
 
-        # Check if user has a persistent agent (e.g. chiron-<name>)
+        # Check if user has a persistent personal agent
         persistent = registry.find_persistent_by_owner(user_id)
         if persistent:
             await _route_dm_to_persistent(persistent, message, channel_id, user_id, text)
@@ -2903,7 +2903,7 @@ async def on_message(message: discord.Message):
                 "id": f"onboard-{int(time.time())}",
                 "channel": channel_id,
                 "user": user_id,
-                "text": f"Create a chiron onboarding project for {target_display_name}. "
+                "text": f"Create a personal onboarding project for {target_display_name}. "
                         f"Project name: {project_slug}. "
                         f"Admin brief: {brief_text}",
                 "channel_type": "channel",

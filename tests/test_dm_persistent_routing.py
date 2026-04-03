@@ -1,6 +1,6 @@
 """Tests for DM routing to persistent agents.
 
-When a user has a project_type=persistent project (e.g. chiron-<name>),
+When a user has a project_type=persistent project (e.g. onboarding-<name>),
 their DMs should route to that agent instead of hub. This tests:
 1. Registry.find_persistent_by_owner()
 2. _route_dm_to_persistent() async helper
@@ -108,9 +108,9 @@ class TestFindPersistentByOwner:
         registry.add(p)
         assert registry.find_persistent_by_owner(OWNER_1) is None
 
-    def test_ignores_chiron_onboarding(self, registry):
+    def test_ignores_personal_onboarding(self, registry):
         p = _make_project_info("chiron-carol", owner=OWNER_1,
-                               project_type="chiron", status="active")
+                               project_type="personal", status="active")
         registry.add(p)
         assert registry.find_persistent_by_owner(OWNER_1) is None
 
@@ -644,14 +644,14 @@ class TestUserSpecificSnapshots:
 # 5. Template content verification
 # ===========================================================================
 
-class TestChironPersistentTemplate:
+class TestPersonalAgentTemplate:
 
     @pytest.fixture
     def template(self):
         path = (
             Path(__file__).parent.parent
             / "project-template"
-            / "CHIRON_PERSISTENT.md"
+            / "PERSONAL_AGENT.md"
         )
         return path.read_text()
 

@@ -63,6 +63,36 @@ delta (system user)          -- runs Discord bot process, owns /opt/delta
   .claude/settings.json         -- Claude Code hooks config
 ```
 
+### Discord Server Structure
+
+Delta operates on the SeedForth Discord server with these channel types:
+
+**Special channels (env-configured):**
+- `#seedforth-onboarding` (ONBOARDING_CHANNEL_ID) -- Admin triggers personal agent onboarding here. Delta extracts the target user, creates a private project channel, and starts the onboarding flow.
+- `#linkedin-onboarding` (LINKEDIN_ONBOARDING_CHANNEL_ID) -- Users connect their LinkedIn accounts here. Delta generates a Unipile auth link automatically.
+- `#general` and other channels -- Delta responds to @mentions. Hub gets the message with last 10 channel messages as context.
+
+**Project channels (dynamic):**
+- Created under "Delta Projects" category as `#proj-{name}`
+- Private: @everyone denied, bot + owner + optional target user allowed
+- Each maps to a registered project in delta-registry.json
+- Created/destroyed by provisioner during project lifecycle
+
+**DMs:**
+- All DMs route to the hub agent
+- If user has a persistent personal agent, hub routes to that agent
+
+### Project Types
+
+| Type | Template | Use case |
+|---|---|---|
+| `standard` | CLAUDE.md | Builder projects (websites, apps, dashboards) |
+| `personal` | PERSONAL_ONBOARDING.md | Personal agent onboarding (7-module intake) |
+| `persistent` | PERSONAL_AGENT.md | Post-onboarding personal agent (auto-transitioned) |
+| `linkedin` | LINKEDIN.md | LinkedIn management (Unipile integration) |
+
+**Personal agent flow:** Admin triggers in #seedforth-onboarding -> Delta creates `onboarding-{name}` project with PERSONAL_ONBOARDING.md -> Agent runs 7-module intake (identity, goals, time, work, rules, constraints, review) -> Agent sends `onboarding_complete` command -> Delta swaps CLAUDE.md to PERSONAL_AGENT.md, restarts agent, archives channel -> User DMs Delta directly from then on.
+
 ### Hub vs Project Agents
 
 **Hub** (`proj-delta-hub`, runs in `/opt/delta/hub/`):

@@ -314,8 +314,8 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         if not schedule_file.exists():
             schedule_file.write_text(json.dumps(_initial_schedule(name), indent=2))
 
-        # Chiron projects need memory/ and memory/checklists/ directories
-        if project_type == "chiron":
+        # Personal agent projects need memory/ and memory/checklists/ directories
+        if project_type == "personal":
             (project_path / "memory" / "checklists").mkdir(parents=True, exist_ok=True)
         # LinkedIn projects need data/ directory for unipile safety controller
         if project_type == "linkedin":
@@ -353,7 +353,7 @@ def _setup_project_dirs(name: str, github_repo: str = "",
                 raise RuntimeError(f"mkdir failed: {result.stderr.strip()}")
 
         run_as_user(username, f"mkdir -p {data_dir}/inbox {data_dir}/outbox {data_dir}/logs {data_dir}/followups {data_dir}/progress")
-        if project_type == "chiron":
+        if project_type == "personal":
             run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
         if project_type == "linkedin":
             run_as_user(username, f"mkdir -p {project_dir}/data")
@@ -390,8 +390,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     ttyd_url = f"http://{server_host}:{port}" if server_host and port else ""
 
     # Write CLAUDE.md from template -- select template based on project_type
-    if project_type == "chiron":
-        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_ONBOARDING.md"
+    if project_type == "personal":
+        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "PERSONAL_ONBOARDING.md"
     elif project_type == "linkedin":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "LINKEDIN.md"
     else:
@@ -406,7 +406,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
             "discord_channel_id": discord_channel_id,
             "ttyd_url": ttyd_url,
         }
-        if project_type == "chiron":
+        if project_type == "personal":
             format_vars["admin_brief"] = admin_brief or "(no admin brief provided)"
         if project_type == "linkedin":
             if LOCAL_MODE:
@@ -621,7 +621,7 @@ def refresh_templates(registry) -> int:
 
     Use after updating project-template/CLAUDE.md to push changes to
     existing projects. Commits the update in each project's git repo.
-    Skips chiron projects (they have their own template lifecycle).
+    Skips personal agent projects (they have their own template lifecycle).
     Returns the number of projects updated.
     """
     if not _TEMPLATE_PATH.exists():
@@ -636,9 +636,9 @@ def refresh_templates(registry) -> int:
         if not info:
             continue
 
-        # Skip chiron projects -- their CLAUDE.md is managed by the
+        # Skip personal agent projects -- their CLAUDE.md is managed by the
         # onboarding/transition lifecycle, not bulk refresh
-        if getattr(info, "project_type", "standard") in ("chiron", "persistent", "linkedin"):
+        if getattr(info, "project_type", "standard") in ("personal", "persistent", "linkedin"):
             logger.info(f"Skipping {name} (project_type={info.project_type})")
             continue
 

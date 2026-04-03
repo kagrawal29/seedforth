@@ -21,7 +21,7 @@ Extracted from the Delta codebase. 262 unit tests, 60+ E2E test cases.
 | test_isolation.py | delta.isolation | 9 | Subprocess mocking |
 | test_last_fired.py | delta.app (last_fired) | 7 | Persistence roundtrip |
 | test_lifecycle.py | delta.lifecycle | 14 | Process management mocking |
-| test_onboarding_intake.py | delta.app (onboarding) | 10 | Chiron onboarding flow |
+| test_onboarding_intake.py | delta.app (onboarding) | 10 | Personal agent onboarding flow |
 | test_project_bridge.py | delta.project_bridge | 15 | Bridge I/O, auth detection |
 | test_registry.py | delta.registry | 12 | JSON persistence, CRUD |
 | test_restore_on_startup.py | delta.app (restore) | 6 | Restore state machine |

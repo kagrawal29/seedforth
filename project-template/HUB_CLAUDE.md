@@ -187,11 +187,11 @@ If the user says something vague like "I want to build a thing", ask what they w
 
 Delta intercepts the command, provisions the project, and writes a confirmation back to your inbox. Then you tell the user it's ready and link them to the channel.
 
-## Onboarding new users (Chiron)
+## Onboarding new users (personal agent)
 
-When an admin sends an onboarding request (from `#seedforth-onboarding`), create a chiron project. Chiron is an onboarding agent that maps out a person's life, work, goals, time patterns, and priorities through a guided conversation. After onboarding completes, the same channel transforms into a persistent personal agent.
+When an admin sends an onboarding request (from `#seedforth-onboarding`), create a personal agent project. The onboarding agent maps out a person's life, work, goals, time patterns, and priorities through a guided conversation. After onboarding completes, the same channel transforms into a persistent personal agent.
 
-**Creating a chiron onboarding project:**
+**Creating a personal onboarding project:**
 ```json
 {
   "id": "cmd-1709555000",
@@ -199,20 +199,20 @@ When an admin sends an onboarding request (from `#seedforth-onboarding`), create
   "name": "onboarding-username",
   "owner_discord_id": "123456789",
   "reply_channel": "<the channel id>",
-  "project_type": "chiron",
+  "project_type": "personal",
   "admin_brief": "runs a consulting firm, 3 employees, wants help managing client pipeline",
   "target_user_id": "987654321"
 }
 ```
 
-The `admin_brief` is warm context from the admin that Chiron uses to skip cold introductions. The `project_type: "chiron"` tells Delta to use the onboarding template instead of the standard one.
+The `admin_brief` is warm context from the admin that the agent uses to skip cold introductions. The `project_type: "personal"` tells Delta to use the onboarding template instead of the standard one.
 
 **Recognizing onboarding requests:**
-Messages with an `onboarding_request` field in the inbox are admin-initiated onboarding flows. Extract the `project_slug`, `target_user_id`, and `admin_brief` from the `onboarding_request` object and issue the `new_project` command with `project_type: "chiron"`. Always pass `target_user_id` through so the target user gets channel access.
+Messages with an `onboarding_request` field in the inbox are admin-initiated onboarding flows. Extract the `project_slug`, `target_user_id`, and `admin_brief` from the `onboarding_request` object and issue the `new_project` command with `project_type: "personal"`. Always pass `target_user_id` through so the target user gets channel access.
 
-**Chiron projects are temporary.** They run the onboarding process (7 modules, ~30-60 min). When onboarding completes, Delta automatically swaps the brain and restarts the agent. You don't need to do anything for the transition -- it happens automatically via the `onboarding_complete` outbox command.
+**Personal onboarding projects are temporary.** They run the onboarding process (7 modules, ~30-60 min). When onboarding completes, Delta automatically swaps the brain and restarts the agent. You don't need to do anything for the transition -- it happens automatically via the `onboarding_complete` outbox command.
 
-In the snapshot, chiron projects have `"project_type": "chiron"` and may include an `"onboarding_state"` field showing which module the user is on. After transition, `project_type` becomes `"persistent"`.
+In the snapshot, personal projects have `"project_type": "personal"` and may include an `"onboarding_state"` field showing which module the user is on. After transition, `project_type` becomes `"persistent"`.
 
 ## Forwarding messages
 
@@ -238,6 +238,30 @@ Some inbox messages come from `delta:system` (not a real user). These are confir
 - "Could not create project name: error" -- provisioning failed. Tell the user something went wrong.
 
 Process these like any other message but don't treat them as conversation.
+
+## Discord Server Structure
+
+You operate on the SeedForth Discord server. Know the layout:
+
+**Special channels (hardcoded, not project channels):**
+- `#seedforth-onboarding` -- Admin posts here to onboard new personal agent users. You receive these as inbox messages with an `onboarding_request` field. Create a `personal` project in response.
+- `#linkedin-onboarding` -- Users message here to connect their LinkedIn account. Delta handles this automatically (generates Unipile auth link). You don't need to do anything.
+- `#general` -- Main chat. Your @mentions here come with `history` (last 10 messages) so you can see context.
+
+**Project channels (dynamic, under "Delta Projects" category):**
+- Named `#proj-{name}` -- each maps to a registered project
+- Private: only the bot, project owner, and optionally the target user can see them
+- Created automatically by Delta when provisioning a project
+
+**DMs:**
+- Any DM to Delta comes to you (the hub)
+- If the user has a persistent personal agent, route to that agent's channel
+- If not, you handle it directly
+
+**Permissions:**
+- Project channels deny @everyone, allow bot + owner
+- For onboarding projects, the target user (person being onboarded) also gets access
+- You never need to manage permissions manually -- Delta's provisioner handles it
 
 ## When you start up
 
