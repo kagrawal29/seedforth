@@ -226,15 +226,6 @@ async def _handle_linkedin_onboarding(message: discord.Message) -> None:
 
     # Show typing while we prepare
     async with message.channel.typing():
-        # Check if they already have a linkedin project
-        existing = registry.find_linkedin_by_owner(user_id)
-        if existing:
-            await message.channel.send(
-                f"hey {display_name}. you already have a linkedin agent: "
-                f"<#{existing.discord_channel_id}>. head there to manage your account."
-            )
-            return
-
         await message.channel.send(
             f"hey {display_name}. let me generate a link to connect your linkedin. "
             f"one moment..."
@@ -385,23 +376,9 @@ async def _handle_linkedin_connect(
     """Handle a request to connect a user's LinkedIn via Unipile.
 
     Generates a hosted auth link, polls for the new account, then
-    auto-provisions a linkedin-{name} project.
+    auto-provisions a linkedin-{name} project. Users can have multiple
+    linkedin projects (one per account).
     """
-    # Check if user already has a linkedin project
-    existing = registry.find_linkedin_by_owner(owner_discord_id)
-    if existing:
-        ch = client.get_channel(int(channel_id)) if channel_id else None
-        if not ch:
-            try:
-                ch = await client.fetch_channel(int(channel_id))
-            except Exception:
-                return
-        await ch.send(
-            f"you already have a linkedin agent: <#{existing.discord_channel_id}>. "
-            f"head there to manage your account."
-        )
-        return
-
     # Snapshot existing accounts
     accounts_data = _unipile_run(["accounts"])
     existing_ids = set()
@@ -467,6 +444,13 @@ async def _handle_linkedin_connect(
 
     proj_slug = _sanitize_linkedin_name(new_account_name or user_display_name)
     proj_name = f"linkedin-{proj_slug}"
+    # Avoid name collisions if user already has a project with this name
+    if registry.get(proj_name):
+        for i in range(2, 10):
+            candidate = f"{proj_name}-{i}"
+            if len(candidate) <= 30 and not registry.get(candidate):
+                proj_name = candidate
+                break
 
     try:
         guild = client.guilds[0] if client.guilds else None
