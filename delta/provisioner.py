@@ -858,7 +858,6 @@ async def _create_project_channel(discord_bot, guild, project_name: str,
         guild.default_role: discord.PermissionOverwrite(read_messages=False),
         guild.me: discord.PermissionOverwrite(
             read_messages=True, send_messages=True, manage_channels=True,
-            manage_roles=True,
         ),
     }
 
