@@ -89,6 +89,68 @@ def _verify_github_repo(repo: str) -> bool:
     return result.returncode == 0
 
 
+GITHUB_ORG = "Seedforth"
+
+
+def _setup_github_repo(name: str, project_dir: str, linux_user: str = "",
+                       source_repo: str = "") -> str:
+    """Ensure a Seedforth GitHub repo exists and configure it as the remote.
+
+    If source_repo is provided (e.g. 'kagrawal29/solve-os'), the project was
+    already cloned from it. We create a Seedforth repo and point origin there.
+
+    Returns the full repo path (e.g. 'Seedforth/project-name') or empty on failure.
+    """
+    import subprocess
+    import urllib.request
+    import urllib.error
+
+    token = os.getenv("GITHUB_TOKEN", "")
+    if not token:
+        logger.warning("GITHUB_TOKEN not set, skipping GitHub repo setup")
+        return ""
+
+    repo_name = name
+    full_repo = f"{GITHUB_ORG}/{repo_name}"
+
+    # Create repo in org (ignore 422 = already exists)
+    try:
+        data = json.dumps({"name": repo_name, "private": True}).encode()
+        req = urllib.request.Request(
+            f"https://api.github.com/orgs/{GITHUB_ORG}/repos",
+            data=data,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "Content-Type": "application/json",
+            },
+        )
+        urllib.request.urlopen(req)
+        logger.info(f"Created GitHub repo {full_repo}")
+    except urllib.error.HTTPError as e:
+        if e.code == 422:
+            logger.info(f"GitHub repo {full_repo} already exists")
+        else:
+            body = e.read().decode()
+            logger.warning(f"Failed to create GitHub repo: {e.code} {body}")
+            return ""
+
+    # Configure remote
+    clone_url = f"https://x-access-token:{token}@github.com/{full_repo}.git"
+    if linux_user:
+        from delta.isolation import run_as_user
+        run_as_user(linux_user, f"git -C {project_dir} remote remove origin 2>/dev/null; true")
+        run_as_user(linux_user, f"git -C {project_dir} remote add origin {clone_url}")
+    else:
+        subprocess.run(["git", "-C", project_dir, "remote", "remove", "origin"],
+                       capture_output=True, text=True)
+        subprocess.run(["git", "-C", project_dir, "remote", "add", "origin", clone_url],
+                       capture_output=True, text=True)
+
+    logger.info(f"Configured remote origin -> {full_repo}")
+    return full_repo
+
+
 def _init_git_repo(project_path: Path, linux_user: str = "") -> None:
     """Initialize a git repo with .gitignore if one doesn't exist."""
     import subprocess
@@ -419,6 +481,18 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         _sp.run(["git", "-C", project_dir, "commit", "-m", "Initial project setup"],
                 capture_output=True, text=True)
 
+    # Set up GitHub repo in Seedforth org and push initial commit
+    seedforth_repo = _setup_github_repo(name, project_dir, username, github_repo)
+    if seedforth_repo and username:
+        from delta.isolation import run_as_user
+        branch = "master"  # git init defaults to master
+        run_as_user(username, f"git -C {project_dir} push -u origin {branch} 2>/dev/null || true")
+        logger.info(f"Pushed initial commit to {seedforth_repo}")
+    elif seedforth_repo:
+        import subprocess as _sp
+        _sp.run(["git", "-C", project_dir, "push", "-u", "origin", "master"],
+                capture_output=True, text=True)
+
     # Clean up old .mcp.json BEFORE registering (claude mcp add-json writes
     # to .mcp.json, so deleting after would nuke the new config)
     old_mcp = Path(project_dir) / ".mcp.json"
@@ -456,7 +530,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         tmux_session=tmux_session,
         tmux_lead_pane=tmux_pane,
         nudge_prefix="delta-config/inbox",
-        github_repo=github_repo,
+        github_repo=seedforth_repo or github_repo,
         linux_user=username,
         discord_channel_id=discord_channel_id,
         owner_discord_id=owner_discord_id,
