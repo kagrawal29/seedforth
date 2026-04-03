@@ -87,10 +87,9 @@ def start_claude_code(project_dir: str, tmux_pane: str,
             token_file = f"/tmp/.claude-token-{linux_user}"
             try:
                 import stat
-                # Remove old file first -- it may be owned by the project user
-                # with 600 perms, which prevents overwriting with new token
-                if os.path.exists(token_file):
-                    os.unlink(token_file)
+                # Remove old file first via sudo -- it may be owned by the project user
+                subprocess.run(["sudo", "rm", "-f", token_file],
+                               capture_output=True, text=True)
                 with open(token_file, "w") as f:
                     if token:
                         f.write(f"export CLAUDE_CODE_OAUTH_TOKEN={token}\n")

@@ -58,29 +58,31 @@ def create_user(project_name: str) -> str:
 
     subprocess.run(["sudo", "chmod", "750", home], capture_output=True, text=True)
 
-    # Symlink Claude auth so project user inherits root's Max subscription
-    user_claude = Path(home) / ".claude"
-    if _ROOT_CLAUDE_DIR.exists() and not user_claude.exists():
-        subprocess.run(["sudo", "ln", "-s", str(_ROOT_CLAUDE_DIR), str(user_claude)],
+    # Symlink Claude auth so project user inherits root's Max subscription.
+    # Use sudo for all operations since delta user can't stat inside 750 home dirs.
+    user_claude = f"{home}/.claude"
+    if _ROOT_CLAUDE_DIR.exists():
+        # ln -sf is idempotent (overwrites if exists)
+        subprocess.run(["sudo", "ln", "-sf", str(_ROOT_CLAUDE_DIR), user_claude],
                        capture_output=True, text=True)
         ensure_claude_auth_shared()
 
     # Write a concrete .claude.json with theme and onboarding flags.
-    # Can't symlink because Claude Code overwrites it on first boot.
-    # Merge with root's .claude.json if it exists, then add required keys.
-    user_claude_json = Path(home) / ".claude.json"
-    if Path(home).exists() and not user_claude_json.exists():
-        base_config = {}
-        if _ROOT_CLAUDE_JSON.exists():
-            try:
-                base_config = json.loads(_ROOT_CLAUDE_JSON.read_text())
-            except (json.JSONDecodeError, OSError):
-                pass
-        base_config.setdefault("theme", "dark")
-        base_config.setdefault("hasCompletedOnboarding", True)
-        user_claude_json.write_text(json.dumps(base_config, indent=2))
-        subprocess.run(["sudo", "chown", f"{username}:", str(user_claude_json)],
-                       capture_output=True, text=True)
+    user_claude_json = f"{home}/.claude.json"
+    base_config = {}
+    if _ROOT_CLAUDE_JSON.exists():
+        try:
+            base_config = json.loads(_ROOT_CLAUDE_JSON.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass
+    base_config.setdefault("theme", "dark")
+    base_config.setdefault("hasCompletedOnboarding", True)
+    # Write via sudo tee to avoid permission issues
+    config_json = json.dumps(base_config, indent=2)
+    subprocess.run(["sudo", "bash", "-c", f"echo '{config_json}' > {user_claude_json}"],
+                   capture_output=True, text=True)
+    subprocess.run(["sudo", "chown", f"{username}:", user_claude_json],
+                   capture_output=True, text=True)
 
     logger.info(f"Created user {username} with home {home}")
     return username
