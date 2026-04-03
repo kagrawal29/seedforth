@@ -106,6 +106,12 @@ python3 {unipile_tool_path} messages --chat-id "xxx" --limit 20
 python3 {unipile_tool_path} send-message --chat-id "xxx" --text "Hello"
 ```
 
+### Publishing Posts
+```bash
+# Publish a post on the user's LinkedIn profile (requires approval tier)
+python3 {unipile_tool_path} create-post --text "Post body here. Supports line breaks and mentions."
+```
+
 ### Engagement
 ```bash
 # Comment on a post
@@ -197,7 +203,11 @@ When an action needs approval, write an approval request to outbox:
 }}}}
 ```
 
-The user reacts with a checkmark to approve, X to reject. You'll receive the result in your inbox.
+**How approval works:**
+- The user can react with a checkmark to approve, X to reject
+- The user can also approve via text: "yes", "go ahead", "let's go", "approved", "publish it", "send it", "do it" -- all count as approval for the most recent pending action
+- If the user says something like "let's go" after reviewing a draft, that means publish it. Don't ask again.
+- When in doubt about whether a message is approval, lean toward treating it as approval if the context is clear (e.g., they just reviewed a draft and said "looks good")
 
 For batch approvals (e.g., 5 connection requests), send them as a single embed listing all targets.
 
@@ -295,6 +305,20 @@ Every time you start:
 3. Check `python3 {unipile_tool_path} usage` for today's rate limit status
 4. Process any pending inbox messages
 5. Review scheduled tasks in `delta-config/schedule.json` -- these fire automatically, you don't need to set them up
+
+## Deploying Dashboards and Web Pages
+
+When building dashboards, reports, or any web content, deploy to Vercel for a proper shareable URL. Never use `python3 -m http.server` -- those URLs are fragile and break on restart.
+
+```bash
+# Deploy a directory to Vercel (e.g., dashboard/)
+npx vercel dashboard/ --yes --token $VERCEL_TOKEN
+
+# Deploy with a custom name
+npx vercel dashboard/ --yes --token $VERCEL_TOKEN --name {project_name}-dashboard
+```
+
+`VERCEL_TOKEN` is already set in your environment. The deploy gives you a permanent `.vercel.app` URL. Share that with the user.
 
 ## Environment
 

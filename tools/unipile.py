@@ -411,6 +411,15 @@ class UnipileClient:
             body={"account_id": aid, "text": text},
         )
 
+    def create_post(self, text: str) -> dict:
+        """POST /api/v1/posts -- publish a post on LinkedIn."""
+        aid = self._get_account_id()
+        return self._guarded(
+            "publish_post", "self",
+            "POST", "/api/v1/posts",
+            body={"account_id": aid, "text": text},
+        )
+
     def react(self, post_id: str, reaction_type: str = "LIKE") -> dict:
         """POST /api/v1/posts/{id}/reactions -- react to a post.
 
@@ -517,6 +526,10 @@ def main():
     sp.add_argument("--chat-id", required=True, help="Chat ID")
     sp.add_argument("--text", required=True, help="Message text")
 
+    # create-post
+    sp = sub.add_parser("create-post", help="Publish a post on LinkedIn")
+    sp.add_argument("--text", required=True, help="Post body text")
+
     # comment
     sp = sub.add_parser("comment", help="Comment on a post")
     sp.add_argument("--post-id", required=True, help="Post ID")
@@ -568,6 +581,8 @@ def main():
             _output(client.get_messages(args.chat_id, args.limit))
         elif args.command == "send-message":
             _output(client.send_message(args.chat_id, args.text))
+        elif args.command == "create-post":
+            _output(client.create_post(args.text))
         elif args.command == "comment":
             _output(client.comment(args.post_id, args.text))
         elif args.command == "react":
