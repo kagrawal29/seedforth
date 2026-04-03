@@ -384,6 +384,181 @@ async def _handle_connect_command(
     logger.info(f"Connection flow for {project_name}/{toolkit}: {'connected' if connected else 'timeout/failed'}")
 
 
+# -- Unipile LinkedIn connection flow ----------------------------------------
+
+_UNIPILE_TOOL = str(_delta_dir / "tools" / "unipile.py")
+if not LOCAL_MODE and Path("/opt/delta/tools/unipile.py").exists():
+    _UNIPILE_TOOL = "/opt/delta/tools/unipile.py"
+
+
+def _unipile_run(command: list[str]) -> dict:
+    """Run a unipile.py CLI command and return parsed JSON."""
+    env = {**os.environ}
+    result = subprocess.run(
+        ["python3", _UNIPILE_TOOL] + command,
+        capture_output=True, text=True, env=env, timeout=30,
+    )
+    if result.returncode != 0:
+        return {"error": result.stderr.strip() or "unipile command failed"}
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {"error": f"Invalid JSON: {result.stdout[:200]}"}
+
+
+def _sanitize_linkedin_name(display_name: str) -> str:
+    """Convert a display name to a valid project slug."""
+    slug = re.sub(r"[^a-z0-9]+", "-", display_name.lower()).strip("-")
+    return slug[:25] or "user"
+
+
+async def _handle_linkedin_connect(
+    source_project: str, bridge: ProjectBridge | None, channel_id: str,
+    user_display_name: str, owner_discord_id: str,
+) -> None:
+    """Handle a request to connect a user's LinkedIn via Unipile.
+
+    Generates a hosted auth link, polls for the new account, then
+    auto-provisions a linkedin-{name} project.
+    """
+    # Check if user already has a linkedin project
+    existing = registry.find_linkedin_by_owner(owner_discord_id)
+    if existing:
+        ch = client.get_channel(int(channel_id)) if channel_id else None
+        if not ch:
+            try:
+                ch = await client.fetch_channel(int(channel_id))
+            except Exception:
+                return
+        await ch.send(
+            f"you already have a linkedin agent: <#{existing.discord_channel_id}>. "
+            f"head there to manage your account."
+        )
+        return
+
+    # Snapshot existing accounts
+    accounts_data = _unipile_run(["accounts"])
+    existing_ids = set()
+    for item in accounts_data.get("items", accounts_data.get("data", [])):
+        existing_ids.add(item.get("id", ""))
+
+    # Generate hosted auth link
+    link_data = _unipile_run(["connect-linkedin", "--name", user_display_name])
+    auth_url = link_data.get("url", "")
+    if not auth_url:
+        logger.error(f"Failed to generate Unipile link: {link_data}")
+        ch = client.get_channel(int(channel_id)) if channel_id else None
+        if ch:
+            await ch.send("couldn't generate the linkedin connection link. try again in a moment.")
+        return
+
+    # Send link to Discord
+    ch = client.get_channel(int(channel_id)) if channel_id else None
+    if not ch:
+        try:
+            ch = await client.fetch_channel(int(channel_id))
+        except Exception:
+            logger.warning(f"Could not find channel {channel_id} for linkedin connect")
+            return
+
+    await ch.send(
+        f"connect your linkedin here (opens Unipile's hosted login page, "
+        f"Delta never sees your password):\n{auth_url}"
+    )
+
+    # Suppress silence nudges while waiting
+    if bridge:
+        bridge.connection_pending = True
+
+    # Poll for new account (every 15s, max 10 min)
+    max_polls = 40
+    new_account_id = ""
+    new_account_name = ""
+    for i in range(max_polls):
+        await asyncio.sleep(15)
+        poll_data = _unipile_run(["accounts"])
+        for item in poll_data.get("items", poll_data.get("data", [])):
+            aid = item.get("id", "")
+            if aid and aid not in existing_ids:
+                new_account_id = aid
+                new_account_name = item.get("name", user_display_name)
+                break
+        if new_account_id:
+            break
+
+    if bridge:
+        bridge.connection_pending = False
+
+    if not new_account_id:
+        await ch.send(
+            "the linkedin connection didn't complete within 10 minutes. "
+            "no worries -- just let me know when you want to try again."
+        )
+        return
+
+    # Account connected -- provision the linkedin project
+    await ch.send("linkedin connected. setting up your agent now...")
+
+    proj_slug = _sanitize_linkedin_name(new_account_name or user_display_name)
+    proj_name = f"linkedin-{proj_slug}"
+
+    try:
+        guild = client.guilds[0] if client.guilds else None
+        info = await provision(
+            name=proj_name,
+            registry=registry,
+            discord_bot=client,
+            guild=guild,
+            owner_discord_id=owner_discord_id,
+            project_type="linkedin",
+            admin_brief=new_account_name or user_display_name,
+        )
+
+        # Write UNIPILE_ACCOUNT_ID to linkedin-config.env
+        env_path = Path(info.project_dir) / "linkedin-config.env"
+        if env_path.exists():
+            content = env_path.read_text()
+            content += f"export UNIPILE_ACCOUNT_ID={new_account_id}\n"
+            env_path.write_text(content)
+            # Fix ownership if server mode
+            if info.linux_user:
+                subprocess.run(
+                    ["chown", f"{info.linux_user}:", str(env_path)],
+                    capture_output=True, text=True,
+                )
+
+        # Update registry with account ID
+        registry.update(proj_name, unipile_account_id=new_account_id)
+
+        # Start watchers
+        _start_watchers(proj_name)
+
+        # Send welcome in new channel
+        new_ch = client.get_channel(int(info.discord_channel_id)) if info.discord_channel_id else None
+        if not new_ch:
+            try:
+                new_ch = await client.fetch_channel(int(info.discord_channel_id))
+            except Exception:
+                new_ch = None
+        if new_ch:
+            await new_ch.send(
+                f"hey <@{owner_discord_id}>. your linkedin is connected and i'm your agent now. "
+                f"tell me about your goals and i'll start managing your linkedin."
+            )
+
+        # Confirm back in source channel
+        await ch.send(f"done. your linkedin agent is live in <#{info.discord_channel_id}>.")
+
+    except Exception as e:
+        logger.error(f"LinkedIn project provisioning failed: {e}", exc_info=True)
+        await ch.send(f"something went wrong setting up the project: {e}")
+
+    logger.info(
+        f"LinkedIn connect for {owner_discord_id}: "
+        f"account={new_account_id} project={proj_name}"
+    )
+
+
 def _gh_auth_start_subprocess(gh_cmd: list[str]) -> tuple[str, str, str, bool]:
     """Run gh auth login in a thread-safe blocking way.
 
@@ -737,6 +912,22 @@ def _start_watchers(project_name: str) -> None:
                 bridge.send_to_lead(bridge._random_id())
             except Exception:
                 pass
+            return
+        if command == "linkedin_connect":
+            display_name = data.get("user_display_name", "user")
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            if not channel_id:
+                info = registry.get(project_name)
+                channel_id = info.discord_channel_id if info else ""
+            info = registry.get(project_name)
+            owner = info.owner_discord_id if info else ""
+            if channel_id and owner:
+                asyncio.run_coroutine_threadsafe(
+                    _handle_linkedin_connect(
+                        project_name, bridge, channel_id, display_name, owner
+                    ),
+                    loop,
+                )
             return
         if command == "gh_auth_start":
             channel_id = data.get("reply_channel", "") or data.get("channel", "")
@@ -1364,6 +1555,20 @@ def _start_hub_watchers() -> None:
             if project_name:
                 asyncio.run_coroutine_threadsafe(
                     _handle_onboarding_complete(project_name, data), loop,
+                )
+            return
+
+        if command == "linkedin_connect":
+            display_name = data.get("user_display_name", "user")
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            owner = data.get("owner_discord_id", "")
+            if channel_id and owner:
+                hub_bridge = bridges.get(HUB_NAME)
+                asyncio.run_coroutine_threadsafe(
+                    _handle_linkedin_connect(
+                        HUB_NAME, hub_bridge, channel_id, display_name, owner
+                    ),
+                    loop,
                 )
             return
 
