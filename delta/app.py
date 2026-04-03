@@ -2682,7 +2682,10 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
         hub_bridge = bridges.get(HUB_NAME)
         if hub_bridge:
             hub_bridge.touch_activity()
-            msg_id = hub_bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+            msg_id = hub_bridge.write_inbox(
+                channel_id, user_id, text, channel_type="dm",
+                attachments=attachments_data or None,
+            )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
                 try:
@@ -2704,7 +2707,10 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
     _start_watchers(project_name)
 
     bridge.touch_activity()
-    msg_id = bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+    msg_id = bridge.write_inbox(
+        channel_id, user_id, text, channel_type="dm",
+        attachments=attachments_data or None,
+    )
     _start_typing(message.channel, channel_id)
     if bridge.is_project_active():
         try:
@@ -2725,9 +2731,23 @@ async def on_message(message: discord.Message):
         return
 
     text = message.content.strip()
+    has_attachments = len(message.attachments) > 0
     logger.debug(f"on_message: {message.author} in {message.channel}: {text[:80]}")
-    if not text:
+    if not text and not has_attachments:
         return
+
+    # Extract attachment metadata for passing through to agents
+    attachments_data = []
+    if has_attachments:
+        for att in message.attachments:
+            attachments_data.append({
+                "url": att.url,
+                "filename": att.filename,
+                "size": att.size,
+                "content_type": getattr(att, "content_type", None) or "application/octet-stream",
+            })
+        if not text:
+            text = f"[{len(attachments_data)} attachment(s): {', '.join(a['filename'] for a in attachments_data)}]"
 
     is_dm = isinstance(message.channel, discord.DMChannel)
     channel_id = str(message.channel.id)
@@ -2775,6 +2795,7 @@ async def on_message(message: discord.Message):
             msg_id = hub_bridge.write_inbox(
                 channel_id, user_id, text,
                 channel_type="dm",
+                attachments=attachments_data or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -2926,6 +2947,7 @@ async def on_message(message: discord.Message):
                 channel_id, user_id, text,
                 channel_type="channel",
                 channel_name=channel_name,
+                attachments=attachments_data or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -3043,7 +3065,7 @@ async def on_message(message: discord.Message):
     if cancelled:
         logger.info(f"Cancelled {cancelled} pending followup(s) for {project_name}")
 
-    msg_id = bridge.write_inbox(channel_id, user_id, text)
+    msg_id = bridge.write_inbox(channel_id, user_id, text, attachments=attachments_data or None)
     _start_typing(message.channel, channel_id)
 
     if bridge.is_project_active():
@@ -3062,6 +3084,7 @@ async def on_message(message: discord.Message):
                 channel_type="project_channel",
                 channel_name=channel_name,
                 project_name=project_name,
+                attachments=attachments_data or None,
             )
             if hub_bridge.is_project_active():
                 try:
