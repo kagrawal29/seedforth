@@ -458,6 +458,30 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     }
     (claude_settings_dir / "settings.json").write_text(json.dumps(claude_settings, indent=2))
 
+    # Pre-accept Claude Code trust dialog for this project directory.
+    # Without this, Claude Code shows an interactive prompt on first boot.
+    if username:
+        home = f"/home/{username}"
+        claude_json_path = Path(home) / ".claude.json"
+        try:
+            if claude_json_path.exists():
+                claude_config = json.loads(claude_json_path.read_text())
+            else:
+                claude_config = {}
+            projects = claude_config.setdefault("projects", {})
+            projects[project_dir] = {
+                "allowedTools": [],
+                "hasTrustDialogAccepted": True,
+                "hasCompletedProjectOnboarding": True,
+            }
+            claude_config["hasCompletedOnboarding"] = True
+            claude_json_path.write_text(json.dumps(claude_config, indent=2))
+            import subprocess as _sp
+            _sp.run(["sudo", "chown", f"{username}:", str(claude_json_path)],
+                    capture_output=True, text=True)
+        except Exception as e:
+            logger.warning(f"Could not pre-accept trust dialog: {e}")
+
     # Fix file ownership and make initial git commit
     if username:
         import subprocess as _sp
