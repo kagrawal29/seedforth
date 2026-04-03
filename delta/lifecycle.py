@@ -80,6 +80,7 @@ def start_claude_code(project_dir: str, tmux_pane: str,
         composio_key = os.environ.get("COMPOSIO_API_KEY", "")
         vercel_token = os.environ.get("VERCEL_TOKEN", "")
         rube_token = os.environ.get("RUBE_BEARER_TOKEN", "")
+        github_token = os.environ.get("GITHUB_TOKEN", "")
         unipile_dsn = os.environ.get("UNIPILE_DSN", "")
         unipile_key = os.environ.get("UNIPILE_API_KEY", "")
         if token or composio_key or vercel_token or rube_token or unipile_dsn:
@@ -99,6 +100,8 @@ def start_claude_code(project_dir: str, tmux_pane: str,
                         f.write(f"export VERCEL_TOKEN={vercel_token}\n")
                     if rube_token:
                         f.write(f"export RUBE_BEARER_TOKEN={rube_token}\n")
+                    if github_token:
+                        f.write(f"export GITHUB_TOKEN={github_token}\n")
                     if unipile_dsn:
                         f.write(f"export UNIPILE_DSN={unipile_dsn}\n")
                     if unipile_key:

@@ -729,6 +729,39 @@ generates response, not just acknowledgment.
 6. If everything's clear, send a brief colored frame: where things stand, what you'll work on next
 7. If the project feels complete, say so. Don't invent work.
 
+## Git remote setup
+
+On first startup, if there's no git remote configured, set one up:
+```bash
+# Check if remote exists
+git remote get-url origin 2>/dev/null || (
+  # GITHUB_TOKEN is in your environment -- use it for auth
+  git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/kagrawal29/{project_name}.git
+  git push -u origin main 2>/dev/null || true
+)
+```
+
+If the repo doesn't exist on GitHub yet, create it:
+```bash
+# Create private repo and push
+curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+  https://api.github.com/user/repos -d '{{"name":"{project_name}","private":true}}' > /dev/null
+git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/kagrawal29/{project_name}.git
+git push -u origin main
+```
+
+## GitHub issues
+
+You can create, list, and view issues on any kagrawal29/ repo:
+```bash
+python3 /opt/delta/tools/github-issue.py create kagrawal29/{project_name} "Issue title" --body "Description"
+python3 /opt/delta/tools/github-issue.py list kagrawal29/{project_name}
+```
+
+## Email
+
+Delta's email is charlietheagent606@gmail.com. Use Rube MCP (search for `gmail send`) to send emails. Always confirm with the user before sending.
+
 ## Environment
 
 - Project directory: `{project_dir}`
