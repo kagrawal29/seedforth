@@ -345,9 +345,20 @@ def _unipile_run(command: list[str]) -> dict:
 
 
 def _sanitize_linkedin_name(display_name: str) -> str:
-    """Convert a display name to a valid project slug."""
+    """Convert a display name to a valid project slug.
+
+    Max 21 chars so that 'linkedin-' + slug fits within the 30-char
+    project name limit. Truncates at a hyphen boundary when possible.
+    """
     slug = re.sub(r"[^a-z0-9]+", "-", display_name.lower()).strip("-")
-    return slug[:25] or "user"
+    if len(slug) > 21:
+        # Try to cut at a hyphen boundary for a cleaner name
+        truncated = slug[:21]
+        last_hyphen = truncated.rfind("-")
+        if last_hyphen > 5:
+            truncated = truncated[:last_hyphen]
+        slug = truncated.rstrip("-")
+    return slug or "user"
 
 
 async def _handle_linkedin_connect(
