@@ -50,7 +50,10 @@ def create_user(project_name: str) -> str:
         ["useradd", "-m", "-d", home, "-s", "/bin/bash", username],
         capture_output=True, text=True,
     )
-    if result.returncode != 0:
+    if result.returncode == 9:
+        # User already exists (exit code 9) -- idempotent, continue
+        logger.info(f"User {username} already exists, reusing")
+    elif result.returncode != 0:
         raise RuntimeError(f"useradd failed: {result.stderr.strip()}")
 
     subprocess.run(["chmod", "750", home], capture_output=True, text=True)
