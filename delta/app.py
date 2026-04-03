@@ -1941,7 +1941,7 @@ async def _hub_snapshot_loop():
                     project_data.update(enriched)
 
                     # Read onboarding state for personal agent projects
-                    if getattr(info, "project_type", "standard") == "personal":
+                    if getattr(info, "project_type", "standard") in ("personal", "personal_dm"):
                         onboarding_state_path = Path(project_dir) / "memory" / "onboarding-state.json"
                         if onboarding_state_path.exists():
                             try:
@@ -2667,6 +2667,79 @@ async def on_ready():
     client.loop.create_task(resource_manager_loop(client, registry, bridges))
 
 
+# Lock per user to prevent double-provisioning when two DMs arrive fast
+_dm_provision_locks: dict[str, asyncio.Lock] = {}
+
+
+async def _auto_provision_personal_agent(message, channel_id, user_id, text, attachments_data):
+    """Auto-provision a personal agent for a new DM user.
+
+    Sends an instant greeting, provisions in background, then queues the
+    first message for the new agent. Next DM will route normally.
+    """
+    lock = _dm_provision_locks.setdefault(user_id, asyncio.Lock())
+    async with lock:
+        # Double-check: another DM may have triggered provisioning while waiting
+        personal = registry.find_personal_by_owner(user_id)
+        if personal:
+            await _route_dm_to_persistent(personal, message, channel_id, user_id, text)
+            return
+
+        # Instant greeting (user sees this in <1s while provisioning happens)
+        await message.channel.send(
+            "hey. i'm delta, your personal agent. i build things, manage projects, "
+            "handle outreach, create docs, deploy apps, keep track of your schedule. "
+            "whatever's taking up your time, just tell me and i'll take it off your plate."
+        )
+
+        # Derive project name from display name
+        display_name = message.author.display_name or message.author.name
+        slug = re.sub(r"[^a-z0-9]+", "-", display_name.lower()).strip("-")[:20]
+        project_name = f"personal-{slug}"
+
+        # Ensure unique name
+        if registry.get(project_name):
+            project_name = f"personal-{slug}-{user_id[-4:]}"
+
+        guild = message.guild or (client.guilds[0] if client.guilds else None)
+
+        try:
+            logger.info(f"Auto-provisioning personal agent '{project_name}' for {display_name}")
+            info = await provision_in_channel(
+                name=project_name,
+                registry=registry,
+                discord_bot=client,
+                guild=guild,
+                owner_discord_id=user_id,
+                channel_id=channel_id,  # DM channel ID
+                project_type="personal_dm",
+            )
+            logger.info(f"Personal agent '{project_name}' provisioned for {display_name}")
+
+            # Start watchers and queue the first message
+            _start_watchers(project_name)
+            await asyncio.sleep(5)  # Give Claude Code time to boot
+
+            bridge = _get_or_create_bridge(project_name)
+            if bridge:
+                msg_id = bridge.write_inbox(
+                    channel_id, user_id, text,
+                    channel_type="dm",
+                    attachments=attachments_data or None,
+                )
+                if bridge.is_project_active():
+                    try:
+                        bridge.send_to_lead(msg_id)
+                    except Exception as e:
+                        logger.warning(f"Nudge to new personal agent failed: {e}")
+
+        except Exception as e:
+            logger.error(f"Failed to auto-provision personal agent: {e}")
+            await message.channel.send(
+                "had trouble setting up. try messaging me again in a moment."
+            )
+
+
 async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
     """Route a DM to the user's persistent agent instead of hub."""
     project_name = project.name
@@ -2774,9 +2847,9 @@ async def on_message(message: discord.Message):
     channel_id = str(message.channel.id)
     user_id = str(message.author.id)
 
-    # -- DMs: route to persistent agent or hub orchestrator --
+    # -- DMs: route to personal agent (auto-provision if first contact) --
     if is_dm:
-        # Admin commands still handled directly (bypass hub)
+        # Admin commands still handled directly
         cmd_result = commands.parse(text)
         if cmd_result:
             cmd_name, cmd_args = cmd_result
@@ -2784,57 +2857,14 @@ async def on_message(message: discord.Message):
             await _handle_command(cmd_name, cmd_args, message)
             return
 
-        # Check if user has a persistent personal agent
-        persistent = registry.find_persistent_by_owner(user_id)
-        if persistent:
-            await _route_dm_to_persistent(persistent, message, channel_id, user_id, text)
+        # Check if user has a personal or persistent agent
+        personal = registry.find_personal_by_owner(user_id)
+        if personal:
+            await _route_dm_to_persistent(personal, message, channel_id, user_id, text)
             return
 
-        # First-contact instant greeting for new users (no projects yet).
-        # Sends immediately from Python so the user doesn't wait 30-120s
-        # for the hub Claude Code to respond. Hub still gets the message
-        # and will follow up with a richer, context-aware response.
-        if not registry.find_by_owner(user_id):
-            await message.channel.send(
-                "hey. I'm Delta. tell me what you want to build "
-                "and I'll get you set up."
-            )
-
-        # Everything else goes to the hub
-        hub_bridge = bridges.get(HUB_NAME)
-        if hub_bridge:
-            # Check for auth failure before routing
-            auth_err = hub_bridge.check_auth_error()
-            if auth_err:
-                logger.warning(f"Hub auth failure on DM: {auth_err}")
-                await message.channel.send(
-                    "I'm having trouble connecting right now. The admin has been notified."
-                )
-                return
-
-            hub_bridge.touch_activity()
-            msg_id = hub_bridge.write_inbox(
-                channel_id, user_id, text,
-                channel_type="dm",
-                attachments=attachments_data or None,
-            )
-            _start_typing(message.channel, channel_id)
-            if hub_bridge.is_project_active():
-                try:
-                    hub_bridge.send_to_lead(msg_id)
-                except Exception as e:
-                    logger.warning(f"Nudge to hub failed: {e}")
-            else:
-                logger.warning("Hub Claude Code not running, cannot process DM")
-                _stop_typing(channel_id)
-                await message.channel.send(
-                    "I'm waking up, give me a sec. Try again in a moment."
-                )
-        else:
-            logger.error("Hub bridge not initialized")
-            await message.channel.send(
-                "Something's off on my end. Try again in a moment."
-            )
+        # No personal agent yet -- auto-provision one
+        await _auto_provision_personal_agent(message, channel_id, user_id, text, attachments_data)
         return
 
     # -- LinkedIn onboarding: any user can connect a LinkedIn account --

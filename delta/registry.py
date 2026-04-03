@@ -160,6 +160,20 @@ class Registry:
                     return p
             return None
 
+    def find_personal_by_owner(self, discord_user_id: str) -> "ProjectInfo | None":
+        """Find the personal or persistent agent for a Discord user.
+
+        Matches personal_dm (DM-first auto-provisioned) and persistent
+        (legacy onboarded) agents. Returns the first active/hibernated match.
+        """
+        with self._lock:
+            for p in self._projects.values():
+                if (p.owner_discord_id == discord_user_id
+                        and p.project_type in ("personal_dm", "persistent")
+                        and p.status in ("active", "hibernated")):
+                    return p
+            return None
+
     def find_linkedin_by_owner(self, discord_user_id: str) -> "ProjectInfo | None":
         """Find the linkedin agent for a Discord user, if any."""
         with self._lock:

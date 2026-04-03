@@ -315,7 +315,7 @@ def _setup_project_dirs(name: str, github_repo: str = "",
             schedule_file.write_text(json.dumps(_initial_schedule(name), indent=2))
 
         # Personal agent projects need memory/ and memory/checklists/ directories
-        if project_type == "personal":
+        if project_type in ("personal", "personal_dm"):
             (project_path / "memory" / "checklists").mkdir(parents=True, exist_ok=True)
         # LinkedIn projects need data/ directory for unipile safety controller
         if project_type == "linkedin":
@@ -353,7 +353,7 @@ def _setup_project_dirs(name: str, github_repo: str = "",
                 raise RuntimeError(f"mkdir failed: {result.stderr.strip()}")
 
         run_as_user(username, f"mkdir -p {data_dir}/inbox {data_dir}/outbox {data_dir}/logs {data_dir}/followups {data_dir}/progress")
-        if project_type == "personal":
+        if project_type in ("personal", "personal_dm"):
             run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
         if project_type == "linkedin":
             run_as_user(username, f"mkdir -p {project_dir}/data")
@@ -392,6 +392,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     # Write CLAUDE.md from template -- select template based on project_type
     if project_type == "personal":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "PERSONAL_ONBOARDING.md"
+    elif project_type == "personal_dm":
+        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "PERSONAL_DM.md"
     elif project_type == "linkedin":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "LINKEDIN.md"
     else:
@@ -638,7 +640,7 @@ def refresh_templates(registry) -> int:
 
         # Skip personal agent projects -- their CLAUDE.md is managed by the
         # onboarding/transition lifecycle, not bulk refresh
-        if getattr(info, "project_type", "standard") in ("personal", "persistent", "linkedin"):
+        if getattr(info, "project_type", "standard") in ("personal", "persistent", "personal_dm", "linkedin"):
             logger.info(f"Skipping {name} (project_type={info.project_type})")
             continue
 
