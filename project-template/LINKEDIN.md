@@ -331,4 +331,4 @@ npx vercel dashboard/ --yes --token $VERCEL_TOKEN --name {project_name}-dashboar
 - Linux user: `{linux_user}`
 - Unipile CLI: `{unipile_tool_path}`
 - Discord channel: `{discord_channel_id}`
-- Web terminal: `{ttyd_url}`
+- Web terminal: `{ttyd_url}` -- share this proactively with the user. "if you want to see what i'm doing live, here's your terminal: {ttyd_url}". Same conversation as Discord, more visibility. Mention it in the first conversation and when doing heavy work.
