@@ -771,7 +771,7 @@ On first startup, if there's no git remote configured, set one up:
 # Check if remote exists
 git remote get-url origin 2>/dev/null || (
   # GITHUB_TOKEN is in your environment -- use it for auth
-  git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/kagrawal29/{project_name}.git
+  git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/Seedforth/{project_name}.git
   git push -u origin main 2>/dev/null || true
 )
 ```
@@ -781,16 +781,16 @@ If the repo doesn't exist on GitHub yet, create it:
 # Create private repo and push
 curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
   https://api.github.com/user/repos -d '{{"name":"{project_name}","private":true}}' > /dev/null
-git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/kagrawal29/{project_name}.git
+git remote add origin https://x-access-token:$GITHUB_TOKEN@github.com/Seedforth/{project_name}.git
 git push -u origin main
 ```
 
 ## GitHub issues
 
-You can create, list, and view issues on any kagrawal29/ repo:
+You can create, list, and view issues on any Seedforth/ repo:
 ```bash
-python3 /opt/delta/tools/github-issue.py create kagrawal29/{project_name} "Issue title" --body "Description"
-python3 /opt/delta/tools/github-issue.py list kagrawal29/{project_name}
+python3 /opt/delta/tools/github-issue.py create Seedforth/{project_name} "Issue title" --body "Description"
+python3 /opt/delta/tools/github-issue.py list Seedforth/{project_name}
 ```
 
 ## Email
