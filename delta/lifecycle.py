@@ -58,7 +58,8 @@ def is_claude_running(tmux_pane: str) -> bool:
 
 
 def start_claude_code(project_dir: str, tmux_pane: str,
-                      linux_user: str | None = None) -> bool:
+                      linux_user: str | None = None,
+                      extra_env: dict | None = None) -> bool:
     """Start Claude Code in the given tmux pane.
 
     If linux_user is provided, runs as that user via sudo -u.
@@ -79,7 +80,9 @@ def start_claude_code(project_dir: str, tmux_pane: str,
         composio_key = os.environ.get("COMPOSIO_API_KEY", "")
         vercel_token = os.environ.get("VERCEL_TOKEN", "")
         rube_token = os.environ.get("RUBE_BEARER_TOKEN", "")
-        if token or composio_key or vercel_token or rube_token:
+        unipile_dsn = os.environ.get("UNIPILE_DSN", "")
+        unipile_key = os.environ.get("UNIPILE_API_KEY", "")
+        if token or composio_key or vercel_token or rube_token or unipile_dsn:
             token_file = f"/tmp/.claude-token-{linux_user}"
             try:
                 import stat
@@ -96,13 +99,23 @@ def start_claude_code(project_dir: str, tmux_pane: str,
                         f.write(f"export VERCEL_TOKEN={vercel_token}\n")
                     if rube_token:
                         f.write(f"export RUBE_BEARER_TOKEN={rube_token}\n")
+                    if unipile_dsn:
+                        f.write(f"export UNIPILE_DSN={unipile_dsn}\n")
+                    if unipile_key:
+                        f.write(f"export UNIPILE_API_KEY={unipile_key}\n")
+                    if extra_env:
+                        for k, v in extra_env.items():
+                            f.write(f"export {k}={v}\n")
                 os.chmod(token_file, stat.S_IRUSR | stat.S_IWUSR)
                 subprocess.run(["chown", f"{linux_user}:", token_file],
                                capture_output=True, text=True)
             except OSError as e:
                 logger.warning(f"Failed to write token file {token_file}: {e}")
+            # Source project-specific linkedin config if it exists
+            linkedin_env = os.path.join(project_dir, "linkedin-config.env")
+            linkedin_source = f"source {linkedin_env} 2>/dev/null; " if os.path.exists(linkedin_env) else ""
             cmd = (f"sudo -u {linux_user} bash -c "
-                   f"'source {token_file} 2>/dev/null; "
+                   f"'source {token_file} 2>/dev/null; {linkedin_source}"
                    f"cd \"{project_dir}\" && claude --dangerously-skip-permissions'")
         else:
             cmd = f"sudo -u {linux_user} bash -c 'cd \"{project_dir}\" && claude --dangerously-skip-permissions'"
@@ -111,6 +124,8 @@ def start_claude_code(project_dir: str, tmux_pane: str,
         composio_key = os.environ.get("COMPOSIO_API_KEY", "")
         vercel_token = os.environ.get("VERCEL_TOKEN", "")
         rube_token = os.environ.get("RUBE_BEARER_TOKEN", "")
+        unipile_dsn = os.environ.get("UNIPILE_DSN", "")
+        unipile_key = os.environ.get("UNIPILE_API_KEY", "")
         env_parts = []
         if composio_key:
             env_parts.append(f'export COMPOSIO_API_KEY="{composio_key}"')
@@ -118,8 +133,18 @@ def start_claude_code(project_dir: str, tmux_pane: str,
             env_parts.append(f'export VERCEL_TOKEN="{vercel_token}"')
         if rube_token:
             env_parts.append(f'export RUBE_BEARER_TOKEN="{rube_token}"')
+        if unipile_dsn:
+            env_parts.append(f'export UNIPILE_DSN="{unipile_dsn}"')
+        if unipile_key:
+            env_parts.append(f'export UNIPILE_API_KEY="{unipile_key}"')
+        if extra_env:
+            for k, v in extra_env.items():
+                env_parts.append(f'export {k}="{v}"')
+        # Source project-specific linkedin config if it exists
+        linkedin_env = os.path.join(project_dir, "linkedin-config.env")
+        linkedin_source = f"source {linkedin_env} 2>/dev/null; " if os.path.exists(linkedin_env) else ""
         env_prefix = "; ".join(env_parts) + "; " if env_parts else ""
-        cmd = f'{env_prefix}cd "{project_dir}" && claude --dangerously-skip-permissions'
+        cmd = f'{env_prefix}{linkedin_source}cd "{project_dir}" && claude --dangerously-skip-permissions'
 
     try:
         _run(["tmux", "send-keys", "-t", tmux_pane, "-l", cmd], check=True)

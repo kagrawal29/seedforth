@@ -15,7 +15,7 @@ class ProjectInfo:
         "tmux_lead_pane", "nudge_prefix", "github_repo",
         "linux_user", "discord_channel_id", "owner_discord_id", "created_at",
         "is_dream_space", "status", "last_activity", "ttyd_port",
-        "project_type",
+        "project_type", "unipile_account_id",
     )
 
     def __init__(self, name: str, project_dir: str, data_dir: str,
@@ -25,7 +25,8 @@ class ProjectInfo:
                  owner_discord_id: str = "", created_at: str = "",
                  is_dream_space: bool = False, status: str = "active",
                  last_activity: str = "", ttyd_port: int = 0,
-                 project_type: str = "standard"):
+                 project_type: str = "standard",
+                 unipile_account_id: str = ""):
         self.name = name
         self.project_dir = project_dir
         self.data_dir = data_dir
@@ -42,6 +43,7 @@ class ProjectInfo:
         self.last_activity = last_activity or self.created_at
         self.ttyd_port = ttyd_port
         self.project_type = project_type
+        self.unipile_account_id = unipile_account_id
 
     def to_dict(self) -> dict:
         return {
@@ -61,6 +63,7 @@ class ProjectInfo:
             "last_activity": self.last_activity,
             "ttyd_port": self.ttyd_port,
             "project_type": self.project_type,
+            "unipile_account_id": self.unipile_account_id,
         }
 
     @classmethod
@@ -82,6 +85,7 @@ class ProjectInfo:
             last_activity=d.get("last_activity", ""),
             ttyd_port=d.get("ttyd_port", 0),
             project_type=d.get("project_type", "standard"),
+            unipile_account_id=d.get("unipile_account_id", ""),
         )
 
 
@@ -152,6 +156,16 @@ class Registry:
             for p in self._projects.values():
                 if (p.owner_discord_id == discord_user_id
                         and p.project_type == "persistent"
+                        and p.status in ("active", "hibernated")):
+                    return p
+            return None
+
+    def find_linkedin_by_owner(self, discord_user_id: str) -> "ProjectInfo | None":
+        """Find the linkedin agent for a Discord user, if any."""
+        with self._lock:
+            for p in self._projects.values():
+                if (p.owner_discord_id == discord_user_id
+                        and p.project_type == "linkedin"
                         and p.status in ("active", "hibernated")):
                     return p
             return None

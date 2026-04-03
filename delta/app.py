@@ -138,6 +138,7 @@ _HUB_LINUX_USER_DEFAULT = os.getenv("HUB_LINUX_USER", "proj-delta-hub")
 _HUB_DIR_SERVER = os.getenv("HUB_DIR", "/opt/delta/hub")
 _HUB_DIR_NAME = os.getenv("HUB_DIR_NAME", "delta-hub")
 ONBOARDING_CHANNEL_ID = os.getenv("ONBOARDING_CHANNEL_ID", "")  # #seedforth-onboarding
+LINKEDIN_ONBOARDING_CHANNEL_ID = os.getenv("LINKEDIN_ONBOARDING_CHANNEL_ID", "")
 
 def _hub_dir() -> Path:
     if LOCAL_MODE:
@@ -210,6 +211,29 @@ def _resolve_files(data: dict, project_dir: str) -> list[discord.File]:
         except OSError as e:
             logger.warning(f"[outbox] Could not read file {resolved}: {e}")
     return result
+
+
+# -- LinkedIn onboarding handling --------------------------------------------
+
+async def _handle_linkedin_onboarding(message: discord.Message) -> None:
+    """Handle a message in the LinkedIn onboarding channel.
+
+    Greets the user, then wraps _handle_linkedin_connect.
+    """
+    user_id = str(message.author.id)
+    channel_id = str(message.channel.id)
+    display_name = message.author.display_name or message.author.name
+
+    # Show typing while we prepare
+    async with message.channel.typing():
+        await message.channel.send(
+            f"hey {display_name}. let me generate a link to connect your linkedin. "
+            f"one moment..."
+        )
+
+    await _handle_linkedin_connect(
+        "__onboarding__", None, channel_id, display_name, user_id,
+    )
 
 
 # -- Connection command handling ----------------------------------------------
@@ -304,6 +328,185 @@ async def _handle_connect_command(
         )
 
     logger.info(f"Connection flow for {project_name}/{toolkit}: {'connected' if connected else 'timeout/failed'}")
+
+
+# -- Unipile LinkedIn connection flow ----------------------------------------
+
+_UNIPILE_TOOL = str(_delta_dir / "tools" / "unipile.py")
+if not LOCAL_MODE and Path("/opt/delta/tools/unipile.py").exists():
+    _UNIPILE_TOOL = "/opt/delta/tools/unipile.py"
+
+
+def _unipile_run(command: list[str]) -> dict:
+    """Run a unipile.py CLI command and return parsed JSON."""
+    env = {**os.environ}
+    result = subprocess.run(
+        ["python3", _UNIPILE_TOOL] + command,
+        capture_output=True, text=True, env=env, timeout=30,
+    )
+    if result.returncode != 0:
+        return {"error": result.stderr.strip() or "unipile command failed"}
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {"error": f"Invalid JSON: {result.stdout[:200]}"}
+
+
+def _sanitize_linkedin_name(display_name: str) -> str:
+    """Convert a display name to a valid project slug.
+
+    Max 21 chars so that 'linkedin-' + slug fits within the 30-char
+    project name limit. Truncates at a hyphen boundary when possible.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "-", display_name.lower()).strip("-")
+    if len(slug) > 21:
+        # Try to cut at a hyphen boundary for a cleaner name
+        truncated = slug[:21]
+        last_hyphen = truncated.rfind("-")
+        if last_hyphen > 5:
+            truncated = truncated[:last_hyphen]
+        slug = truncated.rstrip("-")
+    return slug or "user"
+
+
+async def _handle_linkedin_connect(
+    source_project: str, bridge: ProjectBridge | None, channel_id: str,
+    user_display_name: str, owner_discord_id: str,
+) -> None:
+    """Handle a request to connect a user's LinkedIn via Unipile.
+
+    Generates a hosted auth link, polls for the new account, then
+    auto-provisions a linkedin-{name} project. Users can have multiple
+    linkedin projects (one per account).
+    """
+    # Snapshot existing accounts
+    accounts_data = _unipile_run(["accounts"])
+    existing_ids = set()
+    for item in accounts_data.get("items", accounts_data.get("data", [])):
+        existing_ids.add(item.get("id", ""))
+
+    # Generate hosted auth link
+    link_data = _unipile_run(["connect-linkedin", "--name", user_display_name])
+    auth_url = link_data.get("url", "")
+    if not auth_url:
+        logger.error(f"Failed to generate Unipile link: {link_data}")
+        ch = client.get_channel(int(channel_id)) if channel_id else None
+        if ch:
+            await ch.send("couldn't generate the linkedin connection link. try again in a moment.")
+        return
+
+    # Send link to Discord
+    ch = client.get_channel(int(channel_id)) if channel_id else None
+    if not ch:
+        try:
+            ch = await client.fetch_channel(int(channel_id))
+        except Exception:
+            logger.warning(f"Could not find channel {channel_id} for linkedin connect")
+            return
+
+    await ch.send(
+        f"connect your linkedin here (opens Unipile's hosted login page, "
+        f"Delta never sees your password):\n{auth_url}"
+    )
+
+    # Suppress silence nudges while waiting
+    if bridge:
+        bridge.connection_pending = True
+
+    # Poll for new account (every 15s, max 10 min)
+    max_polls = 40
+    new_account_id = ""
+    new_account_name = ""
+    for i in range(max_polls):
+        await asyncio.sleep(15)
+        poll_data = _unipile_run(["accounts"])
+        for item in poll_data.get("items", poll_data.get("data", [])):
+            aid = item.get("id", "")
+            if aid and aid not in existing_ids:
+                new_account_id = aid
+                new_account_name = item.get("name", user_display_name)
+                break
+        if new_account_id:
+            break
+
+    if bridge:
+        bridge.connection_pending = False
+
+    if not new_account_id:
+        await ch.send(
+            "the linkedin connection didn't complete within 10 minutes. "
+            "no worries -- just let me know when you want to try again."
+        )
+        return
+
+    # Account connected -- provision the linkedin project
+    await ch.send("linkedin connected. setting up your agent now...")
+
+    proj_slug = _sanitize_linkedin_name(new_account_name or user_display_name)
+    proj_name = f"linkedin-{proj_slug}"
+    # Avoid name collisions if user already has a project with this name
+    if registry.get(proj_name):
+        for i in range(2, 10):
+            candidate = f"{proj_name}-{i}"
+            if len(candidate) <= 30 and not registry.get(candidate):
+                proj_name = candidate
+                break
+
+    try:
+        guild = client.guilds[0] if client.guilds else None
+        info = await provision(
+            name=proj_name,
+            registry=registry,
+            discord_bot=client,
+            guild=guild,
+            owner_discord_id=owner_discord_id,
+            project_type="linkedin",
+            admin_brief=new_account_name or user_display_name,
+        )
+
+        # Write UNIPILE_ACCOUNT_ID to linkedin-config.env
+        env_path = Path(info.project_dir) / "linkedin-config.env"
+        if env_path.exists():
+            content = env_path.read_text()
+            content += f"export UNIPILE_ACCOUNT_ID={new_account_id}\n"
+            env_path.write_text(content)
+            # Fix ownership if server mode
+            if info.linux_user:
+                subprocess.run(
+                    ["chown", f"{info.linux_user}:", str(env_path)],
+                    capture_output=True, text=True,
+                )
+
+        # Update registry with account ID
+        registry.update(proj_name, unipile_account_id=new_account_id)
+
+        # Start watchers
+        _start_watchers(proj_name)
+
+        # Send welcome in new channel
+        new_ch = client.get_channel(int(info.discord_channel_id)) if info.discord_channel_id else None
+        if not new_ch:
+            try:
+                new_ch = await client.fetch_channel(int(info.discord_channel_id))
+            except Exception:
+                new_ch = None
+        if new_ch:
+            await new_ch.send(
+                f"hey <@{owner_discord_id}>. your linkedin is connected and i'm your agent now. "
+                f"tell me about your goals and i'll start managing your linkedin."
+            )
+
+        # Confirm back in source channel
+        await ch.send(f"done. your linkedin agent is live in <#{info.discord_channel_id}>.")
+
+    except Exception as e:
+        logger.error(f"LinkedIn project provisioning failed: {e}", exc_info=True)
+        await ch.send(f"something went wrong setting up the project: {e}")
+
+    logger.info(
+        f"LinkedIn connect for {owner_discord_id}: "
+        f"account={new_account_id} project={proj_name}"
+    )
 
 
 def _gh_auth_start_subprocess(gh_cmd: list[str]) -> tuple[str, str, str, bool]:
@@ -659,6 +862,22 @@ def _start_watchers(project_name: str) -> None:
                 bridge.send_to_lead(bridge._random_id())
             except Exception:
                 pass
+            return
+        if command == "linkedin_connect":
+            display_name = data.get("user_display_name", "user")
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            if not channel_id:
+                info = registry.get(project_name)
+                channel_id = info.discord_channel_id if info else ""
+            info = registry.get(project_name)
+            owner = info.owner_discord_id if info else ""
+            if channel_id and owner:
+                asyncio.run_coroutine_threadsafe(
+                    _handle_linkedin_connect(
+                        project_name, bridge, channel_id, display_name, owner
+                    ),
+                    loop,
+                )
             return
         if command == "gh_auth_start":
             channel_id = data.get("reply_channel", "") or data.get("channel", "")
@@ -1286,6 +1505,20 @@ def _start_hub_watchers() -> None:
             if project_name:
                 asyncio.run_coroutine_threadsafe(
                     _handle_onboarding_complete(project_name, data), loop,
+                )
+            return
+
+        if command == "linkedin_connect":
+            display_name = data.get("user_display_name", "user")
+            channel_id = data.get("reply_channel", "") or data.get("channel", "")
+            owner = data.get("owner_discord_id", "")
+            if channel_id and owner:
+                hub_bridge = bridges.get(HUB_NAME)
+                asyncio.run_coroutine_threadsafe(
+                    _handle_linkedin_connect(
+                        HUB_NAME, hub_bridge, channel_id, display_name, owner
+                    ),
+                    loop,
                 )
             return
 
@@ -2450,7 +2683,10 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
         hub_bridge = bridges.get(HUB_NAME)
         if hub_bridge:
             hub_bridge.touch_activity()
-            msg_id = hub_bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+            msg_id = hub_bridge.write_inbox(
+                channel_id, user_id, text, channel_type="dm",
+                attachments=attachments_data or None,
+            )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
                 try:
@@ -2472,7 +2708,10 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text):
     _start_watchers(project_name)
 
     bridge.touch_activity()
-    msg_id = bridge.write_inbox(channel_id, user_id, text, channel_type="dm")
+    msg_id = bridge.write_inbox(
+        channel_id, user_id, text, channel_type="dm",
+        attachments=attachments_data or None,
+    )
     _start_typing(message.channel, channel_id)
     if bridge.is_project_active():
         try:
@@ -2493,9 +2732,23 @@ async def on_message(message: discord.Message):
         return
 
     text = message.content.strip()
+    has_attachments = len(message.attachments) > 0
     logger.debug(f"on_message: {message.author} in {message.channel}: {text[:80]}")
-    if not text:
+    if not text and not has_attachments:
         return
+
+    # Extract attachment metadata for passing through to agents
+    attachments_data = []
+    if has_attachments:
+        for att in message.attachments:
+            attachments_data.append({
+                "url": att.url,
+                "filename": att.filename,
+                "size": att.size,
+                "content_type": getattr(att, "content_type", None) or "application/octet-stream",
+            })
+        if not text:
+            text = f"[{len(attachments_data)} attachment(s): {', '.join(a['filename'] for a in attachments_data)}]"
 
     is_dm = isinstance(message.channel, discord.DMChannel)
     channel_id = str(message.channel.id)
@@ -2543,6 +2796,7 @@ async def on_message(message: discord.Message):
             msg_id = hub_bridge.write_inbox(
                 channel_id, user_id, text,
                 channel_type="dm",
+                attachments=attachments_data or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -2561,6 +2815,12 @@ async def on_message(message: discord.Message):
             await message.channel.send(
                 "Something's off on my end. Try again in a moment."
             )
+        return
+
+    # -- LinkedIn onboarding: any user can connect a LinkedIn account --
+    if LINKEDIN_ONBOARDING_CHANNEL_ID and channel_id == LINKEDIN_ONBOARDING_CHANNEL_ID:
+        if not message.author.bot:
+            asyncio.ensure_future(_handle_linkedin_onboarding(message))
         return
 
     # -- Onboarding intake: admin posts in #seedforth-onboarding --
@@ -2688,6 +2948,7 @@ async def on_message(message: discord.Message):
                 channel_id, user_id, text,
                 channel_type="channel",
                 channel_name=channel_name,
+                attachments=attachments_data or None,
             )
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
@@ -2805,7 +3066,7 @@ async def on_message(message: discord.Message):
     if cancelled:
         logger.info(f"Cancelled {cancelled} pending followup(s) for {project_name}")
 
-    msg_id = bridge.write_inbox(channel_id, user_id, text)
+    msg_id = bridge.write_inbox(channel_id, user_id, text, attachments=attachments_data or None)
     _start_typing(message.channel, channel_id)
 
     if bridge.is_project_active():
@@ -2824,6 +3085,7 @@ async def on_message(message: discord.Message):
                 channel_type="project_channel",
                 channel_name=channel_name,
                 project_name=project_name,
+                attachments=attachments_data or None,
             )
             if hub_bridge.is_project_active():
                 try:

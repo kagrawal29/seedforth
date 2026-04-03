@@ -135,6 +135,63 @@ def _initial_schedule(name: str) -> dict:
     }
 
 
+def _init_linkedin_data(project_path: Path, linux_user: str = "") -> None:
+    """Seed empty data files and config for a linkedin project."""
+    from datetime import datetime, timezone
+
+    data_dir = project_path / "data"
+    data_dir.mkdir(exist_ok=True)
+
+    templates = {
+        "contacts.json": {"contacts": [], "updated_at": ""},
+        "pipeline.json": {"ideas": [], "drafts": [], "ready": [], "posted": []},
+        "targets.json": {"quarterly": {}, "weekly": {}},
+        "dm-tracker.json": {"threads": [], "templates": []},
+        "autonomy.json": {
+            "profile_view": "auto",
+            "reaction": "auto",
+            "search": "auto",
+            "draft_content": "auto",
+            "warmth_update": "auto",
+            "dm_to_connection": "notify",
+            "accept_connection": "notify",
+            "comment_on_connection": "notify",
+            "connection_request": "approval",
+            "cold_dm": "approval",
+            "publish_post": "approval",
+            "send_inmail": "approval",
+            "withdraw_connection": "blocked",
+            "delete_post": "blocked",
+            "block_user": "blocked",
+        },
+    }
+
+    for filename, content in templates.items():
+        filepath = data_dir / filename
+        if not filepath.exists():
+            filepath.write_text(json.dumps(content, indent=2))
+
+    # Touch activity log
+    log_file = data_dir / "activity-log.jsonl"
+    if not log_file.exists():
+        log_file.touch()
+
+    # Write linkedin-config.env (UNIPILE_ACCOUNT_ID added later after polling)
+    env_file = project_path / "linkedin-config.env"
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    env_file.write_text(
+        f"export LINKEDIN_DATA_DIR={project_path}/data\n"
+        f"export ACCOUNT_START_DATE={today}\n"
+    )
+
+    if linux_user:
+        import subprocess as _sp
+        _sp.run(["chown", "-R", f"{linux_user}:", str(data_dir)],
+                capture_output=True, text=True)
+        _sp.run(["chown", f"{linux_user}:", str(env_file)],
+                capture_output=True, text=True)
+
+
 def _setup_project_dirs(name: str, github_repo: str = "",
                         project_type: str = "standard") -> tuple[str, str, str]:
     """Create project directory, delta-config dirs, and git repo.
@@ -176,6 +233,9 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         # Chiron projects need memory/ and memory/checklists/ directories
         if project_type == "chiron":
             (project_path / "memory" / "checklists").mkdir(parents=True, exist_ok=True)
+        # LinkedIn projects need data/ directory for unipile safety controller
+        if project_type == "linkedin":
+            (project_path / "data").mkdir(parents=True, exist_ok=True)
 
         project_dir = str(project_path)
         data_dir = str(data_path)
@@ -206,6 +266,8 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         run_as_user(username, f"mkdir -p {data_dir}/inbox {data_dir}/outbox {data_dir}/logs {data_dir}/followups {data_dir}/progress")
         if project_type == "chiron":
             run_as_user(username, f"mkdir -p {project_dir}/memory/checklists")
+        if project_type == "linkedin":
+            run_as_user(username, f"mkdir -p {project_dir}/data")
         # Write schedule.json directly (avoid shell quoting issues with apostrophes)
         schedule_path = Path(data_dir) / "schedule.json"
         schedule_path.write_text(json.dumps(_initial_schedule(name), indent=2))
@@ -223,7 +285,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
                       github_repo: str, owner_discord_id: str,
                       is_dream_space: bool, registry: Registry,
                       project_type: str = "standard",
-                      admin_brief: str = "") -> ProjectInfo:
+                      admin_brief: str = "",
+                      unipile_account_id: str = "") -> ProjectInfo:
     """Write CLAUDE.md, create tmux session, start Claude Code, register.
 
     Common tail shared by provision() and provision_in_channel().
@@ -240,6 +303,8 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     # Write CLAUDE.md from template -- select template based on project_type
     if project_type == "chiron":
         template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "CHIRON_ONBOARDING.md"
+    elif project_type == "linkedin":
+        template_file = Path(__file__).parent.parent / _TEMPLATE_DIR / "LINKEDIN.md"
     else:
         template_file = _TEMPLATE_PATH  # standard CLAUDE.md
 
@@ -254,9 +319,20 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         }
         if project_type == "chiron":
             format_vars["admin_brief"] = admin_brief or "(no admin brief provided)"
+        if project_type == "linkedin":
+            if LOCAL_MODE:
+                unipile_tool = str(Path(__file__).parent.parent / "tools" / "unipile.py")
+            else:
+                unipile_tool = "/opt/delta/tools/unipile.py"
+            format_vars["unipile_tool_path"] = unipile_tool
+            format_vars["user_display_name"] = admin_brief or name
         claude_md = template.format(**format_vars)
         claude_md_path = Path(project_dir) / "CLAUDE.md"
         claude_md_path.write_text(claude_md)
+
+    # Seed LinkedIn data files and config
+    if project_type == "linkedin":
+        _init_linkedin_data(Path(project_dir), username)
 
     # Copy hooks directory into project
     import shutil
@@ -331,8 +407,16 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     create_tmux_session(tmux_session)
 
     logger.info(f"Starting Claude Code in {tmux_pane}")
+    extra_env: dict = {}
+    if project_type == "linkedin" and unipile_account_id:
+        extra_env["UNIPILE_ACCOUNT_ID"] = unipile_account_id
+        for key in ("UNIPILE_DSN", "UNIPILE_API_KEY"):
+            val = os.environ.get(key, "")
+            if val:
+                extra_env[key] = val
     start_claude_code(project_dir, tmux_pane,
-                      linux_user=username if username else None)
+                      linux_user=username if username else None,
+                      extra_env=extra_env if extra_env else None)
 
     # Start per-project web terminal (port allocated earlier for CLAUDE.md)
     start_ttyd(name, tmux_session, port)
@@ -363,7 +447,8 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
                     is_dream_space: bool = False,
                     project_type: str = "standard",
                     admin_brief: str = "",
-                    target_user_id: str = "") -> ProjectInfo:
+                    target_user_id: str = "",
+                    unipile_account_id: str = "") -> ProjectInfo:
     """Provision a new project end-to-end.
 
     Creates a new Discord channel, sets up project files, launches Claude Code.
@@ -395,6 +480,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
         name, project_dir, data_dir, username, discord_channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
         project_type=project_type, admin_brief=admin_brief,
+        unipile_account_id=unipile_account_id,
     )
     logger.info(f"Project {name} provisioned and registered")
     return info
@@ -405,7 +491,8 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
                                github_repo: str = "",
                                is_dream_space: bool = False,
                                project_type: str = "standard",
-                               admin_brief: str = "") -> ProjectInfo:
+                               admin_brief: str = "",
+                               unipile_account_id: str = "") -> ProjectInfo:
     """Provision a project using an existing Discord channel.
 
     Same as provision() but skips channel creation and uses the given channel_id.
@@ -422,6 +509,7 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
         name, project_dir, data_dir, username, channel_id,
         github_repo, owner_discord_id, is_dream_space, registry,
         project_type=project_type, admin_brief=admin_brief,
+        unipile_account_id=unipile_account_id,
     )
     logger.info(f"Project {name} provisioned in existing channel {channel_id}")
     return info
@@ -449,7 +537,7 @@ def refresh_templates(registry) -> int:
 
         # Skip chiron projects -- their CLAUDE.md is managed by the
         # onboarding/transition lifecycle, not bulk refresh
-        if getattr(info, "project_type", "standard") in ("chiron", "persistent"):
+        if getattr(info, "project_type", "standard") in ("chiron", "persistent", "linkedin"):
             logger.info(f"Skipping {name} (project_type={info.project_type})")
             continue
 
