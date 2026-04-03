@@ -2674,8 +2674,8 @@ _dm_provision_locks: dict[str, asyncio.Lock] = {}
 async def _auto_provision_personal_agent(message, channel_id, user_id, text, attachments_data):
     """Auto-provision a personal agent for a new DM user.
 
-    Sends an instant greeting, provisions in background, then queues the
-    first message for the new agent. Next DM will route normally.
+    Sends "waking up" message, provisions the agent, queues the first
+    message. The agent itself handles the greeting -- no canned messages.
     """
     lock = _dm_provision_locks.setdefault(user_id, asyncio.Lock())
     async with lock:
@@ -2685,12 +2685,8 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
             await _route_dm_to_persistent(personal, message, channel_id, user_id, text, attachments_data)
             return
 
-        # Instant greeting (user sees this in <1s while provisioning happens)
-        await message.channel.send(
-            "hey. i'm delta, your personal agent. i build things, manage projects, "
-            "handle outreach, create docs, deploy apps, keep track of your schedule. "
-            "whatever's taking up your time, just tell me and i'll take it off your plate."
-        )
+        await message.channel.send("waking up, one sec")
+        _start_typing(message.channel, channel_id)
 
         # Derive project name from display name
         display_name = message.author.display_name or message.author.name
@@ -2718,7 +2714,7 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
 
             # Start watchers and queue the first message
             _start_watchers(project_name)
-            await asyncio.sleep(5)  # Give Claude Code time to boot
+            await asyncio.sleep(8)  # Give Claude Code time to boot
 
             bridge = _get_or_create_bridge(project_name)
             if bridge:
@@ -2732,9 +2728,17 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
                         bridge.send_to_lead(msg_id)
                     except Exception as e:
                         logger.warning(f"Nudge to new personal agent failed: {e}")
+                else:
+                    _stop_typing(channel_id)
+                    await message.channel.send(
+                        "still waking up. try again in a moment."
+                    )
+            else:
+                _stop_typing(channel_id)
 
         except Exception as e:
             logger.error(f"Failed to auto-provision personal agent: {e}")
+            _stop_typing(channel_id)
             await message.channel.send(
                 "had trouble setting up. try messaging me again in a moment."
             )
