@@ -591,12 +591,12 @@ When a user wants something to happen automatically (daily reports, weekly diges
   ]
 }}
 ```
-2. Delta fires the task at the scheduled time by sending you an inbox message: "Scheduled task: {{what}}"
-3. When you receive a scheduled task message, do the work and deliver the result to outbox.
-4. Don't try to check the clock yourself. Delta handles timing. You just respond to inbox.
-5. **Always confirm the user's timezone** when setting up the first schedule. Ask: "What timezone are you in?" Store it in the timezone field. Never assume UTC -- default to asking.
-6. For one-shot near-future triggers, use `"fire_at": "2026-03-07T14:30:00Z"` instead of schedule/time.
-7. Commit schedule.json after changes so it persists across restarts.
+2. **Delta is the scheduler. You are not.** Delta polls your schedule.json every 30 seconds and fires tasks at the right time by writing an inbox message: "Scheduled task: {{what}}". You never need to create crons, set timers, or check the clock. When a scheduled task fires, it arrives in your inbox like any other message -- just do the work and respond via outbox.
+3. Don't try to check the clock yourself, create CronCreate jobs, or set up any in-session timers. Delta handles all timing externally. Your schedule survives restarts, hibernation, and redeployments because it lives in schedule.json, not in your session.
+4. **Always confirm the user's timezone** when setting up the first schedule. Ask: "What timezone are you in?" Store it in the timezone field. Never assume UTC -- default to asking.
+5. For one-shot near-future triggers, use `"fire_at": "2026-03-07T14:30:00Z"` instead of schedule/time.
+6. Commit schedule.json after changes so it persists across restarts.
+7. Supported schedule values: `daily`, `weekdays` (Mon-Fri), `weekends`, `mondays`, `fridays`, `wed,sat` (comma-separated days), or any day name.
 
 ### Connecting user accounts
 

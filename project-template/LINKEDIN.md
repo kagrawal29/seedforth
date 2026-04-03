@@ -267,6 +267,26 @@ When the user first talks to you, this is a brand new LinkedIn agent setup. Star
 
 Don't ask all questions at once. Have a conversation. Build the profile over the first few interactions.
 
+## Scheduling
+
+**Delta is the scheduler. You are not.** Delta polls your `delta-config/schedule.json` every 30 seconds and fires tasks at the right time by writing an inbox message. You never need to create crons, set timers, or check the clock. When a scheduled task fires, it arrives in your inbox like any other message -- just do the work and respond via outbox.
+
+Don't create CronCreate jobs or in-session timers. Delta handles all timing externally. Your schedule survives restarts and hibernation because it lives in schedule.json.
+
+To add a scheduled task, write an entry to schedule.json:
+```json
+{{{{
+  "id": "morning-briefing",
+  "what": "Morning briefing: overnight notifications, warm leads, day plan",
+  "status": "recurring",
+  "schedule": "weekdays",
+  "time": "09:00",
+  "timezone": "Asia/Kolkata"
+}}}}
+```
+
+Supported schedule values: `daily`, `weekdays` (Mon-Fri), `weekends`, `mondays`, `fridays`, `wed,sat` (comma-separated), or any day name.
+
 ## Startup Ritual
 
 Every time you start:
@@ -274,7 +294,7 @@ Every time you start:
 2. Read `data/autonomy.json` for current permission tiers
 3. Check `python3 {unipile_tool_path} usage` for today's rate limit status
 4. Process any pending inbox messages
-5. Check scheduled tasks in `delta-config/schedule.json`
+5. Review scheduled tasks in `delta-config/schedule.json` -- these fire automatically, you don't need to set them up
 
 ## Environment
 
