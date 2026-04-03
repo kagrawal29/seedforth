@@ -265,9 +265,9 @@ def _init_linkedin_data(project_path: Path, linux_user: str = "") -> None:
 
     if linux_user:
         import subprocess as _sp
-        _sp.run(["chown", "-R", f"{linux_user}:", str(data_dir)],
+        _sp.run(["sudo", "chown", "-R", f"{linux_user}:", str(data_dir)],
                 capture_output=True, text=True)
-        _sp.run(["chown", f"{linux_user}:", str(env_file)],
+        _sp.run(["sudo", "chown", f"{linux_user}:", str(env_file)],
                 capture_output=True, text=True)
 
 
@@ -361,7 +361,7 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         schedule_path = Path(data_dir) / "schedule.json"
         schedule_path.write_text(json.dumps(_initial_schedule(name), indent=2))
         import subprocess as _sp
-        _sp.run(["chown", f"{username}:", str(schedule_path)],
+        _sp.run(["sudo", "chown", f"{username}:", str(schedule_path)],
                 capture_output=True, text=True)
 
         _init_git_repo(Path(project_dir), linux_user=username)
@@ -464,14 +464,14 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
         for fname in ["CLAUDE.md", ".gitignore"]:
             fpath = Path(project_dir) / fname
             if fpath.exists():
-                _sp.run(["chown", f"{username}:", str(fpath)],
+                _sp.run(["sudo", "chown", f"{username}:", str(fpath)],
                         capture_output=True, text=True)
         # Fix ownership on hooks and .claude/settings.json
         if hooks_dst.exists():
-            _sp.run(["chown", "-R", f"{username}:", str(hooks_dst)],
+            _sp.run(["sudo", "chown", "-R", f"{username}:", str(hooks_dst)],
                     capture_output=True, text=True)
         if claude_settings_dir.exists():
-            _sp.run(["chown", "-R", f"{username}:", str(claude_settings_dir)],
+            _sp.run(["sudo", "chown", "-R", f"{username}:", str(claude_settings_dir)],
                     capture_output=True, text=True)
         from delta.isolation import run_as_user
         run_as_user(username, f"git -C {project_dir} add -A")
@@ -702,15 +702,15 @@ def refresh_templates(registry) -> int:
         # Fix ownership on server
         if info.linux_user:
             import subprocess as _sp
-            _sp.run(["chown", f"{info.linux_user}:", str(claude_md_path)],
+            _sp.run(["sudo", "chown", f"{info.linux_user}:", str(claude_md_path)],
                     capture_output=True, text=True)
             if hooks_dst.exists():
-                _sp.run(["chown", "-R", f"{info.linux_user}:", str(hooks_dst)],
+                _sp.run(["sudo", "chown", "-R", f"{info.linux_user}:", str(hooks_dst)],
                         capture_output=True, text=True)
             if claude_settings_dir.exists():
-                _sp.run(["chown", "-R", f"{info.linux_user}:", str(claude_settings_dir)],
+                _sp.run(["sudo", "chown", "-R", f"{info.linux_user}:", str(claude_settings_dir)],
                         capture_output=True, text=True)
-            _sp.run(["chown", "-R", f"{info.linux_user}:", str(progress_dir)],
+            _sp.run(["sudo", "chown", "-R", f"{info.linux_user}:", str(progress_dir)],
                     capture_output=True, text=True)
 
         # Clean up old .mcp.json BEFORE registering (claude mcp add-json
@@ -846,7 +846,7 @@ def restore(name: str, registry) -> bool:
                 "hasCompletedOnboarding": True,
             }))
             import subprocess as _sp
-            _sp.run(["chown", f"{info.linux_user}:", str(claude_json)],
+            _sp.run(["sudo", "chown", f"{info.linux_user}:", str(claude_json)],
                     capture_output=True, text=True)
 
     # Re-create tmux session

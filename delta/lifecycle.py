@@ -110,7 +110,7 @@ def start_claude_code(project_dir: str, tmux_pane: str,
                         for k, v in extra_env.items():
                             f.write(f"export {k}={v}\n")
                 os.chmod(token_file, stat.S_IRUSR | stat.S_IWUSR)
-                subprocess.run(["chown", f"{linux_user}:", token_file],
+                subprocess.run(["sudo", "chown", f"{linux_user}:", token_file],
                                capture_output=True, text=True)
             except OSError as e:
                 logger.warning(f"Failed to write token file {token_file}: {e}")

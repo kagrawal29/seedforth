@@ -47,7 +47,7 @@ def create_user(project_name: str) -> str:
     home = f"/home/{username}"
 
     result = subprocess.run(
-        ["useradd", "-m", "-d", home, "-s", "/bin/bash", username],
+        ["sudo", "useradd", "-m", "-d", home, "-s", "/bin/bash", username],
         capture_output=True, text=True,
     )
     if result.returncode == 9:
@@ -56,12 +56,12 @@ def create_user(project_name: str) -> str:
     elif result.returncode != 0:
         raise RuntimeError(f"useradd failed: {result.stderr.strip()}")
 
-    subprocess.run(["chmod", "750", home], capture_output=True, text=True)
+    subprocess.run(["sudo", "chmod", "750", home], capture_output=True, text=True)
 
     # Symlink Claude auth so project user inherits root's Max subscription
     user_claude = Path(home) / ".claude"
     if _ROOT_CLAUDE_DIR.exists() and not user_claude.exists():
-        subprocess.run(["ln", "-s", str(_ROOT_CLAUDE_DIR), str(user_claude)],
+        subprocess.run(["sudo", "ln", "-s", str(_ROOT_CLAUDE_DIR), str(user_claude)],
                        capture_output=True, text=True)
         ensure_claude_auth_shared()
 
@@ -79,7 +79,7 @@ def create_user(project_name: str) -> str:
         base_config.setdefault("theme", "dark")
         base_config.setdefault("hasCompletedOnboarding", True)
         user_claude_json.write_text(json.dumps(base_config, indent=2))
-        subprocess.run(["chown", f"{username}:", str(user_claude_json)],
+        subprocess.run(["sudo", "chown", f"{username}:", str(user_claude_json)],
                        capture_output=True, text=True)
 
     logger.info(f"Created user {username} with home {home}")
