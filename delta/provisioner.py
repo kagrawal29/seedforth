@@ -72,6 +72,23 @@ LOCAL_MODE = os.getenv("LOCAL_MODE", "").lower() in ("true", "1", "yes")
 LOCAL_PROJECTS_DIR = os.getenv("LOCAL_PROJECTS_DIR", os.path.expanduser("~/.delta-projects"))
 
 
+def _github_clone_url(repo: str) -> str:
+    """Build a clone URL, injecting GITHUB_TOKEN for private repo access."""
+    token = os.getenv("GITHUB_TOKEN", "")
+    if token:
+        return f"https://x-access-token:{token}@github.com/{repo}.git"
+    return f"https://github.com/{repo}.git"
+
+
+def _verify_github_repo(repo: str) -> bool:
+    """Check if a GitHub repo exists and is accessible. Returns True if reachable."""
+    import subprocess
+    token = os.getenv("GITHUB_TOKEN", "")
+    cmd = ["git", "ls-remote", _github_clone_url(repo)]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    return result.returncode == 0
+
+
 def _init_git_repo(project_path: Path, linux_user: str = "") -> None:
     """Initialize a git repo with .gitignore if one doesn't exist."""
     import subprocess
@@ -210,8 +227,13 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         data_path = project_path / "delta-config"
 
         if github_repo:
-            url = f"https://github.com/{github_repo}.git"
-            logger.info(f"Cloning {url}")
+            if not _verify_github_repo(github_repo):
+                raise RuntimeError(
+                    f"Cannot access {github_repo} -- repo doesn't exist, is private "
+                    f"without GITHUB_TOKEN set, or network error"
+                )
+            url = _github_clone_url(github_repo)
+            logger.info(f"Cloning {github_repo}")
             result = subprocess.run(
                 ["git", "clone", url, str(project_path)],
                 capture_output=True, text=True,
@@ -253,8 +275,13 @@ def _setup_project_dirs(name: str, github_repo: str = "",
         create_user(name)
 
         if github_repo:
-            url = f"https://github.com/{github_repo}.git"
-            logger.info(f"Cloning {url}")
+            if not _verify_github_repo(github_repo):
+                raise RuntimeError(
+                    f"Cannot access {github_repo} -- repo doesn't exist, is private "
+                    f"without GITHUB_TOKEN set, or network error"
+                )
+            url = _github_clone_url(github_repo)
+            logger.info(f"Cloning {github_repo}")
             result = run_as_user(username, f"git clone {url} {project_dir}")
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed: {result.stderr.strip()}")
