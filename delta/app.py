@@ -2252,10 +2252,30 @@ def _should_fire_task(task: dict, now: datetime) -> bool:
     local_now = now.astimezone(tz)
     diff_minutes = (local_now.hour * 60 + local_now.minute) - (hour * 60 + minute)
 
+    if not (0 <= diff_minutes < 3):
+        return False
+
+    weekday = local_now.weekday()  # 0=Mon, 4=Fri, 5=Sat, 6=Sun
+    day_names = {
+        "mondays": 0, "tuesdays": 1, "wednesdays": 2, "thursdays": 3,
+        "fridays": 4, "saturdays": 5, "sundays": 6,
+        "mon": 0, "tue": 1, "wed": 2, "thu": 3,
+        "fri": 4, "sat": 5, "sun": 6,
+    }
+
     if schedule == "daily":
-        return 0 <= diff_minutes < 3
+        return True
+    elif schedule == "weekdays":
+        return weekday < 5
+    elif schedule == "weekends":
+        return weekday >= 5
     elif schedule == "weekly":
-        return local_now.weekday() == 0 and 0 <= diff_minutes < 3
+        return weekday == 0
+    elif schedule in day_names:
+        return weekday == day_names[schedule]
+    elif "," in schedule:
+        # Comma-separated days: "wed,sat"
+        return any(weekday == day_names.get(d.strip().lower(), -1) for d in schedule.split(","))
     return False
 
 
