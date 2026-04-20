@@ -24,6 +24,7 @@ SeedForth/
   AI_product_quotes/     # Client brief-to-proposal pipeline
   arie/                  # LinkedIn intelligence agent (single-user)
   audioworld/            # LinkedIn outreach system on remote server
+  delta/                 # Discord agent platform (own repo)
   delta-projects/        # Delta ecosystem container
     bootcamp-delta/
     cajon-sensei/
@@ -38,6 +39,7 @@ SeedForth/
   Sports Corridor/       # Business plans
   solveOS/               # Problem Solving as a Service — lead gen intelligence
   tetrahedron/           # Remote server orchestrator
+  revti-digital/         # Charlie agent system for Revti Digital
 ```
 
 ## Project Registry
@@ -49,6 +51,7 @@ SeedForth/
 | arie | `arie/` | `kagrawal29/arie` | LinkedIn intelligence agent (single-user prototype) | Python | Active |
 | ember | `ember/` | `kagrawal29/ember` | Multi-tenant LinkedIn management (scaled arie) | Python | Active |
 | tetrahedron | `tetrahedron/` | `kagrawal29/tetrahedron` | Remote server orchestrator (manages audioworld) | Python | Active |
+| delta | `delta/` | `kagrawal29/delta` | Discord bot giving projects their own Claude Code | Python | Active |
 | audioworld | `audioworld/` | `kagrawal29/audioworld` | LinkedIn outreach system on remote server | Python | Active |
 | news-commodity-link | `news-commodity-link/` | `kagrawal29/news-commodity-link` | News/commodity correlation | Python/Flask | Hibernating |
 | pulse-dashboard | `pulse-dashboard/` | `kagrawal29/pulse-dashboard` | Next.js dashboard | Next.js | Hibernating |
@@ -57,15 +60,20 @@ SeedForth/
 | Perf Marketing | `performance-markting-dashboard/` | `kagrawal29/performance-marketing-dashboard` | Marketing dashboard mockup | — | Config-only |
 | Sports Corridor | `Sports Corridor/` | `kagrawal29/sports-corridor` | Business plans | — | Config-only |
 | Solve OS | `solveOS/` | `kagrawal29/solve-os` | Problem Solving as a Service — lead gen intelligence and opportunity matching | Python | Active |
+| Revti Digital | `revti-digital/` | `kagrawal29/revti-digital` | Charlie agent system for Revti Digital — Discord + Drive + Gmail | Python | Active |
 | AI Camera Proposal | `ai_camera_proposal/` | local only | AI road inspection proposal docs | — | Config-only |
 | Delta Hub | `delta-projects/delta-hub/` | `kagrawal29/delta-hub` | Delta ecosystem hub | — | Hibernating |
+| Mycelium | `tetrahedron/projects/mycelium/` | `kagrawal29/mycelium` | Living knowledge graph — Neo4j + APOC + Qdrant + Ollama. Self-maintaining, fractal, Hebbian panel, dream engine. Upstream of maverick. | Python / Cypher | Active |
+| Maverick | `tetrahedron/projects/maverick/` | `Qubit-Capital/maverick` | Team distribution of mycelium for Qubit Capital residency. What teammates clone and install. Syncs from kagrawal29/mycelium. | Python / Cypher | Active |
 
 ### Relationships
 
 - **arie** is the single-user prototype; **ember** is the multi-tenant production version
-- **tetrahedron** orchestrates **audioworld** on a remote server
+- **tetrahedron** orchestrates **audioworld** on a remote server; observatory monitors **delta**
+- **delta** was extracted from tetrahedron into its own repo; server path is `/opt/delta`
 - **delta-projects/** is a container folder — individual projects inside have their own repos
 - **Solve OS** is SeedForth's commercial entry product — uses LinkedIn signals to match problems to solvers, lead gen first
+- **Mycelium** is upstream; **Maverick** is the team-distribution fork. Work lands on `kagrawal29/mycelium`; syncs over to `Qubit-Capital/maverick` via PR for teammates to pull. The forest lives on pulse-server (Neo4j dev:7698, prod:7699 behind bolt-proxy), shared Qdrant on pulse + delta.
 
 ### Per-Project CLAUDE.md — Session Continuity
 
