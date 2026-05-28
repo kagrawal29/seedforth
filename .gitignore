@@ -43,6 +43,7 @@ ai_camera_proposal/
 AI_product_quotes/
 arie/
 audioworld/
+delta/
 delta-projects/
 ember/
 news-commodity-link/
@@ -52,6 +53,8 @@ pulse-dashboard/
 Sports Corridor/
 solveOS/
 tetrahedron/
+flowing-indian/
+revti-digital/
 
 # Tool/deployment artifacts
 .claude/

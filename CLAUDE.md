@@ -40,6 +40,7 @@ SeedForth/
   solveOS/               # Problem Solving as a Service — lead gen intelligence
   tetrahedron/           # Remote server orchestrator
   revti-digital/         # Charlie agent system for Revti Digital
+  flowing-indian/        # Flowing Indian website (Next.js, Vercel)
 ```
 
 ## Project Registry
@@ -61,6 +62,7 @@ SeedForth/
 | Sports Corridor | `Sports Corridor/` | `kagrawal29/sports-corridor` | Business plans | — | Config-only |
 | Solve OS | `solveOS/` | `kagrawal29/solve-os` | Problem Solving as a Service — lead gen intelligence and opportunity matching | Python | Active |
 | Revti Digital | `revti-digital/` | `kagrawal29/revti-digital` | Charlie agent system for Revti Digital — Discord + Drive + Gmail | Python | Active |
+| Flowing Indian | `flowing-indian/` | `kartiksahu/flowing-indian-website` | Movement/flow practice site — marketing + events/Razorpay funnel. Deploys to flowingindian.com via Vercel | Next.js 16 / TS / Tailwind | Active |
 | AI Camera Proposal | `ai_camera_proposal/` | local only | AI road inspection proposal docs | — | Config-only |
 | Delta Hub | `delta-projects/delta-hub/` | `kagrawal29/delta-hub` | Delta ecosystem hub | — | Hibernating |
 | Mycelium | `tetrahedron/projects/mycelium/` | `kagrawal29/mycelium` | Living knowledge graph — Neo4j + APOC + Qdrant + Ollama. Self-maintaining, fractal, Hebbian panel, dream engine. Upstream of maverick. | Python / Cypher | Active |
