@@ -33,6 +33,8 @@ from delta.provisioner import provision, provision_in_channel, teardown, restore
 from delta.registry import Registry
 from delta.resource_manager import resource_manager_loop
 from delta.router import Router
+from delta.agent_runner import get_runner
+from delta.agent_lifecycle import is_agent_running
 from delta import connections
 
 logging.basicConfig(level=logging.INFO)
@@ -462,6 +464,7 @@ async def _handle_linkedin_connect(
             owner_discord_id=owner_discord_id,
             project_type="linkedin",
             admin_brief=new_account_name or user_display_name,
+            runtime="opencode",
         )
 
         # Write UNIPILE_ACCOUNT_ID to linkedin-config.env
@@ -784,13 +787,11 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
             capture_output=True, text=True,
         )
 
-    # Stop and restart Claude Code (picks up new CLAUDE.md)
-    stop_claude_code(info.tmux_lead_pane, grace=5)
+    # Stop and restart agent (picks up new CLAUDE.md)
+    runner = get_runner(info)
+    runner.stop(info, keep_config=True)
     await asyncio.sleep(2)
-    start_claude_code(
-        info.project_dir, info.tmux_lead_pane,
-        linux_user=info.linux_user or None,
-    )
+    runner.start(info)
 
     # Update registry
     registry.update(project_name, project_type="persistent")
@@ -913,6 +914,7 @@ def _start_watchers(project_name: str) -> None:
                         project_type=proj_type,
                         admin_brief=proj_admin_brief,
                         target_user_id=proj_target_user_id,
+                        runtime="opencode",
                     )
                     _start_watchers(proj_name)
                     # Seed the new project with context if provided
@@ -1053,11 +1055,14 @@ def _format_project_status(name: str) -> str:
     if info.status == "hibernated":
         return f"**{name}** -- hibernated (will wake on contact)"
 
-    health = get_project_health(info.tmux_lead_pane)
+    if info.runtime == "opencode":
+        health = {"agent_running": is_agent_running(info.serve_port), "session_alive": True}
+    else:
+        health = get_project_health(info.tmux_lead_pane)
     bridge = _get_or_create_bridge(name)
     pending = bridge.pending_inbox_count() if bridge else 0
 
-    if health["claude_running"]:
+    if health.get("agent_running", health.get("claude_running")):
         auth_err = bridge.check_auth_error() if bridge else None
         if auth_err:
             status_line = "running but auth expired -- messages stuck"
@@ -1099,15 +1104,19 @@ def _format_all_status() -> str:
         if info.status == "hibernated":
             lines.append(f"`z` **{name}** | hibernated | owner: <@{owner}>")
             continue
-        health = get_project_health(info.tmux_lead_pane)
+        agent_ok = is_agent_running(info.serve_port) if info.runtime == "opencode" else None
+        if info.runtime != "opencode":
+            health = get_project_health(info.tmux_lead_pane)
+        else:
+            health = {"claude_running": False}
         bridge = _get_or_create_bridge(name)
         pending = bridge.pending_inbox_count() if bridge else 0
-        auth_err = bridge.check_auth_error() if bridge and health["claude_running"] else None
+        auth_err = bridge.check_auth_error() if bridge and (agent_ok or health["claude_running"]) else None
         ram = _get_user_ram(info.linux_user) if info.linux_user else "?"
         if auth_err:
             icon = "!"
             state = "auth expired"
-        elif not health["claude_running"]:
+        elif not (agent_ok if info.runtime == "opencode" else health["claude_running"]):
             icon = "-"
             state = "stopped"
         elif pending > 0:
@@ -1225,6 +1234,7 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
                     owner_discord_id=user_id,
                     channel_id=channel_id,
                     github_repo=github_repo,
+                    runtime="opencode",
                 )
             else:
                 info = await provision(
@@ -1234,6 +1244,7 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
                     guild=guild,
                     owner_discord_id=user_id,
                     github_repo=github_repo,
+                    runtime="opencode",
                 )
             _start_watchers(name)
 
@@ -1326,23 +1337,18 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
         if not is_admin and info.owner_discord_id != user_id:
             await message.channel.send("That's not your project.")
             return
-        await message.channel.send(f"Restarting Claude Code for **{project_name}**...")
-        stop_claude_code(info.tmux_lead_pane, grace=5)
-        # Recreate tmux session if it's gone (e.g. after service restart)
-        if not is_session_alive(info.tmux_session):
-            create_tmux_session(info.tmux_session)
-        started = start_claude_code(
-            info.project_dir, info.tmux_lead_pane,
-            linux_user=info.linux_user or None,
-        )
+        await message.channel.send(f"Restarting agent for **{project_name}**...")
+        runner = get_runner(info)
+        runner.stop(info, keep_config=True)
+        await asyncio.sleep(2)
+        started = runner.start(info)
         if started:
-            # Reset idle timer so resource manager doesn't immediately hibernate
             bridge = _get_or_create_bridge(project_name)
             if bridge:
                 bridge.touch_activity()
-            await message.channel.send(f"**{project_name}** Claude Code restarted.")
+            await message.channel.send(f"**{project_name}** agent restarted.")
         else:
-            await message.channel.send(f"Failed to restart. Check the tmux session `{info.tmux_session}`.")
+            await message.channel.send(f"Failed to restart. Check the session `{info.tmux_session}`.")
 
     elif cmd == "restart_hub":
         if not is_admin:
@@ -1561,6 +1567,7 @@ def _start_hub_watchers() -> None:
                             is_dream_space=True,
                             project_type=project_type,
                             admin_brief=admin_brief,
+                            runtime="opencode",
                         )
                     else:
                         info = await provision(
@@ -1573,6 +1580,7 @@ def _start_hub_watchers() -> None:
                             project_type=project_type,
                             admin_brief=admin_brief,
                             target_user_id=target_user_id,
+                            runtime="opencode",
                         )
                     _start_watchers(name)
 
@@ -1914,8 +1922,12 @@ async def _hub_snapshot_loop():
                 if not info:
                     continue
                 if info.status == "active":
-                    health = get_project_health(info.tmux_lead_pane)
-                    health_str = "running" if health["claude_running"] else "stopped"
+                    if info.runtime == "opencode":
+                        health = {"agent_running": is_agent_running(info.serve_port), "session_alive": True}
+                        health_str = "running" if health["agent_running"] else "stopped"
+                    else:
+                        health = get_project_health(info.tmux_lead_pane)
+                        health_str = "running" if health["claude_running"] else "stopped"
                 else:
                     health_str = info.status
 
@@ -2129,7 +2141,9 @@ async def _wake_and_get_bridge(project_name: str) -> ProjectBridge | None:
         await asyncio.sleep(8)  # Wait for Claude Code to boot
         # Verify it actually started
         info = registry.get(project_name)
-        if info and not is_claude_running(info.tmux_lead_pane):
+        agent_ok = is_agent_running(info.serve_port) if (info and info.runtime == "opencode") else True
+        claude_ok = is_claude_running(info.tmux_lead_pane) if (info and info.runtime != "opencode") else True
+        if info and not (agent_ok and claude_ok):
             logger.warning(f"Post-boot check failed for {project_name} (scheduled wake)")
             return None
 
@@ -2527,8 +2541,7 @@ async def _silence_nudge_loop():
 
                 # Initialize nudge state for this project
                 if name not in _nudge_state:
-                    _nudge_state[name] = {"count": 0, "last_nudge": 0.0, "inbox_time": 0.0,
-                                          "queued_nudge": False}
+                    _nudge_state[name] = {"count": 0, "last_nudge": 0.0, "inbox_time": 0.0}
                 state = _nudge_state[name]
 
                 # Reset counter when a new user message arrives
@@ -2536,7 +2549,6 @@ async def _silence_nudge_loop():
                     state["count"] = 0
                     state["last_nudge"] = 0.0
                     state["inbox_time"] = bridge.last_inbox_time
-                    state["queued_nudge"] = False
 
                 if not bridge.check_silence(timeout=25):
                     continue
@@ -2555,22 +2567,12 @@ async def _silence_nudge_loop():
                 if now - state["last_nudge"] < 25:
                     continue
 
-                # Anti-stacking: allow 1 queued nudge while mid-turn
-                at_prompt = bridge._is_pane_at_prompt()
-                if not at_prompt:
-                    if state.get("queued_nudge", False):
-                        continue  # already have one queued, don't stack
-                else:
-                    state["queued_nudge"] = False
-
                 try:
                     from delta.lifecycle import nudge_lead
                     nudge_lead(bridge.tmux_lead_pane, _SILENCE_NUDGE_TEXT)
                     state["count"] += 1
                     state["last_nudge"] = now
-                    if not at_prompt:
-                        state["queued_nudge"] = True
-                    logger.info(f"Silence nudge #{state['count']} sent to {name} (at_prompt={at_prompt})")
+                    logger.info(f"Silence nudge #{state['count']} sent to {name}")
                 except Exception as e:
                     logger.warning(f"Silence nudge to {name} failed: {e}")
         except Exception as e:
@@ -2593,6 +2595,20 @@ def _restore_active_projects() -> int:
     for name in registry.list_projects():
         info = registry.get(name)
         if not info or info.status != "active":
+            continue
+
+        if info.runtime == "opencode":
+            # opcencode projects use supervisord, restart via supervisorctl
+            subprocess.run(
+                ["supervisorctl", "start", f"proj-{name}"],
+                capture_output=True, text=True,
+            )
+            time.sleep(3)
+            if is_agent_running(info.serve_port):
+                logger.info(f"OpenCode project {name} healthy after restore")
+                restored += 1
+            else:
+                logger.warning(f"OpenCode project {name} not healthy after restore")
             continue
 
         session_alive = is_session_alive(info.tmux_session)
@@ -2766,7 +2782,9 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
         _start_watchers(project_name)
         await asyncio.sleep(8)
         proj_check = registry.get(project_name)
-        if proj_check and not is_claude_running(proj_check.tmux_lead_pane):
+        agent_ok = is_agent_running(proj_check.serve_port) if (proj_check and proj_check.runtime == "opencode") else True
+        claude_ok = is_claude_running(proj_check.tmux_lead_pane) if (proj_check and proj_check.runtime != "opencode") else True
+        if proj_check and not (agent_ok and claude_ok):
             logger.warning(f"Post-boot check failed for persistent agent {project_name}")
             await message.channel.send(
                 "Had trouble waking up. Try again in a moment."
@@ -3071,7 +3089,9 @@ async def on_message(message: discord.Message):
         # Give Claude Code time to boot, then verify it started
         await asyncio.sleep(8)
         proj_info_check = registry.get(project_name)
-        if proj_info_check and not is_claude_running(proj_info_check.tmux_lead_pane):
+        agent_ok = is_agent_running(proj_info_check.serve_port) if (proj_info_check and proj_info_check.runtime == "opencode") else True
+        claude_ok = is_claude_running(proj_info_check.tmux_lead_pane) if (proj_info_check and proj_info_check.runtime != "opencode") else True
+        if proj_info_check and not (agent_ok and claude_ok):
             logger.warning(f"Post-boot check failed for {project_name}")
             await message.channel.send(
                 "Had trouble waking up. Try again in a moment."
@@ -3105,13 +3125,9 @@ async def on_message(message: discord.Message):
             info = registry.get(offer_project)
             if info:
                 await message.channel.send(f"restarting **{offer_project}**...")
-                stop_claude_code(info.tmux_lead_pane, grace=5)
-                if not is_session_alive(info.tmux_session):
-                    create_tmux_session(info.tmux_session)
-                started = start_claude_code(
-                    info.project_dir, info.tmux_lead_pane,
-                    linux_user=info.linux_user or None,
-                )
+                runner = get_runner(info)
+                runner.stop(info, keep_config=True)
+                started = runner.start(info)
                 if started:
                     bridge.touch_activity()
                     await message.channel.send(f"**{offer_project}** is back. try talking to it now.")
