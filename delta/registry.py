@@ -16,6 +16,7 @@ class ProjectInfo:
         "linux_user", "discord_channel_id", "owner_discord_id", "created_at",
         "is_dream_space", "status", "last_activity", "ttyd_port",
         "project_type", "unipile_account_id",
+        "runtime", "serve_port",
     )
 
     def __init__(self, name: str, project_dir: str, data_dir: str,
@@ -26,7 +27,9 @@ class ProjectInfo:
                  is_dream_space: bool = False, status: str = "active",
                  last_activity: str = "", ttyd_port: int = 0,
                  project_type: str = "standard",
-                 unipile_account_id: str = ""):
+                 unipile_account_id: str = "",
+                 runtime: str = "claude",
+                 serve_port: int = 0):
         self.name = name
         self.project_dir = project_dir
         self.data_dir = data_dir
@@ -44,6 +47,8 @@ class ProjectInfo:
         self.ttyd_port = ttyd_port
         self.project_type = project_type
         self.unipile_account_id = unipile_account_id
+        self.runtime = runtime
+        self.serve_port = serve_port
 
     def to_dict(self) -> dict:
         return {
@@ -64,6 +69,8 @@ class ProjectInfo:
             "ttyd_port": self.ttyd_port,
             "project_type": self.project_type,
             "unipile_account_id": self.unipile_account_id,
+            "runtime": self.runtime,
+            "serve_port": self.serve_port,
         }
 
     @classmethod
@@ -86,6 +93,8 @@ class ProjectInfo:
             ttyd_port=d.get("ttyd_port", 0),
             project_type=d.get("project_type", "standard"),
             unipile_account_id=d.get("unipile_account_id", ""),
+            runtime=d.get("runtime", "claude"),
+            serve_port=d.get("serve_port", 0),
         )
 
 
