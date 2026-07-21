@@ -240,16 +240,25 @@ def kill_tmux_session(session_name: str) -> bool:
     return killed
 
 
-def _allocate_port(registry) -> int:
-    """Return the lowest unused ttyd port starting from 7700."""
+def _allocate_port(registry, range_start: int = 7700, range_end: int = 8099) -> int:
+    """Return the lowest unused port in [range_start, range_end].
+
+    Checks ttyd_port, serve_port, and web_port across all registered projects.
+    """
     used = set()
     for name in registry.list_projects():
         info = registry.get(name)
-        if info and info.ttyd_port:
-            used.add(info.ttyd_port)
-    port = 7700
-    while port in used:
+        if not info:
+            continue
+        for attr in ("ttyd_port", "serve_port", "web_port"):
+            port = getattr(info, attr, 0)
+            if port:
+                used.add(port)
+    port = range_start
+    while port in used and port <= range_end:
         port += 1
+    if port > range_end:
+        raise RuntimeError(f"No free ports in range {range_start}-{range_end}")
     return port
 
 
