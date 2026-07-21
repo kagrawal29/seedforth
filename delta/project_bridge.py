@@ -9,6 +9,8 @@ import string
 import subprocess
 import threading
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from random import choices
@@ -21,12 +23,17 @@ class ProjectBridge:
     """Bridge instance for a single project."""
 
     def __init__(self, name: str, data_dir: str, tmux_lead_pane: str,
-                 nudge_prefix: str = "", outbox_poll_interval: int = 1):
+                 nudge_prefix: str = "", outbox_poll_interval: int = 1,
+                 serve_port: int = 0, session_id: str = "",
+                 runtime: str = "claude"):
         self.name = name
         self.data_dir = Path(data_dir)
         self.tmux_lead_pane = tmux_lead_pane
         self.nudge_prefix = nudge_prefix or "delta-config/inbox"
         self.outbox_poll_interval = outbox_poll_interval
+        self.serve_port = serve_port
+        self.session_id = session_id
+        self.runtime = runtime
 
         # Shutdown coordination
         self._shutdown_event = threading.Event()
@@ -131,33 +138,23 @@ class ProjectBridge:
         self._nudge(msg_id)
 
     def _nudge(self, msg_id: str) -> None:
-        """Send keystrokes to the tmux pane."""
-        cmd = f"Process message from {self.nudge_prefix}/{msg_id}.json"
-        target = self.tmux_lead_pane
-        subprocess.run(["tmux", "send-keys", "-t", target, "-l", cmd], check=True)
-        time.sleep(0.3)
-        subprocess.run(["tmux", "send-keys", "-t", target, "Enter"], check=True)
-
-    def _is_pane_at_prompt(self) -> bool:
-        """Check if the Claude Code TUI is at an input prompt (ready for input)."""
-        try:
-            result = subprocess.run(
-                ["tmux", "capture-pane", "-t", self.tmux_lead_pane, "-p"],
-                capture_output=True, text=True,
-            )
-            if result.returncode != 0:
-                return False
-            # Claude Code shows the prompt character when ready.
-            # Check the last few lines for the prompt indicator since
-            # the status bar can appear below it.
-            lines = result.stdout.rstrip().split("\n")
-            tail = lines[-5:] if len(lines) >= 5 else lines
-            for line in tail:
-                if "\u276f" in line or "❯" in line:
-                    return True
-            return False
-        except OSError:
-            return False
+        """Nudge the agent to process inbox. Uses .nudge file for opencode."""
+        if self.serve_port:
+            nudge_file = self.data_dir / ".nudge"
+            nudge_file.touch()
+            try:
+                urllib.request.urlopen(
+                    f"http://127.0.0.1:{self.serve_port}/global/health",
+                    timeout=3,
+                )
+            except Exception:
+                pass
+        if self.runtime == "claude":
+            cmd = f"Process message from {self.nudge_prefix}/{msg_id}.json"
+            target = self.tmux_lead_pane
+            subprocess.run(["tmux", "send-keys", "-t", target, "-l", cmd], check=True)
+            time.sleep(0.3)
+            subprocess.run(["tmux", "send-keys", "-t", target, "Enter"], check=True)
 
     def watch_followups(self, callback: Callable[[dict], None]) -> None:
         """Poll followups/ for messages whose deliver_after time has passed.
@@ -208,8 +205,8 @@ class ProjectBridge:
         """Poll inbox for unprocessed messages and re-nudge.
 
         Runs forever. Catches messages whose nudge was lost because
-        Claude Code was busy when the keystrokes arrived.
-        Batch-nudges up to 5 pending messages when pane is at prompt.
+        the agent was busy when the nudge arrived.
+        Batch-nudges up to 5 pending messages.
         """
         while not self._shutdown_event.is_set():
             try:
@@ -218,7 +215,7 @@ class ProjectBridge:
                     continue
 
                 pending = sorted(self.inbox_dir.glob("*.json"))
-                if pending and self._is_pane_at_prompt():
+                if pending:
                     for msg_file in pending[:5]:
                         try:
                             self._nudge(msg_file.stem)
@@ -262,7 +259,16 @@ class ProjectBridge:
             self._shutdown_event.wait(self.outbox_poll_interval)
 
     def is_project_active(self) -> bool:
-        """Check if Claude Code is running for this project."""
+        """Check if the agent runtime is active for this project."""
+        if self.runtime == "opencode" and self.serve_port:
+            try:
+                urllib.request.urlopen(
+                    f"http://127.0.0.1:{self.serve_port}/global/health",
+                    timeout=3,
+                )
+                return True
+            except Exception:
+                return False
         return is_claude_running(self.tmux_lead_pane)
 
     def check_silence(self, timeout: int = 25) -> bool:
@@ -295,16 +301,16 @@ class ProjectBridge:
         return False
 
     def watch_progress(self, callback: Callable[[str], None],
-                       rate_limit: int = 25) -> None:
-        """Poll progress/ for hook-written files. Synthesizes human messages.
+                        rate_limit: int = 25) -> None:
+        """Poll progress signals and synthesize human messages.
 
-        Rate-limits to one callback per rate_limit seconds.
-        Anti-spam:
-        - Only sends to Discord if a real user message arrived in the last 5 min
-        - Caps at 8 messages per user message cycle
-        - Suppresses medium-only batches (not interesting enough to message about)
-        - Deduplicates consecutive identical messages
+        Dispatches to opencode HTTP polling or legacy file-based watching
+        depending on self.runtime.
         """
+        if self.runtime == "opencode" and self.serve_port:
+            self._watch_progress_opencode(callback, rate_limit)
+            return
+
         pending_signals: list[dict] = []
         last_send: float = 0
         last_message: str = ""
@@ -351,6 +357,61 @@ class ProjectBridge:
             except OSError:
                 pass
             self._shutdown_event.wait(2)
+
+    def _watch_progress_opencode(self, callback: Callable[[str], None],
+                                  rate_limit: int = 25) -> None:
+        """Poll opencode HTTP todo endpoint for progress signals."""
+        last_in_progress: set[str] = set()
+        last_send: float = 0
+        last_message: str = ""
+        send_count: int = 0
+        tracked_inbox_time: float = 0
+
+        url = f"http://127.0.0.1:{self.serve_port}/session/{self.session_id}/todo"
+
+        while not self._shutdown_event.is_set():
+            try:
+                req = urllib.request.Request(url)
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    data = json.loads(resp.read().decode())
+
+                in_progress = data.get("in_progress", [])
+                current_items = set(
+                    str(item) for item in in_progress
+                )
+
+                if current_items != last_in_progress:
+                    last_in_progress = current_items
+                    self.last_progress_time = time.time()
+
+                    now = time.time()
+
+                    if self.last_inbox_time != tracked_inbox_time:
+                        send_count = 0
+                        last_message = ""
+                        tracked_inbox_time = self.last_inbox_time
+
+                    user_watching = (self.last_inbox_time > 0
+                                     and now - self.last_inbox_time < 300)
+
+                    if (user_watching and send_count < 8
+                            and (now - last_send) >= rate_limit):
+                        if in_progress:
+                            item = in_progress[0]
+                            if isinstance(item, dict):
+                                message = item.get("content", str(item))
+                            else:
+                                message = str(item)
+                            if message and message != last_message:
+                                callback(f"working... ({message[:60]})")
+                                last_send = now
+                                last_message = message
+                                send_count += 1
+
+            except (urllib.error.URLError, OSError, json.JSONDecodeError):
+                pass
+
+            self._shutdown_event.wait(5)
 
     def _synthesize_progress(self, signals: list[dict]) -> str:
         """Turn accumulated progress signals into a short human message.
@@ -431,37 +492,47 @@ class ProjectBridge:
         return entries[-max_lines:]
 
     def check_auth_error(self, lines: int = 50) -> str | None:
-        """Check tmux scrollback for OAuth/auth errors.
+        """Check error channel or tmux scrollback for auth errors.
 
-        Returns the error snippet if found, None if auth looks fine.
+        Returns the error message if found, None if auth looks fine.
         """
-        scrollback = self.capture_tmux_scrollback(lines)
-        if "(tmux error" in scrollback or "(could not capture" in scrollback:
-            return None  # Can't tell, don't false-alarm
-
-        auth_signals = ["OAuth token", "token has expired",
-                        "authentication failed", "Unauthorized",
-                        "auth token", "login required",
-                        "not logged in", "please run /login",
-                        "hit your limit", "You've hit your limit"]
-        for signal in auth_signals:
-            if signal.lower() in scrollback.lower():
-                # Extract the line containing the signal for context
-                for line in scrollback.split("\n"):
-                    if signal.lower() in line.lower():
-                        return line.strip()[:200]
-                return signal
-        return None
-
-    def capture_tmux_scrollback(self, lines: int = 50) -> str:
-        """Capture recent output from the Claude Code tmux pane."""
-        try:
-            result = subprocess.run(
-                ["tmux", "capture-pane", "-t", self.tmux_lead_pane, "-p", "-S", f"-{lines}"],
-                capture_output=True, text=True,
+        errors_dir = self.data_dir / "errors"
+        if errors_dir.exists():
+            error_files = sorted(
+                errors_dir.glob("*.json"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
             )
-            if result.returncode == 0:
-                return result.stdout.rstrip()
-            return f"(could not capture pane: {result.stderr.strip()})"
-        except OSError as e:
-            return f"(tmux error: {e})"
+            for error_file in error_files:
+                try:
+                    data = json.loads(error_file.read_text())
+                    if data.get("type") == "auth_error":
+                        return data.get("message", str(data))
+                except (json.JSONDecodeError, OSError):
+                    pass
+
+        if self.runtime == "claude":
+            try:
+                result = subprocess.run(
+                    ["tmux", "capture-pane", "-t", self.tmux_lead_pane,
+                     "-p", "-S", f"-{lines}"],
+                    capture_output=True, text=True,
+                )
+                if result.returncode != 0:
+                    return None
+                scrollback = result.stdout.rstrip()
+            except OSError:
+                return None
+
+            auth_signals = ["OAuth token", "token has expired",
+                            "authentication failed", "Unauthorized",
+                            "auth token", "login required",
+                            "not logged in", "please run /login",
+                            "hit your limit", "You've hit your limit"]
+            for signal in auth_signals:
+                if signal.lower() in scrollback.lower():
+                    for line in scrollback.split("\n"):
+                        if signal.lower() in line.lower():
+                            return line.strip()[:200]
+                    return signal
+        return None
