@@ -14,7 +14,7 @@ from pathlib import Path
 
 REGISTRY_PATH = os.environ.get("DELTA_REGISTRY_PATH", "/opt/delta/delta-registry.json")
 AUTH_TEMPLATE = "/opt/delta/auth.json.template"
-GLOBAL_OP ENCODE_CONFIG = "/root/.config/opencode/opencode.jsonc"
+GLOBAL_OPENCODE_CONFIG = "/root/.config/opencode/opencode.jsonc"
 SUPERVISOR_CONF_DIR = "/etc/supervisor/conf.d"
 
 SERVE_PORT_RANGE = (7700, 7899)
@@ -68,7 +68,7 @@ def setup_user_config(project):
     for d in [f"{home}/.config/opencode", f"{home}/.local/share/opencode"]:
         os.makedirs(d, exist_ok=True)
 
-    subprocess.run(["ln", "-sf", GLOBAL_OP ENCODE_CONFIG,
+    subprocess.run(["ln", "-sf", GLOBAL_OPENCODE_CONFIG,
                     f"{home}/.config/opencode/opencode.jsonc"], check=True)
 
     if os.path.exists(AUTH_TEMPLATE):
