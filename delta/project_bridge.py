@@ -107,6 +107,62 @@ class ProjectBridge:
         self.touch_activity()
         return msg_id
 
+    def _get_or_create_session(self) -> str:
+        """Return the opencode session ID, creating one if needed."""
+        if self.session_id:
+            return self.session_id
+        payload = json.dumps({"title": self.name})
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{self.serve_port}/session",
+            data=payload.encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+            self.session_id = data.get("id", "")
+        return self.session_id
+
+    def deliver_message(self, channel_id: str, user_name: str, text: str,
+                        msg_id: str = "", callback: Callable | None = None) -> None:
+        """Deliver message to opencode agent via HTTP. Response delivered via callback."""
+        if self.runtime != "opencode" or not self.serve_port:
+            return
+
+        if not msg_id:
+            msg_id = self._random_id()
+
+        def _deliver():
+            try:
+                sid = self._get_or_create_session()
+                prompt = f"[Discord] {user_name} says: {text}"
+                payload = json.dumps({"parts": [{"type": "text", "text": prompt}]})
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{self.serve_port}/session/{sid}/message",
+                    data=payload.encode(),
+                    headers={"Content-Type": "application/json"})
+                with urllib.request.urlopen(req, timeout=300) as resp:
+                    data = json.loads(resp.read())
+                    resp_text = ""
+                    for p in data.get("parts", []):
+                        if p.get("type") == "text":
+                            resp_text += p["text"]
+                    if resp_text and callback:
+                        callback(channel_id, resp_text)
+
+                        outbox_dir = self.data_dir / "outbox"
+                        outbox_dir.mkdir(parents=True, exist_ok=True)
+                        outbox_msg = {
+                            "id": msg_id, "channel": channel_id,
+                            "user": user_name, "text": resp_text,
+                            "timestamp": str(data["info"]["time"]["created"]),
+                        }
+                        (outbox_dir / f"{msg_id}.json").write_text(json.dumps(outbox_msg, indent=2))
+            except Exception as e:
+                print(f"HTTP delivery failed for {self.name}: {e}")
+
+        threading.Thread(target=_deliver, daemon=True).start()
+
     def touch_activity(self) -> None:
         """Update last_activity to now."""
         self.last_activity = datetime.now(timezone.utc)

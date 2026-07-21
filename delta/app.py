@@ -163,6 +163,9 @@ def _get_or_create_bridge(project_name: str) -> ProjectBridge | None:
         data_dir=info.data_dir,
         tmux_lead_pane=info.tmux_lead_pane,
         nudge_prefix=info.nudge_prefix,
+        serve_port=info.serve_port,
+        session_id=getattr(info, "session_id", ""),
+        runtime=getattr(info, "runtime", "claude"),
     )
     # Restore last_activity from registry so the resource manager
     # doesn't immediately hibernate a freshly restored project
@@ -3151,42 +3154,89 @@ async def on_message(message: discord.Message):
     if cancelled:
         logger.info(f"Cancelled {cancelled} pending followup(s) for {project_name}")
 
-    msg_id = bridge.write_inbox(channel_id, user_id, text, attachments=attachments_data or None)
-    _start_typing(message.channel, channel_id)
+    if bridge.runtime == "opencode":
+        user_name = message.author.display_name or message.author.name
+        msg_id = f"msg-{int(time.time())}-{os.urandom(2).hex()}"
+        _start_typing(message.channel, channel_id)
 
-    if bridge.is_project_active():
-        try:
-            bridge.send_to_lead(msg_id)
-        except Exception as e:
-            logger.warning(f"Nudge to {project_name} failed: {e}")
-    else:
-        # Project agent is down -- fall back to hub which has snapshot data
-        logger.info(f"Project {project_name} agent down, routing to hub")
-        hub_bridge = bridges.get(HUB_NAME)
-        if hub_bridge:
-            channel_name = getattr(message.channel, "name", None) or project_name
-            hub_msg_id = hub_bridge.write_inbox(
-                channel_id, user_id, text,
-                channel_type="project_channel",
-                channel_name=channel_name,
-                project_name=project_name,
-                attachments=attachments_data or None,
-            )
-            if hub_bridge.is_project_active():
-                try:
-                    hub_bridge.send_to_lead(hub_msg_id)
-                except Exception as e:
-                    logger.warning(f"Hub fallback nudge failed: {e}")
+        def _send_to_discord(ch_id, resp_text):
+            async def _send():
+                ch = client.get_channel(int(ch_id))
+                if ch:
+                    await ch.send(resp_text[:2000])
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            loop.run_until_complete(_send())
+
+        if bridge.is_project_active():
+            bridge.deliver_message(channel_id, user_name, text, msg_id, callback=_send_to_discord)
+        else:
+            logger.info(f"Project {project_name} agent down, routing to hub")
+            hub_bridge = bridges.get(HUB_NAME)
+            if hub_bridge:
+                channel_name = getattr(message.channel, "name", None) or project_name
+                hub_msg_id = hub_bridge.write_inbox(
+                    channel_id, user_id, text,
+                    channel_type="project_channel",
+                    channel_name=channel_name,
+                    project_name=project_name,
+                    attachments=attachments_data or None,
+                )
+                if hub_bridge.is_project_active():
+                    try:
+                        hub_bridge.send_to_lead(hub_msg_id)
+                    except Exception as e:
+                        logger.warning(f"Hub fallback nudge failed: {e}")
+                else:
+                    _stop_typing(channel_id)
+                    await message.channel.send(
+                        "I'm waking up, give me a sec. Try again in a moment."
+                    )
             else:
                 _stop_typing(channel_id)
                 await message.channel.send(
                     "I'm waking up, give me a sec. Try again in a moment."
                 )
+    else:
+        msg_id = bridge.write_inbox(channel_id, user_id, text, attachments=attachments_data or None)
+        _start_typing(message.channel, channel_id)
+
+        if bridge.is_project_active():
+            try:
+                bridge.send_to_lead(msg_id)
+            except Exception as e:
+                logger.warning(f"Nudge to {project_name} failed: {e}")
         else:
-            _stop_typing(channel_id)
-            await message.channel.send(
-                "I'm waking up, give me a sec. Try again in a moment."
-            )
+            # Project agent is down -- fall back to hub which has snapshot data
+            logger.info(f"Project {project_name} agent down, routing to hub")
+            hub_bridge = bridges.get(HUB_NAME)
+            if hub_bridge:
+                channel_name = getattr(message.channel, "name", None) or project_name
+                hub_msg_id = hub_bridge.write_inbox(
+                    channel_id, user_id, text,
+                    channel_type="project_channel",
+                    channel_name=channel_name,
+                    project_name=project_name,
+                    attachments=attachments_data or None,
+                )
+                if hub_bridge.is_project_active():
+                    try:
+                        hub_bridge.send_to_lead(hub_msg_id)
+                    except Exception as e:
+                        logger.warning(f"Hub fallback nudge failed: {e}")
+                else:
+                    _stop_typing(channel_id)
+                    await message.channel.send(
+                        "I'm waking up, give me a sec. Try again in a moment."
+                    )
+            else:
+                _stop_typing(channel_id)
+                await message.channel.send(
+                    "I'm waking up, give me a sec. Try again in a moment."
+                )
 
 
 # -- Main --------------------------------------------------------------------
