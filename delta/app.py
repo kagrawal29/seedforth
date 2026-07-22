@@ -3139,15 +3139,17 @@ async def on_message(message: discord.Message):
                 return
 
     # Detect frustration: short message + pending inbox = agent stuck
-    pending = bridge.pending_inbox_count()
-    if (pending > 0
-            and len(text) < 30
-            and text.lower().strip().rstrip("?!.") in _FRUSTRATION_PATTERNS):
-        _restart_offers[channel_id] = (project_name, time.time())
-        await message.channel.send(
-            f"your agent seems stuck on something. want me to give it a kick?"
-        )
-        return
+    # Skip for opencode projects — they use HTTP delivery, not inbox files
+    if bridge.runtime != "opencode":
+        pending = bridge.pending_inbox_count()
+        if (pending > 0
+                and len(text) < 30
+                and text.lower().strip().rstrip("?!.") in _FRUSTRATION_PATTERNS):
+            _restart_offers[channel_id] = (project_name, time.time())
+            await message.channel.send(
+                f"your agent seems stuck on something. want me to give it a kick?"
+            )
+            return
 
     # User re-engaged -- cancel any pending follow-ups
     cancelled = bridge.cancel_pending_followups()
