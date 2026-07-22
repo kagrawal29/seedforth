@@ -3106,7 +3106,7 @@ async def on_message(message: discord.Message):
     # Check for auth failure before processing -- tell the user instead of silence.
     # Check project bridge first, fall back to hub (project pane may be fresh with no errors yet).
     auth_err = bridge.check_auth_error()
-    if not auth_err:
+    if not auth_err and bridge.runtime != "opencode":
         hub_bridge = bridges.get(HUB_NAME)
         if hub_bridge:
             auth_err = hub_bridge.check_auth_error()
