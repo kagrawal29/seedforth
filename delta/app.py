@@ -2770,15 +2770,16 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
 
     # Wake from hibernation if needed
     if project.status == "hibernated":
-        hub_bridge = bridges.get(HUB_NAME)
-        if hub_bridge:
-            auth_err = hub_bridge.check_auth_error()
-            if auth_err:
-                logger.warning(f"Auth failure before waking {project_name}: {auth_err}")
-                await message.channel.send(
-                    "I'm having trouble connecting right now. The admin has been notified."
-                )
-                return
+        if project.runtime != "opencode":
+            hub_bridge = bridges.get(HUB_NAME)
+            if hub_bridge:
+                auth_err = hub_bridge.check_auth_error()
+                if auth_err:
+                    logger.warning(f"Auth failure before waking {project_name}: {auth_err}")
+                    await message.channel.send(
+                        "I'm having trouble connecting right now. The admin has been notified."
+                    )
+                    return
         logger.info(f"Restoring hibernated persistent agent '{project_name}' on DM")
         await message.channel.send("waking up, one sec")
         restore(project_name, registry)
@@ -3071,16 +3072,16 @@ async def on_message(message: discord.Message):
     # Check if hibernated and restore
     proj_info = registry.get(project_name)
     if proj_info and proj_info.status == "hibernated":
-        # Check auth via hub before attempting wake (no point booting a dead agent)
-        hub_bridge = bridges.get(HUB_NAME)
-        if hub_bridge:
-            auth_err = hub_bridge.check_auth_error()
-            if auth_err:
-                logger.warning(f"Auth failure detected before wake for {project_name}: {auth_err}")
-                await message.channel.send(
-                    "I'm having trouble connecting right now. The admin has been notified."
-                )
-                return
+        if proj_info.runtime != "opencode":
+            hub_bridge = bridges.get(HUB_NAME)
+            if hub_bridge:
+                auth_err = hub_bridge.check_auth_error()
+                if auth_err:
+                    logger.warning(f"Auth failure detected before wake for {project_name}: {auth_err}")
+                    await message.channel.send(
+                        "I'm having trouble connecting right now. The admin has been notified."
+                    )
+                    return
         logger.info(f"Restoring hibernated project '{project_name}' on channel message")
         await message.channel.send("waking up, one sec")
         restore(project_name, registry)
