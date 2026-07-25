@@ -3160,18 +3160,15 @@ async def on_message(message: discord.Message):
         user_name = message.author.display_name or message.author.name
         msg_id = f"msg-{int(time.time())}-{os.urandom(2).hex()}"
         _start_typing(message.channel, channel_id)
+        logger.info(f"{message.author} -> {project_name}: {text[:80]}")
 
         def _send_to_discord(ch_id, resp_text):
+            _stop_typing(ch_id)
             async def _send():
                 ch = client.get_channel(int(ch_id))
                 if ch:
                     await ch.send(resp_text[:2000])
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            loop.run_until_complete(_send())
+            asyncio.run_coroutine_threadsafe(_send(), client.loop)
 
         if bridge.is_project_active():
             bridge.deliver_message(channel_id, user_name, text, msg_id, callback=_send_to_discord)
