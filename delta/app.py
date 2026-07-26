@@ -2028,21 +2028,12 @@ async def _hub_snapshot_loop():
                 except OSError as e:
                     logger.warning(f"Could not write snapshot for {name}: {e}")
 
-            # Health check: restart hub Claude Code if it died or is stuck
+            # Health check: hub runs headless (Claude Code disabled)
             hub_bridge = bridges.get(HUB_NAME)
-            if hub_bridge:
-                hub_alive = hub_bridge.is_project_active()
+            if hub_bridge and hub_bridge.is_project_active():
                 hub_pending = hub_bridge.pending_inbox_count()
-                if not hub_alive:
-                    logger.warning("Hub Claude Code not running, restarting...")
-                    hub_linux_user = "" if LOCAL_MODE else "proj-delta-hub"
-                    stop_claude_code(HUB_TMUX_PANE, grace=3)
-                    start_claude_code(
-                        str(_hub_dir()), HUB_TMUX_PANE,
-                        linux_user=hub_linux_user or None,
-                    )
-                elif hub_pending > 0 and not _auth_alert_sent and hub_bridge._is_pane_at_prompt():
-                    # Hub has messages but is sitting at prompt -- batch re-nudge (skip if auth down)
+                # Re-nudge for pending messages
+                if hub_pending > 0:
                     try:
                         pending = sorted(hub_bridge.inbox_dir.glob("*.json"))[:5]
                         for msg_file in pending:
