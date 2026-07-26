@@ -149,15 +149,6 @@ class ProjectBridge:
                             resp_text += p["text"]
                     if resp_text and callback:
                         callback(channel_id, resp_text)
-
-                        outbox_dir = self.data_dir / "outbox"
-                        outbox_dir.mkdir(parents=True, exist_ok=True)
-                        outbox_msg = {
-                            "id": msg_id, "channel": channel_id,
-                            "user": user_name, "text": resp_text,
-                            "timestamp": str(data["info"]["time"]["created"]),
-                        }
-                        (outbox_dir / f"{msg_id}.json").write_text(json.dumps(outbox_msg, indent=2))
             except Exception as e:
                 print(f"HTTP delivery failed for {self.name}: {e}")
 
