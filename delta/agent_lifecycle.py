@@ -86,7 +86,9 @@ def start_agent_serve(project_name: str, serve_port: int, project_dir: str,
                       extra_env: dict | None = None) -> bool:
     user = linux_user or f"proj-{project_name}"
     env = extra_env or {}
-    _write_supervisor_config(project_name, serve_port, project_dir, user, env)
+    config_path = f"/etc/supervisor/conf.d/proj-{project_name}.conf"
+    if not os.path.exists(config_path):
+        _write_supervisor_config(project_name, serve_port, project_dir, user, env)
     _run(["supervisorctl", "update"], check=True)
     _run(["supervisorctl", "start", f"proj-{project_name}"], check=True)
     return _wait_for_healthy(serve_port)
