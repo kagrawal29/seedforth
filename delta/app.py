@@ -1475,16 +1475,8 @@ def _init_hub() -> None:
             os.chmod(str(root_settings), 0o666)
             logger.info("Created /root/.claude/settings.json with skipDangerousModePermissionPrompt")
 
-    # Create tmux session
-    create_tmux_session(HUB_TMUX_SESSION)
-
-    # Start Claude Code
-    start_claude_code(str(hub), HUB_TMUX_PANE,
-                      linux_user=hub_linux_user or None)
-
-    # Start web terminal for the hub
-    if not LOCAL_MODE:
-        start_ttyd(HUB_NAME, HUB_TMUX_SESSION, HUB_TTYD_PORT)
+    # Hub tmux/Claude disabled — expired OAuth. Project channels work independently.
+    logger.info("Hub running in headless mode (tmux/claude disabled)")
 
     # Create bridge (not in registry -- special entry in bridges dict)
     bridge = ProjectBridge(
