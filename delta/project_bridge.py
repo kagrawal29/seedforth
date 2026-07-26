@@ -135,7 +135,10 @@ class ProjectBridge:
         def _deliver():
             try:
                 sid = self._get_or_create_session()
-                prompt = f"[Discord] {user_name} says: {text}"
+                prompt = (
+                    f"[Discord message from {user_name}]\n{text}\n\n"
+                    f"Read SEED.md and memory/* for project context before responding."
+                )
                 payload = json.dumps({"parts": [{"type": "text", "text": prompt}]})
                 req = urllib.request.Request(
                     f"http://127.0.0.1:{self.serve_port}/session/{sid}/message",
