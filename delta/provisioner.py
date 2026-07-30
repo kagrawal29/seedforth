@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import time
 from pathlib import Path
 
 from delta.agent_lifecycle import start_agent_serve, stop_agent_serve
@@ -65,6 +66,27 @@ def _register_rube_mcp(project_dir: str, linux_user: str = "") -> bool:
 
     logger.info(f"Registered Rube MCP in {project_dir}")
     return True
+
+def _write_project_event(project_name: str, event_type: str):
+    import subprocess
+    try:
+        cypher = (
+            f'CREATE (pe:ProjectEvent {{'
+            f'node_id:"evt-{project_name}-{int(time.time())}", '
+            f'project:"{project_name}", '
+            f'event_type:"{event_type}", '
+            f'created_at:datetime()'
+            f'}})'
+        )
+        subprocess.run(
+            ["docker", "exec", "mycelium-neo4j", "cypher-shell",
+             "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
+             "--format", "plain", cypher],
+            capture_output=True, text=True, timeout=10
+        )
+    except Exception:
+        pass
+
 
 # Valid project name: alphanumeric + hyphens, 2-30 chars
 _NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9-]{1,29}$")
@@ -777,6 +799,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
         runtime=runtime,
     )
     logger.info(f"Project {name} provisioned and registered")
+    _write_project_event(name, "provisioned")
     return info
 
 
@@ -808,6 +831,7 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
         runtime=runtime,
     )
     logger.info(f"Project {name} provisioned in existing channel {channel_id}")
+    _write_project_event(name, "provisioned")
     return info
 
 
@@ -1030,6 +1054,7 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
 
     # 6. Mark as hibernated in registry
     registry.update(name, status="hibernated")
+    _write_project_event(name, "hibernated")
 
     logger.info(f"{name} hibernated")
     return True
@@ -1096,6 +1121,7 @@ def restore(name: str, registry) -> bool:
         status="active",
         last_activity=datetime.now(timezone.utc).isoformat(),
     )
+    _write_project_event(name, "restored")
 
     logger.info(f"{name} restored")
     return True
@@ -1136,6 +1162,7 @@ async def teardown(name: str, registry: Registry, discord_bot, guild) -> bool:
 
     # 3. Remove from registry
     registry.remove(name)
+    _write_project_event(name, "torn_down")
 
     # 4. Clean up project files
     if info.linux_user and not LOCAL_MODE:

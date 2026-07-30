@@ -51,6 +51,9 @@ class ProjectBridge:
         self.progress_dir = self.data_dir / "progress"
         self.last_progress_time: float = 0  # time.time() of last progress file
 
+        # Track completed schedule tasks for Neo4j WorkItem writes
+        self._seen_completed_tasks: set[str] = set()
+
         # Ensure dirs exist
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         self.outbox_dir.mkdir(parents=True, exist_ok=True)
@@ -152,6 +155,29 @@ class ProjectBridge:
                             resp_text += p["text"]
                     if resp_text and callback:
                         callback(channel_id, resp_text)
+                    if resp_text:
+                        try:
+                            import subprocess, time
+                            safe_text = text[:100].replace('"', '\\"')
+                            node_id = f"trace-{int(time.time() * 1000)}"
+                            cypher = (
+                                f'CREATE (st:SessionTrace {{'
+                                f'node_id:"{node_id}", '
+                                f'agent:"{self.name}", '
+                                f'project:"{self.name}", '
+                                f'user:"{user_name}", '
+                                f'text_preview:"{safe_text}", '
+                                f'created_at:datetime()'
+                                f'}})'
+                            )
+                            subprocess.run(
+                                ["docker", "exec", "mycelium-neo4j", "cypher-shell",
+                                 "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
+                                 "--format", "plain", cypher],
+                                capture_output=True, text=True, timeout=10
+                            )
+                        except Exception as e2:
+                            print(f"session trace write failed: {e2}")
             except Exception as e:
                 print(f"HTTP delivery failed for {self.name}: {e}")
 
@@ -175,6 +201,9 @@ class ProjectBridge:
 
         schedule = self.get_schedule()
         for task in schedule:
+            if task.get("status") == "done" and task.get("id") not in self._seen_completed_tasks:
+                self._write_work_item(task)
+                self._seen_completed_tasks.add(task.get("id"))
             if task.get("status") in ("in_progress", "recurring"):
                 return True
         return False
@@ -508,6 +537,32 @@ class ProjectBridge:
             return len(list(self.inbox_dir.glob("*.json")))
         except OSError:
             return 0
+
+    def _write_work_item(self, task: dict) -> None:
+        import subprocess, time
+        try:
+            task_id = task.get("id", "unknown")
+            node_id = f"workitem-{task_id}-{int(time.time())}"
+            what = task.get("what", "")[:100].replace('"', '\\"')
+            status = task.get("status", "unknown")
+            cypher = (
+                f'CREATE (wi:WorkItem {{'
+                f'node_id:"{node_id}", '
+                f'project:"{self.name}", '
+                f'task_id:"{task_id}", '
+                f'what:"{what}", '
+                f'status:"{status}", '
+                f'created_at:datetime()'
+                f'}})'
+            )
+            subprocess.run(
+                ["docker", "exec", "mycelium-neo4j", "cypher-shell",
+                 "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
+                 "--format", "plain", cypher],
+                capture_output=True, text=True, timeout=10
+            )
+        except Exception as e:
+            print(f"work item write failed: {e}")
 
     def get_schedule(self) -> list[dict]:
         """Read the project's task schedule."""

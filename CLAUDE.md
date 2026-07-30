@@ -225,6 +225,82 @@ python3 -m pytest tests/ -x -q
 - Service email: charlietheagent606@gmail.com
 - GitHub: charlietheagent606-cloud (Seedforth org owner)
 
+## Browser Automation (persistent logged-in profiles)
+
+Delta agents can drive real, logged-in browsers on the server via CDP -- no
+Claude-in-Chrome, no Playwright MCP. Each profile is a persistent Chromium kept
+signed in, exposed on a local CDP port. Token-efficient: a plain CLI that returns
+text, so agents spend tokens on the task, not browser plumbing.
+
+Tool: `python3 /opt/delta/tools/browser.py` (usable by any proj-* agent user).
+
+Profiles wired for delta agents:
+
+| Profile | CDP port | Account | noVNC (log in / view) |
+|---|---|---|---|
+| `charlie` | 9224 | charlietheagent606@gmail.com | http://143.110.226.214:6083/vnc.html |
+| `seedforth` | 9223 | SeedForth Google session | http://143.110.226.214:6082/vnc.html |
+
+(`iris` on 9222 is Revti Digital's browser and is deliberately NOT exposed to delta agents.)
+
+Commands -- two modes:
+```
+# CONCURRENT READ (own throwaway tab, safe for many agents at once)
+browser.py profiles                          # list + reachability
+browser.py get   <profile> <url> [--max N]   # navigate, print page text
+browser.py shot  <profile> <url> <path.png>  # navigate, screenshot
+browser.py eval  <profile> <url> "<js>"      # navigate, run JS
+
+# INTERACTIVE FLOW (drives the ONE visible tab; do one flow at a time per profile)
+browser.py open  <profile> <url>             # navigate the visible tab
+browser.py see   <profile> [path.png]        # screenshot visible tab (your eyes)
+browser.py read  <profile> [--max N]         # print visible tab text
+browser.py click <profile> "<text|css>"      # click button/link by text (else CSS)
+browser.py fill  <profile> "<css>" "<value>" # type into an input
+browser.py press <profile> <Key>             # e.g. Enter, Tab
+```
+The profile is one shared, logged-in browser. Do NOT expect a private session
+per agent -- concurrent agents share cookies/identity (charlie = charlie's
+Google account), just not each other's tab.
+
+### Self-serve service access -- you CAN and MUST
+
+When you need access to a third-party service (Vercel, Composio, Supabase,
+Railway, analytics dashboards, etc.) -- an API key, a token, a connected
+account, a setting -- do NOT immediately ask the human. You have a real browser
+logged in as charlie. Get it yourself:
+
+1. `open charlie https://<service>/login` (or signup).
+2. `see charlie /tmp/s.png`, look, then `click charlie "Continue with Google"`
+   (or "Sign in with Google").
+3. If an account chooser appears, `click charlie "charlietheagent606@gmail.com"`.
+   charlie is already signed into Google, so SSO is usually 1-2 clicks, no password.
+4. Land on the dashboard, navigate to the API keys / tokens section, create a key,
+   and read it (`read`/`see`, or `eval` to pull an input value).
+5. Store the key where the project uses it -- the project's `.env` /
+   `.claude/settings.json` / delta.env -- NOT in git, NOT echoed into Discord.
+   Reference it by env var afterwards.
+
+Loop of `see` -> decide -> `click`/`fill`/`press` -> `see`. Screenshot first when
+unsure what is on screen.
+
+Only escalate to the human when genuinely blocked:
+- a phone/2FA/"verify it's you" challenge (needs their device),
+- the service has no Google SSO and needs a fresh password (Claude never types
+  passwords -- ask the human to log in via noVNC),
+- payment / paid plan required,
+- an irreversible or account-security action (deleting, changing security
+  settings, granting third-party OAuth to an unknown app) -- confirm first.
+
+Use charlie's identity consistently. Do not create purchases or change account
+security settings without human approval.
+
+Each profile is a 4-service systemd stack: `<name>-xvfb` (virtual display),
+`<name>-chromium` (CDP), `<name>-x11vnc`, `<name>-novnc` (web login). To add a
+profile, clone the `charlie-*.service` units with a fresh display/CDP/VNC/noVNC
+port set. Logins are done by a human via the noVNC URL -- the browser stays
+signed in across restarts (persistent user-data-dir).
+
 ## Conventions
 
 - No emojis unless asked
