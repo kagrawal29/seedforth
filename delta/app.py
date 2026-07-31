@@ -134,6 +134,7 @@ HUB_NAME = "__hub__"
 HUB_TMUX_SESSION = os.getenv("HUB_TMUX_SESSION", "delta-hub")
 HUB_TMUX_PANE = f"{HUB_TMUX_SESSION}:lead"
 HUB_TTYD_PORT = int(os.getenv("HUB_TTYD_PORT", "7702"))
+HUB_SERVE_PORT = int(os.getenv("HUB_SERVE_PORT", "7700"))
 _TEMPLATE_DIR = os.getenv("DELTA_TEMPLATE_DIR", "project-template")
 _HUB_TEMPLATE_PATH = Path(__file__).parent.parent / _TEMPLATE_DIR / "HUB_CLAUDE.md"
 _HUB_LINUX_USER_DEFAULT = os.getenv("HUB_LINUX_USER", "proj-delta-hub")
@@ -1475,8 +1476,10 @@ def _init_hub() -> None:
             os.chmod(str(root_settings), 0o666)
             logger.info("Created /root/.claude/settings.json with skipDangerousModePermissionPrompt")
 
-    # Hub tmux/Claude disabled — expired OAuth. Project channels work independently.
-    logger.info("Hub running in headless mode (tmux/claude disabled)")
+    # Hub runs as opencode SuperAgent (port 7700, supervisor-managed)
+    if not LOCAL_MODE:
+        subprocess.run(["supervisorctl", "start", "proj-delta-hub"], capture_output=True)
+    logger.info("Hub running as opencode SuperAgent on port 7700")
 
     # Create bridge (not in registry -- special entry in bridges dict)
     bridge = ProjectBridge(
@@ -1484,6 +1487,8 @@ def _init_hub() -> None:
         data_dir=str(data_dir),
         tmux_lead_pane=HUB_TMUX_PANE,
         nudge_prefix="delta-config/inbox",
+        runtime="opencode",
+        serve_port=HUB_SERVE_PORT,
     )
     bridges[HUB_NAME] = bridge
     logger.info("Hub initialized")
@@ -2044,36 +2049,6 @@ async def _hub_snapshot_loop():
                         logger.info(f"Hub pulse: re-nudged {len(pending)} of {hub_pending} pending")
                     except Exception as e:
                         logger.warning(f"Hub pulse re-nudge failed: {e}")
-
-                # Auth health check: detect expired OAuth tokens
-                if hub_alive:
-                    auth_err = hub_bridge.check_auth_error()
-                    if auth_err:
-                        now = time.time()
-                        if not _auth_alert_sent or (now - _auth_alert_time > _AUTH_ALERT_COOLDOWN):
-                            logger.error(f"Auth failure detected: {auth_err}")
-                            if ADMIN_DISCORD_ID:
-                                try:
-                                    admin_user = await client.fetch_user(int(ADMIN_DISCORD_ID))
-                                    dm_channel = await admin_user.create_dm()
-                                    await dm_channel.send(
-                                        f"**Delta auth alert:** Claude Code auth has expired on the server.\n"
-                                        f"All agents are down until you re-auth.\n"
-                                        f"Run `claude /login` on the server to fix.\n\n"
-                                        f"Error: `{auth_err[:150]}`"
-                                    )
-                                    logger.info("Admin DM sent about auth expiry")
-                                except Exception as e:
-                                    logger.warning(f"Could not DM admin about auth failure: {e}")
-                            _auth_alert_sent = True
-                            _auth_alert_time = now
-
-                        # Don't re-nudge hub when auth is down -- pointless
-                    elif _auth_alert_sent:
-                        logger.info("Auth appears restored, resetting alert flag")
-                        _auth_alert_sent = False
-                        _auth_alert_time = 0
-                        _auth_alert_sent = False
 
         except Exception as e:
             logger.warning(f"Hub snapshot loop error: {e}")
@@ -2856,7 +2831,7 @@ async def on_message(message: discord.Message):
     channel_id = str(message.channel.id)
     user_id = str(message.author.id)
 
-    # -- DMs: route to personal agent (auto-provision if first contact) --
+    # -- DMs: all route to SuperAgent (Hub) --
     if is_dm:
         # Admin commands still handled directly
         cmd_result = commands.parse(text)
@@ -2866,14 +2841,20 @@ async def on_message(message: discord.Message):
             await _handle_command(cmd_name, cmd_args, message)
             return
 
-        # Check if user has a personal or persistent agent
-        personal = registry.find_personal_by_owner(user_id)
-        if personal:
-            await _route_dm_to_persistent(personal, message, channel_id, user_id, text, attachments_data)
-            return
-
-        # No personal agent yet -- auto-provision one
-        await _auto_provision_personal_agent(message, channel_id, user_id, text, attachments_data)
+        # Route to SuperAgent (Hub). It handles personal agents, project routing,
+        # fleet queries, and project creation.
+        hub_bridge = bridges.get(HUB_NAME)
+        if hub_bridge:
+            logger.info(f"DM from {message.author} -> SuperAgent: {text[:80]}")
+            _start_typing(message.channel, channel_id)
+            hub_bridge.deliver_message(
+                channel_id, str(message.author), text,
+                callback=lambda ch, txt: asyncio.run_coroutine_threadsafe(
+                    message.channel.send(txt[:2000]), client.loop
+                )
+            )
+        else:
+            await message.channel.send("I'm not fully awake yet. Try again in a moment.")
         return
 
     # -- LinkedIn onboarding: any user can connect a LinkedIn account --
@@ -3007,35 +2988,18 @@ async def on_message(message: discord.Message):
 
         hub_bridge = bridges.get(HUB_NAME)
         if hub_bridge:
-            # Check for auth failure before routing
-            auth_err = hub_bridge.check_auth_error()
-            if auth_err:
-                logger.warning(f"Hub auth failure on @mention: {auth_err}")
-                await message.channel.send(
-                    "I'm having trouble connecting right now. The admin has been notified."
-                )
-                return
-
-            hub_bridge.touch_activity()
-            msg_id = hub_bridge.write_inbox(
-                channel_id, user_id, text,
-                channel_type="channel",
-                channel_name=channel_name,
-                attachments=attachments_data or None,
-                context_messages=recent_context if recent_context else None,
-            )
             _start_typing(message.channel, channel_id)
-            if hub_bridge.is_project_active():
-                try:
-                    hub_bridge.send_to_lead(msg_id)
-                except Exception as e:
-                    logger.warning(f"Nudge to hub failed: {e}")
-            else:
-                logger.warning("Hub Claude Code not running, cannot process @mention")
-                _stop_typing(channel_id)
-                await message.channel.send(
-                    "I'm waking up, give me a sec. Try again in a moment."
+            ctx = f"@{message.author} in #{channel_name}"
+            if recent_context:
+                ctx += "\nRecent channel messages:\n" + "\n".join(
+                    f"  {m['author']}: {m['content'][:200]}" for m in recent_context[-5:]
                 )
+            hub_bridge.deliver_message(
+                channel_id, str(message.author), f"{ctx}\n\n{text}",
+                callback=lambda ch, txt: asyncio.run_coroutine_threadsafe(
+                    message.channel.send(txt[:2000]), client.loop
+                )
+            )
         else:
             logger.error("Hub bridge not initialized for @mention")
             await message.channel.send(
