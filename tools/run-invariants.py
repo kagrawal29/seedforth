@@ -27,11 +27,14 @@ VERBOSE = "--verbose" in sys.argv
 TS = time.strftime("%Y-%m-%d %H:%M:%S")
 
 ALLOWED_BRIDGES = [
+    # Structural org/fleet edges (cross project-boundary by design)
+    "BELONGS_TO", "HAS_AGENT", "OVERSEES",
+    # Legacy + semantic bridge edges
     "DEPENDS_ON", "DEPLOYS_TO", "RUNS_ON", "MANAGES", "MANAGED_BY", "OWNS",
     "HAS_REPO", "HAS_SERVICE", "REFERENCES", "TRIGGERS", "COMPOSES",
     "SCOPES_TO", "ENFORCES_THROUGH", "DECLARES", "EMBODIED_BY", "FOLLOWS",
     "FEEDS", "VALIDATES", "VACATES", "ENFORCED_BY", "HOLDS", "VOICED_BY",
-    "HAS_PROTOCOL",
+    "HAS_PROTOCOL", "BLOCKED_ON",
 ]
 PROVIDED_PARAMS = {"allowed": ALLOWED_BRIDGES}
 
