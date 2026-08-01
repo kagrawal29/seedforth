@@ -75,12 +75,12 @@ mem_total_gb, mem_used_gb = read_mem_gb()
 # MERGE FleetState -- one mutable node, current truth
 run_cypher(
     f'MERGE (f:FleetState {{node_id:"fleet-state"}}) '
-    f'SET f.total_projects ={total_projects}, '
-    f'f.active_agents:{active_agents}, '
-    f'f.stopped_agents:{stopped_agents}, '
-    f'f.fatal_agents:{fatal_agents}, '
-    f'f.errors_5min:{errors_5min}, '
-    f'f.updated_at:datetime()'
+    f'SET f.total_projects = {total_projects}, '
+    f'f.active_agents = {active_agents}, '
+    f'f.stopped_agents = {stopped_agents}, '
+    f'f.fatal_agents = {fatal_agents}, '
+    f'f.errors_5min = {errors_5min}, '
+    f'f.updated_at = datetime()'
 )
 
 # MERGE SystemHealth -- one mutable node, health metrics
