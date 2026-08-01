@@ -2553,18 +2553,20 @@ def _restore_active_projects() -> int:
     Returns the number of projects restored.
     """
     restored = 0
+    booted = 0
     for name in registry.list_projects():
         info = registry.get(name)
         if not info or info.status != "active":
             continue
 
         if info.runtime == "opencode":
-            # opcencode projects use supervisord, restart via supervisorctl
-            subprocess.run(
-                ["supervisorctl", "start", f"proj-{name}"],
-                capture_output=True, text=True,
-            )
-            time.sleep(3)
+            # opencode projects use supervisord -- boot staggered so the
+            # 4-core box doesn't get slammed by 21 simultaneous opencode boots
+            runner = get_runner(info)
+            runner.start(info)
+            booted += 1
+            if booted % 3 == 0:
+                time.sleep(5)
             if is_agent_running(info.serve_port):
                 logger.info(f"OpenCode project {name} healthy after restore")
                 restored += 1

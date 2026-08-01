@@ -21,6 +21,8 @@ Read fleet state from the graph every cycle:
 - `graph MATCH (sa:SubAgent) RETURN sa.name, sa.status, sa.role` -- active agents
 - `graph MATCH (r:Report) RETURN r.total_nodes, r.healthy_invariants ORDER BY r.created_at DESC LIMIT 1` -- system health
 - `graph MATCH (ap:ActionProposal {status:"pending"}) RETURN ap.type, ap.description` -- pending actions
+- `graph MATCH (h:SystemHealth) RETURN h.load_15min, h.cpu_pct, h.active_agents` -- system health
+- `graph MATCH (ap:ActionProposal {status:"pending"}) RETURN ap.type, ap.description` -- pending health actions
 
 ## Fleet Levers -- Steering
 

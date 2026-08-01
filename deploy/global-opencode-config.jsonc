@@ -1,0 +1,5 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "permission": {"*": "allow"},
+  "lsp": {"disable": true}
+}
