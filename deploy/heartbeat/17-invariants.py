@@ -65,7 +65,12 @@ def main():
     inv_pass = inv_fail = inv_error = 0
     failing = []
     for inv in invs:
-        rows = ql(inv["cypher"])
+        cypher = inv["cypher"]
+        # Inject known parameters referenced by the query
+        params = {}
+        if "$allowed" in cypher:
+            params["allowed"] = ALLOWED_BRIDGES
+        rows = ql(cypher, params or None)
         if rows == [] and not rows_is_error(rows):
             # 0 rows from a query = no violations (healthy)
             inv_pass += 1
@@ -88,7 +93,13 @@ def main():
             print(f"  ERROR {tc['node_id']} no rows")
             continue
         row = rows[0]
-        passed = bool(row[2]) if len(row) >= 3 else bool(row[0])
+        # Test formats: [actual, expected, pass] (3 cols) or [actual, pass] (2 cols)
+        if len(row) >= 3:
+            passed = bool(row[2])
+        elif len(row) == 2:
+            passed = bool(row[1])
+        else:
+            passed = bool(row[0])
         if passed:
             test_pass += 1
         else:
