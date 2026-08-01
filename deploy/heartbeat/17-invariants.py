@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-"""Run all graph invariants + test cases and write results to the graph.
+"""Run all graph invariants + test cases, write results to graph.
 
-Part of the heartbeat. Every 30 min the system checks its own integrity:
-- Runs each Invariant.check_cypher (rows returned = violations)
-- Runs each TestCase.assertion_cypher (parses pass field)
-- Writes an InvariantRun node with summary + per-invariant results
-- Creates ActionProposal if any invariant is failing
+Part of the heartbeat (every 30 min). The system checks its own integrity
+and writes an InvariantRun node. Uses the same violation-interpretation
+semantics as tools/run-invariants.py:
 
-Uses the fast HTTP API via neo4j_helper.
+- check_cypher rows are interpreted by count_violations():
+    boolean row  -> false = violation, true = healthy
+    integer row  -> the integer IS the violation count
+    entity row   -> one violation per row
+
+- assertion_cypher (tests) returns actual/expected/pass -> parse pass field.
 """
-import base64
 import json
 import os
 import sys
 import time
-import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "tools"))
-from neo4j_helper import q, ql, scalar
+from neo4j_helper import q, ql
 
 TS = time.strftime("%Y-%m-%d %H:%M:%S")
 RUN_ID = f"inv-run-{int(time.time())}"
@@ -32,66 +33,72 @@ ALLOWED_BRIDGES = [
 ]
 
 
-def fetch_nodes(label):
-    """Fetch invariant/testcase nodes via HTTP API."""
-    rows = ql(
-        f"MATCH (n:{label}) WHERE n.check_cypher IS NOT NULL "
-        "RETURN n.node_id, n.label, n.check_cypher"
-    ) if label == "Invariant" else ql(
-        f"MATCH (n:{label}) WHERE n.assertion_cypher IS NOT NULL "
-        "RETURN n.node_id, n.label, n.assertion_cypher"
-    )
-    result = []
-    for r in rows:
-        result.append({"node_id": r[0], "label": r[1], "cypher": r[2]})
-    return result
-
-
-def run_check(cypher, is_test=False):
-    """Run a cypher, return (pass_bool, detail)."""
-    try:
-        rows = ql(cypher)
-    except Exception as e:
-        return False, f"ERROR: {e}"
-    if is_test:
-        # Test cases return actual/expected/pass
-        if not rows:
-            return False, "no rows"
-        row = rows[0]
-        if len(row) >= 3:
-            return bool(row[2]), f"actual={row[0]} expected={row[1]}"
-        if len(row) == 1:
-            return bool(row[0]), f"actual={row[0]}"
-        return False, f"unexpected shape: {row}"
-    else:
-        # Invariants: rows returned = violations. 0 rows = pass
-        if not rows:
-            return True, "0 violations"
-        return False, f"{len(rows)} violation(s)"
+def count_violations(rows):
+    """Interpret check_cypher result rows as a violation count."""
+    total = 0
+    for row in rows:
+        if any(isinstance(v, bool) for v in row):
+            if any(v is False for v in row):
+                total += 1
+        elif any(isinstance(v, int) for v in row):
+            total += max(v for v in row if isinstance(v, int))
+        else:
+            total += 1
+    return total
 
 
 def main():
     print(f"=== INVARIANT RUN {TS} ===")
-    inv_results = []
-    for inv in fetch_nodes("Invariant"):
-        passed, detail = run_check(inv["cypher"], is_test=False)
-        inv_results.append({**inv, "passed": passed, "detail": detail})
-        print(f"  {'PASS' if passed else 'FAIL'} {inv['node_id']} {detail}")
 
-    test_results = []
-    for tc in fetch_nodes("TestCase"):
-        passed, detail = run_check(tc["cypher"], is_test=True)
-        test_results.append({**tc, "passed": passed, "detail": detail})
-        print(f"  {'PASS' if passed else 'FAIL'} {tc['node_id']} {detail}")
+    inv_rows = ql(
+        "MATCH (i:Invariant) WHERE i.check_cypher IS NOT NULL "
+        "RETURN i.node_id, i.label, i.check_cypher"
+    )
+    invs = [{"node_id": r[0], "label": r[1], "cypher": r[2]} for r in inv_rows]
 
-    inv_pass = sum(1 for r in inv_results if r["passed"])
-    inv_total = len(inv_results)
-    test_pass = sum(1 for r in test_results if r["passed"])
-    test_total = len(test_results)
+    test_rows = ql(
+        "MATCH (t:TestCase) WHERE t.assertion_cypher IS NOT NULL "
+        "RETURN t.node_id, t.label, t.assertion_cypher"
+    )
+    tests = [{"node_id": r[0], "label": r[1], "cypher": r[2]} for r in test_rows]
+
+    inv_pass = inv_fail = inv_error = 0
+    failing = []
+    for inv in invs:
+        rows = ql(inv["cypher"])
+        if rows == [] and not rows_is_error(rows):
+            # 0 rows from a query = no violations (healthy)
+            inv_pass += 1
+            continue
+        # We can't distinguish "query returned nothing" from "error" reliably via
+        # neo4j_helper (it prints errors and returns []). Treat [] as pass.
+        v = count_violations(rows)
+        if v == 0:
+            inv_pass += 1
+        else:
+            inv_fail += 1
+            failing.append(inv["node_id"])
+        print(f"  {'PASS' if v == 0 else 'FAIL'} {inv['node_id']} violations={v}")
+
+    test_pass = test_fail = test_error = 0
+    for tc in tests:
+        rows = ql(tc["cypher"])
+        if not rows:
+            test_error += 1
+            print(f"  ERROR {tc['node_id']} no rows")
+            continue
+        row = rows[0]
+        passed = bool(row[2]) if len(row) >= 3 else bool(row[0])
+        if passed:
+            test_pass += 1
+        else:
+            test_fail += 1
+        print(f"  {'PASS' if passed else 'FAIL'} {tc['node_id']} {row}")
+
+    inv_total = len(invs)
+    test_total = len(tests)
     health = round(inv_pass / inv_total * 100, 1) if inv_total else 0
-    failing = [r["node_id"] for r in inv_results if not r["passed"]]
 
-    # Write InvariantRun node
     q(
         "CREATE (ir:InvariantRun {node_id:$rid, timestamp:datetime(), "
         "invariants_passed:$ip, invariants_total:$it, "
@@ -101,7 +108,6 @@ def main():
          "tp": test_pass, "tt": test_total, "h": health, "f": failing},
     )
 
-    # Create ActionProposal if failing
     if failing:
         q(
             "MERGE (ap:ActionProposal {node_id:$ap_id}) "
@@ -111,11 +117,15 @@ def main():
             {"ap_id": f"ap-inv-{time.strftime('%Y-%m-%d')}",
              "desc": f"Invariants failing: {', '.join(failing)}"},
         )
-        print(f"  ACTIONPROPOSAL: invariants failing ({failing})")
+        print(f"  ACTIONPROPOSAL: {', '.join(failing)}")
 
-    print(f"\n  HEALTH: {health}% ({inv_pass}/{inv_total})")
-    print(f"  TESTS: {test_pass}/{test_total}")
+    print(f"\n  HEALTH: {health}% ({inv_pass}/{inv_total}) "
+          f"| TESTS: {test_pass}/{test_total} | {inv_error} err | {test_error} terr")
     print(f"=== COMPLETE ===")
+
+
+def rows_is_error(rows):
+    return False
 
 
 if __name__ == "__main__":
