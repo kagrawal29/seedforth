@@ -93,6 +93,25 @@ def ql(cypher, params=None):
     return rows
 
 
+def q_strict(cypher, params=None):
+    """Run Cypher and raise RuntimeError on error, else return raw rows.
+
+    Unlike q()/ql(), which swallow errors and return [], this surfaces the
+    error so callers can tell a failed query apart from an empty result.
+    """
+    stmt = {"statement": cypher}
+    if params:
+        stmt["parameters"] = params
+    data = _post([stmt])
+    if data.get("errors"):
+        raise RuntimeError(data["errors"][0].get("message", "neo4j error"))
+    rows = []
+    for result in data.get("results", []):
+        for row in result.get("data", []):
+            rows.append(row.get("row", []))
+    return rows
+
+
 def scalar(cypher, params=None, default=None):
     """Run a query returning a single scalar value."""
     rows = ql(cypher, params)
