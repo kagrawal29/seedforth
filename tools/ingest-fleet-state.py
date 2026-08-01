@@ -75,7 +75,7 @@ mem_total_gb, mem_used_gb = read_mem_gb()
 # MERGE FleetState -- one mutable node, current truth
 run_cypher(
     f'MERGE (f:FleetState {{node_id:"fleet-state"}}) '
-    f'SET f.total_projects:{total_projects}, '
+    f'SET f.total_projects ={total_projects}, '
     f'f.active_agents:{active_agents}, '
     f'f.stopped_agents:{stopped_agents}, '
     f'f.fatal_agents:{fatal_agents}, '
@@ -86,17 +86,17 @@ run_cypher(
 # MERGE SystemHealth -- one mutable node, health metrics
 run_cypher(
     f'MERGE (h:SystemHealth {{node_id:"system-health"}}) '
-    f'SET h.load_1min:{load_1min}, '
-    f'h.load_5min:{load_5min}, '
-    f'h.load_15min:{load_15min}, '
-    f'h.cpu_pct:{cpu_pct}, '
-    f'h.mem_used_gb:{mem_used_gb}, '
-    f'h.mem_total_gb:{mem_total_gb}, '
-    f'h.active_agents:{active_agents}, '
-    f'h.stopped_agents:{stopped_agents}, '
-    f'h.fatal_agents:{fatal_agents}, '
-    f'h.errors_5min:{errors_5min}, '
-    f'h.updated_at:datetime()'
+    f'SET h.load_1min = {load_1min}, '
+    f'h.load_5min = {load_5min}, '
+    f'h.load_15min = {load_15min}, '
+    f'h.cpu_pct = {cpu_pct}, '
+    f'h.mem_used_gb = {mem_used_gb}, '
+    f'h.mem_total_gb = {mem_total_gb}, '
+    f'h.active_agents = {active_agents}, '
+    f'h.stopped_agents = {stopped_agents}, '
+    f'h.fatal_agents = {fatal_agents}, '
+    f'h.errors_5min = {errors_5min}, '
+    f'h.updated_at = datetime()'
 )
 
 # Emit FleetEvent only when state changes
