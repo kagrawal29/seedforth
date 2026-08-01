@@ -157,25 +157,23 @@ class ProjectBridge:
                         callback(channel_id, resp_text)
                     if resp_text:
                         try:
-                            import subprocess, time
+                            import time as _t
+                            import urllib.request as _ur, json as _json, base64 as _b64
+                            node_id = f"trace-{int(_t.time() * 1000)}"
                             safe_text = text[:100].replace('"', '\\"')
-                            node_id = f"trace-{int(time.time() * 1000)}"
-                            cypher = (
-                                f'CREATE (st:SessionTrace {{'
-                                f'node_id:"{node_id}", '
-                                f'agent:"{self.name}", '
-                                f'project:"{self.name}", '
-                                f'user:"{user_name}", '
-                                f'text_preview:"{safe_text}", '
-                                f'created_at:datetime()'
-                                f'}})'
-                            )
-                            subprocess.run(
-                                ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-                                 "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
-                                 "--format", "plain", cypher],
-                                capture_output=True, text=True, timeout=10
-                            )
+                            body = _json.dumps({"statements": [{"statement":
+                                "CREATE (st:SessionTrace {node_id:$nid, agent:$ag, "
+                                "project:$pr, user:$usr, text_preview:$txt, created_at:datetime()})",
+                                "parameters": {"nid": node_id, "ag": self.name,
+                                               "pr": self.name, "usr": user_name,
+                                               "txt": safe_text}}]}).encode()
+                            auth = _b64.b64encode(b"neo4j:9aac5c811e6d4f4f64a00c65666f3528").decode()
+                            req = _ur.Request(
+                                "http://127.0.0.1:7474/db/neo4j/tx/commit",
+                                data=body, headers={"Content-Type": "application/json",
+                                                    "Authorization": f"Basic {auth}"})
+                            with _ur.urlopen(req, timeout=5) as r:
+                                r.read()
                         except Exception as e2:
                             print(f"session trace write failed: {e2}")
             except Exception as e:
