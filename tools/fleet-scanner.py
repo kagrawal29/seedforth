@@ -105,6 +105,76 @@ def scan_artifacts(entity, project_dir, since_ts):
                 break  # one per dir is enough
 
 
+def scan_deployments(entity, project_dir, since_ts):
+    """Detect live deployments: vercel.json URL -> reachable -> DeploySignal.
+    Current-state check, not age-gated."""
+    project = Path(project_dir)
+    vercel = project / "vercel.json"
+    url = None
+    if vercel.exists():
+        try:
+            data = json.loads(vercel.read_text())
+        except (json.JSONDecodeError, OSError):
+            data = {}
+        url = data.get("url") or data.get("alias") or ""
+    if not url:
+        return
+    import urllib.request
+    reachable = False
+    try:
+        req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "seedforth-scanner"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            reachable = resp.status == 200
+    except Exception:
+        reachable = False
+    if reachable:
+        write_signal("DeploySignal", {
+            "_id": f"ds-{entity}-live", "entity": entity, "url": url,
+            "reachable": True, "_ts": int(time.time() * 1000),
+        })
+
+
+def scan_outcomes(entity, project_dir, since_ts):
+    """Detect business outcomes: leads/sales/revenue files -> OutcomeSignal.
+    Durable point-in-time state, not age-gated."""
+    project = Path(project_dir)
+    if not project.exists():
+        return
+    for f in sorted(project.glob("*leads*.json"))[:3]:
+        kind = "lead"
+        try:
+            data = json.loads(f.read_text())
+        except (json.JSONDecodeError, OSError):
+            data = None
+        count = value = None
+        if isinstance(data, list):
+            count = len(data)
+            value = sum(float(d.get("value") or 0) for d in data if isinstance(d, dict))
+        elif isinstance(data, dict):
+            count = data.get("count") or len(data.get("leads", []))
+            value = data.get("value")
+        write_signal("OutcomeSignal", {
+            "_id": f"oc-{entity}-{f.name.replace('.json','')}", "entity": entity,
+            "kind": kind, "path": str(f.relative_to(project)), "count": count,
+            "value": value, "_ts": int(f.stat().st_mtime * 1000),
+        })
+    for pat in ("*sales*.json", "*revenue*.json", "*deals*.json"):
+        for f in sorted(project.glob(pat))[:3]:
+            kind = pat[1:].split(".")[0]
+            count = None
+            try:
+                data = json.loads(f.read_text())
+                if isinstance(data, list):
+                    count = len(data)
+            except (json.JSONDecodeError, OSError):
+                data = None
+            write_signal("OutcomeSignal", {
+                "_id": f"oc-{entity}-{f.name.replace('.json','')}", "entity": entity,
+                "kind": kind, "path": str(f.relative_to(project)), "count": count,
+                "_ts": int(f.stat().st_mtime * 1000),
+            })
+
+
 def main():
     since_ts = time.time() - LOOKBACK_DAYS * 86400
     registry = json.load(open(REGISTRY_PATH))
@@ -122,6 +192,8 @@ def main():
         scan_commits(name, project_dir, since_ts)
         scan_outbox(name, project_dir, since_ts)
         scan_artifacts(name, project_dir, since_ts)
+        scan_deployments(name, project_dir, since_ts)
+        scan_outcomes(name, project_dir, since_ts)
         print(f"  scanned: {name}")
     print("=== COMPLETE ===")
 
