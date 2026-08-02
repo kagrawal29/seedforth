@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -2133,6 +2134,79 @@ def _save_last_fired(last_fired: dict[str, str]) -> None:
         logger.warning(f"Could not save last_fired: {e}")
 
 
+async def _admin_steering_digest_loop():
+    """DM the admin a digest of fleet health + above-gate ActionProposals.
+
+    Runs every 6 hours (aligned with the dream cycle). Reads the graph for
+    proposals that need a human: ConfirmLifecycle (complete/archive),
+    SeedEntity, MergeEntities, or invariant/health escalations the steering
+    executor left pending because they were NOT below-gate.
+    """
+    import time as _t
+
+    await client.wait_until_ready()
+    if not ADMIN_DISCORD_ID:
+        logger.info("No ADMIN_DISCORD_ID configured, skipping steering digest")
+        return
+
+    last_key = "steering-digest"
+    last_fired = _load_last_fired()
+    last_digest = last_fired.get(last_key, "")
+
+    while not client.is_closed():
+        try:
+            now = _t.time()
+            if last_digest and now - float(last_digest) < 6 * 3600:
+                await asyncio.sleep(600)
+                continue
+
+            rows = None
+            try:
+                sys.path.insert(0, "/opt/delta/tools")
+                from neo4j_helper import ql as _ql
+                rows = _ql(
+                    "MATCH (ap:ActionProposal {status:'pending'}) "
+                    "WHERE ap.type IN ['ConfirmLifecycle','SeedEntity','MergeEntities'] "
+                    "OR (ap.confidence IS NULL OR ap.confidence < 0.9) "
+                    "RETURN ap.node_id, ap.type, ap.entity, ap.description "
+                    "ORDER BY ap.generated_at"
+                )
+            except Exception as e:
+                logger.warning(f"steering digest graph read failed: {e}")
+
+            user = client.get_user(int(ADMIN_DISCORD_ID))
+            if not user:
+                try:
+                    user = await client.fetch_user(int(ADMIN_DISCORD_ID))
+                except Exception:
+                    user = None
+            if not user:
+                last_digest = str(now)
+                last_fired[last_key] = last_digest
+                _save_last_fired(last_fired)
+                await asyncio.sleep(3600)
+                continue
+
+            if rows:
+                lines = [f"**{len(rows)} action proposal(s) need your call:**"]
+                for pid, ptype, entity, desc in rows[:10]:
+                    lines.append(f"- [{ptype}] {entity or 'system'}: {(desc or '')[:160]}")
+                try:
+                    await user.send("\n".join(lines))
+                except Exception as e:
+                    logger.warning(f"could not DM admin steering digest: {e}")
+            else:
+                logger.info("steering digest: no above-gate proposals")
+
+            last_digest = str(now)
+            last_fired[last_key] = last_digest
+            _save_last_fired(last_fired)
+
+        except Exception as e:
+            logger.warning(f"admin steering digest loop error: {e}")
+        await asyncio.sleep(600)
+
+
 async def _reporting_loop():
     """Check all projects' reporting + morning_trip schedules and nudge when it's time."""
     await client.wait_until_ready()
@@ -2639,6 +2713,9 @@ async def on_ready():
 
     # Start reporting daemon
     client.loop.create_task(_reporting_loop())
+
+    # DM admin a digest of fleet health + above-gate proposals (dream cycle cadence)
+    client.loop.create_task(_admin_steering_digest_loop())
 
     # Start silence nudge loop (pokes agents that go dark)
     client.loop.create_task(_silence_nudge_loop())

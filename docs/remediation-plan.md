@@ -126,7 +126,7 @@ Store `(:DirectionScore {entity, score, computed_at})`, trend nightly, flag `dri
 
 ### P2.4 Persistent agents (DM routing) [MEDIUM]
 **Gap:** `_route_dm_to_persistent`/`_auto_provision_personal_agent` are dead code. All DMs go to hub.
-**Decision:** route DMs to hub always (current), OR restore persistent-agent routing. Pick based on product intent.
+**Decision (2026-08-02):** route DMs to hub always. The Hub IS the SuperAgent orchestrator — it reads the graph, routes to project agents, and dispatches. Personal-agent routing stays dead code (harmless) and can be revived if a product need appears. `_admin_steering_digest_loop` DMs the admin a digest of above-gate proposals every 6h.
 
 ---
 
