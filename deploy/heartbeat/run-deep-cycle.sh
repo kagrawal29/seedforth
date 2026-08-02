@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deep cycle - every 24 hours
-# Immune system sweep + graph-native progress/lifecycle reasoning
+# Immune sweep + graph-native progress/lifecycle + SuperAgent steering
 set -euo pipefail
 PASS="9aac5c811e6d4f4f64a00c65666f3528"
 DIR="/opt/delta/deploy/heartbeat"
@@ -18,5 +18,8 @@ python3 $TOOLS/fleet-scanner.py --all >> $LOG 2>&1 || true
 # 3. THOUGHT (graph-resident): run graph-native protocols
 python3 $TOOLS/graph-runner.py --protocol protocol-progress-score >> $LOG 2>&1 || true
 python3 $TOOLS/graph-runner.py --protocol protocol-lifecycle >> $LOG 2>&1 || true
+
+# 4. STEERING: SuperAgent acts on proposals (below-gate only)
+python3 $TOOLS/steering-executor.py >> $LOG 2>&1 || true
 
 echo "[$(date)] Deep cycle complete" >> $LOG
