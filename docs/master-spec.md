@@ -285,3 +285,53 @@ Sense fleet table → Assess buckets (dead-weight/finished/drifting/thriving/wai
 is this real, and is it pointed the right way. Lifecycle is honesty about the past.
 Direction is honesty about the future. The SuperAgent is the hand that turns the
 compass until it reads true.*
+
+---
+
+## Part 8 — The Established Pattern (ADDENDUM, Aug 2026)
+
+*Hard-won architectural principle from building Phases 1-4. This is now the
+rule for ALL future system code.*
+
+### 8.1 The rule: thin I/O boundary + graph-resident reasoning
+
+**Python does ONLY what the graph cannot: read the filesystem, call APIs,
+talk to the OS. The graph does ALL reasoning.**
+
+```
+Python (SENSES — thin boundary)          Cypher in graph (THOUGHT)
+─────────────────────────────            ─────────────────────────────
+fleet-scanner.py → raw signals           protocol-progress-score → classify+score
+  :CommitSignal / :OutboxSignal          protocol-lifecycle → transitions
+  / :ArtifactSignal nodes                + 16 heartbeat/dream protocols
+read git, supervisor, outbox, files      Invariants + immune system
+                                          direction scoring (Phase 6)
+```
+
+**The acid test:** delete every Python file except the thin I/O boundaries and
+the graph-runner shell. The graph must still describe and execute its own
+behavior (protocols, invariants, transitions) via CypherAtom chains.
+
+### 8.2 What was built (graph-native)
+
+- **protocol-progress-score** (5 atoms): classify commits/outbox/artifacts →
+  promote to ProgressEvent → compute FleetProgress (producing flag)
+- **protocol-lifecycle** (4 atoms): seed lifecycle → active→stalled →
+  stalled→active → active→complete (writes LifecycleEvent + ActionProposal)
+- **fleet-scanner.py** (thin): writes raw signal nodes only. Zero logic.
+- **graph-runner.py**: executes Protocol→CypherAtom chains SEQUENTIALLY.
+  Each atom is an independent transaction; graph state carries between them.
+
+### 8.3 Key lesson: atoms execute sequentially, NOT composed
+
+The first attempt joined atoms with `WITH *` into one query. This was fragile
+and silently lost SET effects. The correct model: **each atom runs as its own
+transaction, in order.** The graph IS the shared state between atoms. This is
+mycelium's atom-walk made real.
+
+### 8.4 Going forward
+
+- New logic = Cypher protocol with atoms, registered in graph, run via graph-runner
+- New data source = a thin scanner writing signal nodes (or ExternalAtom)
+- No Python file may contain decision logic (weights, thresholds, transitions)
+- Invariants enforce: every node has project, atoms have semantic, density >= 0.8
