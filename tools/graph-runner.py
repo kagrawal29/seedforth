@@ -170,23 +170,19 @@ def main():
             continue
         run_id = f"prun-{proto['node_id']}-{int(time.time())}"
 
-        # Try chain composition first (fine-grained atoms need variable flow)
-        chain_result = run_protocol_chain(proto["node_id"], atoms)
-        if chain_result is not None:
-            ok, output = chain_result
+        # Execute atoms SEQUENTIALLY as separate transactions.
+        # Effects persist in the graph between atoms (the graph is the shared
+        # state). Each atom is independently valid — no WITH-composition,
+        # which is fragile and loses effects. This is mycelium's atom-walk:
+        # atoms fire in order, each reading/writing graph state.
+        results = []
+        for atom in atoms:
+            ok, output = run_atom(atom, proto["node_id"])
             status = "OK" if ok else "ERR"
-            print(f"  {status} chain ({len(atoms)} atoms composed)")
+            print(f"  {status} {atom['node_id']}: {atom['semantic'][:50]}")
             if not ok:
-                print(f"      {str(output)[:200]}")
-            results = [(ok, output)]
-        else:
-            # Fall back to per-atom execution (external atoms or single step)
-            results = []
-            for atom in atoms:
-                ok, output = run_atom(atom, proto["node_id"])
-                status = "OK" if ok else "ERR"
-                print(f"  {status} {atom['node_id']}: {atom['semantic'][:50]}")
-                results.append((ok, output))
+                print(f"      {str(output)[:150]}")
+            results.append((ok, output))
         record_run(proto["node_id"], results, run_id)
 
     print("\n=== COMPLETE ===")
