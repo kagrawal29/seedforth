@@ -128,11 +128,13 @@ def run_protocol_chain(protocol_id, atoms):
 
 
 def record_run(protocol_id, results, run_id):
-    """Write a ProtocolRun node + per-atom results."""
+    """Write a ProtocolRun node + per-atom results + :RAN edge to the protocol."""
     ok = sum(1 for r in results if r[0])
     q(
+        "MATCH (p:Protocol {node_id:$pid}) "
         "CREATE (pr:ProtocolRun {node_id:$rid, protocol:$pid, timestamp:datetime(), "
-        "atoms_total:$total, atoms_ok:$ok, project:'system'})",
+        "atoms_total:$total, atoms_ok:$ok, project:'system'}) "
+        "MERGE (p)<-[:RAN {decay_protected:true}]-(pr)",
         {"rid": run_id, "pid": protocol_id, "total": len(results), "ok": ok},
     )
 
