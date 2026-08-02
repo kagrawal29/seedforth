@@ -18,6 +18,7 @@ python3 $TOOLS/fleet-scanner.py --all >> $LOG 2>&1 || true
 # 3. THOUGHT (graph-resident): run graph-native protocols
 python3 $TOOLS/graph-runner.py --protocol protocol-progress-score >> $LOG 2>&1 || true
 python3 $TOOLS/graph-runner.py --protocol protocol-lifecycle >> $LOG 2>&1 || true
+python3 $TOOLS/graph-runner.py --protocol protocol-direction >> $LOG 2>&1 || true
 
 # 4. STEERING: SuperAgent acts on proposals (below-gate only)
 python3 $TOOLS/steering-executor.py >> $LOG 2>&1 || true

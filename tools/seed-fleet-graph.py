@@ -107,6 +107,7 @@ def seed_fleet():
         'CREATE (fs:FleetSnapshot {node_id:"snapshot-' + str(int(time.time())) + '", '
         f'total_projects:{len(projects)}, active_agents:{active_count}, '
         'total_subagents:' + str(len(projects)) + ', '
+        "project:'system', "
         'created_at:datetime()})'
     )
     print(f"  FleetSnapshot: {len(projects)} projects, {active_count} active")

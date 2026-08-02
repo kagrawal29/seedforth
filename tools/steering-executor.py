@@ -8,6 +8,13 @@ invariant_failure, immune_escalation). The SuperAgent's steering loop:
   ACT    -> execute below-gate actions (hibernate stalled, resolve stale)
   LEARN  -> write Decision nodes for every action
 
+Safety (P2.2):
+  - Hibernation goes through provisioner.hibernate() (git_save + bridge
+    shutdown + registry update), NOT a raw registry write.
+  - A fcntl file lock guards the registry against concurrent writers
+    (the Discord bot and this cron executor are separate processes).
+  - Every action is recorded as a Decision node in the graph.
+
 Below-gate actions the executor may take autonomously:
   - ConfirmLifecycle (stalled) -> hibernate the runtime agent, mark proposal done
   - system_health / invariant_failure / immune_escalation that are ALREADY
@@ -19,37 +26,47 @@ Above-gate (human) actions are only flagged, never executed:
 
 Usage: python3 steering-executor.py [--dry-run]
 """
+import fcntl
 import json
 import os
-import subprocess
 import sys
 import time
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from neo4j_helper import q, ql
 
 REGISTRY_PATH = "/opt/delta/delta-registry.json"
 DRY_RUN = "--dry-run" in sys.argv
 
 
-def load_registry():
-    return json.load(open(REGISTRY_PATH))
+def _registry_lock():
+    """Exclusive file lock so the bot process and this cron don't collide."""
+    lock_path = REGISTRY_PATH + ".lock"
+    f = open(lock_path, "w")
+    try:
+        fcntl.flock(f, fcntl.LOCK_EX)
+    except (OSError, ImportError):
+        pass  # best-effort on platforms without flock
+    return f
 
 
-def save_registry(registry):
-    with open(REGISTRY_PATH, "w") as f:
-        json.dump(registry, f, indent=2)
+def hibernate_via_provisioner(project_name):
+    """Hibernate through provisioner.hibernate() — git_save + stop + bridge shutdown."""
+    from delta.provisioner import hibernate as provisioner_hibernate
+    from delta.registry import Registry
 
-
-def hibernate_agent(project_name, registry):
-    """Stop the supervisor program for a project. Keep config for restore."""
-    prog = f"proj-{project_name}"
-    subprocess.run(["supervisorctl", "stop", prog], capture_output=True, timeout=15)
-    # Update registry
-    if project_name in registry.get("projects", {}):
-        registry["projects"][project_name]["status"] = "hibernated"
-        save_registry(registry)
-    print(f"    HIBERNATED agent for {project_name}")
+    lock_file = _registry_lock()
+    try:
+        registry = Registry(REGISTRY_PATH)
+        ok = provisioner_hibernate(project_name, registry, bridges={})
+        return ok
+    finally:
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+        except (OSError, ImportError):
+            pass
+        lock_file.close()
 
 
 def resolve_proposal(proposal_id, resolution, note=""):
@@ -69,7 +86,6 @@ def resolve_proposal(proposal_id, resolution, note=""):
 
 def is_invariant_actually_healthy(proposal_id):
     """For invariant_failure proposals, check if the failure still exists."""
-    # Look at the latest InvariantRun health
     rows = ql(
         "MATCH (ir:InvariantRun) RETURN ir.health_score ORDER BY ir.timestamp DESC LIMIT 1"
     )
@@ -81,7 +97,6 @@ def is_invariant_actually_healthy(proposal_id):
 def main():
     print(f"=== STEERING EXECUTOR {time.strftime('%Y-%m-%d %H:%M:%S')} "
           f"({'DRY RUN' if DRY_RUN else 'EXECUTING'}) ===")
-    registry = load_registry()
 
     pending = ql(
         "MATCH (ap:ActionProposal {status:'pending'}) "
@@ -91,7 +106,6 @@ def main():
     for pid, ptype, entity, desc, conf in pending:
         print(f"\n[{ptype}] {entity or 'system'}: {(desc or '')[:60]}")
 
-        # ASSESS + ACT per type
         if ptype == "ConfirmLifecycle" and "stalled" in (desc or ""):
             # Below gate: hibernate the stalled project's agent
             if entity and entity not in ("mycelium", "tetrahedron", "delta", "audioworld",
@@ -99,15 +113,15 @@ def main():
                 if DRY_RUN:
                     print(f"    would hibernate {entity}")
                 else:
-                    hibernate_agent(entity, registry)
-                    resolve_proposal(pid, "stalled confirmed, agent hibernated")
+                    ok = hibernate_via_provisioner(entity)
+                    resolve_proposal(pid, "stalled confirmed, agent hibernated" if ok
+                                     else "stalled confirmed, hibernate FAILED")
             else:
                 # Ecosystem repo, not a delta agent — just resolve
                 if not DRY_RUN:
                     resolve_proposal(pid, "ecosystem repo, no runtime agent to hibernate")
 
         elif ptype in ("invariant_failure", "immune_escalation"):
-            # Check if already healthy in reality
             if is_invariant_actually_healthy(pid):
                 if not DRY_RUN:
                     resolve_proposal(pid, "invariant already healthy, stale proposal")
@@ -115,7 +129,6 @@ def main():
                 print(f"    ESCALATE (still failing)")
 
         elif ptype == "system_health":
-            # Check current load
             rows = ql(
                 "MATCH (h:SystemHealth) RETURN h.load_15min ORDER BY h.updated_at DESC LIMIT 1"
             )

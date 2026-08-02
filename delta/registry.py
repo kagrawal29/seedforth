@@ -211,8 +211,15 @@ class Registry:
             ]
 
     def update(self, name: str, **kwargs) -> bool:
-        """Update individual fields on a project. Returns False if not found."""
+        """Update individual fields on a project. Returns False if not found.
+
+        Reloads from disk before applying so changes made by the steering
+        executor (a separate process) are preserved, not clobbered. The
+        resource manager calls this every 60s; without the reload its
+        in-memory snapshot would revert external hibernations.
+        """
         with self._lock:
+            self._load()
             project = self._projects.get(name)
             if not project:
                 return False
