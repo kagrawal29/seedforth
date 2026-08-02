@@ -88,6 +88,45 @@ def run_atom(atom, protocol_id):
         return False, str(e)
 
 
+def compose_chain(atoms):
+    """Compose a chain of atoms into ONE Cypher query.
+
+    Fine-grained atoms need variable passing between steps. Joining with
+    WITH * carries all bound variables forward, so a later atom's WHERE or
+    MATCH sees the earlier atom's bindings. This is mycelium's CypherAtom
+    walk, executed as a single composed statement.
+
+    Returns a single cypher string, or None if the chain has external atoms.
+    """
+    if not atoms:
+        return None
+    parts = []
+    for i, atom in enumerate(atoms):
+        if atom.get("script"):
+            return None  # can't compose external atoms
+        cypher = (atom.get("cypher") or "").strip().rstrip(";").strip()
+        if not cypher:
+            continue
+        parts.append(cypher)
+        # Insert WITH * between steps so variables carry forward
+        # (skip after the last atom)
+        if i < len(atoms) - 1:
+            parts.append("WITH *")
+    return "\n".join(parts)
+
+
+def run_protocol_chain(protocol_id, atoms):
+    """Run a protocol's atom chain as one composed query when possible."""
+    composed = compose_chain(atoms)
+    if composed is None:
+        return None  # fall back to per-atom execution
+    try:
+        rows = q_strict(composed)
+        return True, rows
+    except Exception as e:
+        return False, str(e)
+
+
 def record_run(protocol_id, results, run_id):
     """Write a ProtocolRun node + per-atom results."""
     ok = sum(1 for r in results if r[0])
@@ -130,12 +169,24 @@ def main():
             print(f"  (no atoms defined)")
             continue
         run_id = f"prun-{proto['node_id']}-{int(time.time())}"
-        results = []
-        for atom in atoms:
-            ok, output = run_atom(atom, proto["node_id"])
+
+        # Try chain composition first (fine-grained atoms need variable flow)
+        chain_result = run_protocol_chain(proto["node_id"], atoms)
+        if chain_result is not None:
+            ok, output = chain_result
             status = "OK" if ok else "ERR"
-            print(f"  {status} {atom['node_id']}: {atom['semantic'][:50]}")
-            results.append((ok, output))
+            print(f"  {status} chain ({len(atoms)} atoms composed)")
+            if not ok:
+                print(f"      {str(output)[:200]}")
+            results = [(ok, output)]
+        else:
+            # Fall back to per-atom execution (external atoms or single step)
+            results = []
+            for atom in atoms:
+                ok, output = run_atom(atom, proto["node_id"])
+                status = "OK" if ok else "ERR"
+                print(f"  {status} {atom['node_id']}: {atom['semantic'][:50]}")
+                results.append((ok, output))
         record_run(proto["node_id"], results, run_id)
 
     print("\n=== COMPLETE ===")
