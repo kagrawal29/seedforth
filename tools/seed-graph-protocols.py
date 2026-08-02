@@ -93,7 +93,9 @@ PROGRESS_ATOMS = [
         "WITH pe.entity AS entity, sum(pe.weight) AS total_weight "
         "MERGE (f:FleetProgress {entity: entity, node_id: 'fp-' + entity}) "
         "SET f.producing = total_weight >= 1.0, f.total_weight = total_weight, "
-        "f.updated_at = datetime(), f.project = entity",
+        "f.updated_at = datetime(), f.project = entity "
+        "WITH f MATCH (p:Project {node_id: 'project-' + f.entity}) "
+        "MERGE (f)-[:ASSESSES {decay_protected:true}]->(p)",
     ),
 ]
 
@@ -183,8 +185,11 @@ DIRECTION_ATOMS = [
         "WITH g.project AS entity, count(g) AS total, "
         "sum(CASE WHEN directed_events > 0 THEN 1.0 ELSE 0.0 END) AS progressed "
         "MERGE (d:DirectionScore {entity: entity, node_id: 'ds-' + entity}) "
-        "SET d.goal_progress = CASE WHEN total > 0 THEN progressed / total ELSE 0.0 END, "
-        "d.updated_at = datetime()",
+        "SET d.project = entity, "
+        "d.goal_progress = CASE WHEN total > 0 THEN progressed / total ELSE 0.0 END, "
+        "d.updated_at = datetime() "
+        "WITH d MATCH (p:Project {node_id: 'project-' + d.entity}) "
+        "MERGE (d)-[:ASSESSES {decay_protected:true}]->(p)",
     ),
     (
         "atom-dir-alignment",
@@ -194,7 +199,8 @@ DIRECTION_ATOMS = [
         "WITH pe.entity AS entity, count(pe) AS total, "
         "sum(CASE WHEN (pe)-[:DIRECTED]->() THEN 1.0 ELSE 0.0 END) AS aligned "
         "MERGE (d:DirectionScore {entity: entity, node_id: 'ds-' + entity}) "
-        "SET d.alignment = CASE WHEN total > 0 THEN aligned / total ELSE 0.0 END, "
+        "SET d.project = entity, "
+        "d.alignment = CASE WHEN total > 0 THEN aligned / total ELSE 0.0 END, "
         "d.updated_at = datetime()",
     ),
     (
@@ -207,7 +213,8 @@ DIRECTION_ATOMS = [
         "WITH g.project AS entity, sum(events_per_goal) AS total, "
         "sum(events_per_goal * events_per_goal) AS sumsq "
         "MERGE (d:DirectionScore {entity: entity, node_id: 'ds-' + entity}) "
-        "SET d.focus = CASE WHEN total > 0 THEN sumsq / (total * total) ELSE 0.0 END, "
+        "SET d.project = entity, "
+        "d.focus = CASE WHEN total > 0 THEN sumsq / (total * total) ELSE 0.0 END, "
         "d.updated_at = datetime()",
     ),
     (

@@ -5,4 +5,4 @@ MATCH (i:Invariant) WHERE i.health = "healthy" WITH total_nodes, total_edges, co
 MATCH (t:TestCase) WHERE t.last_result = "pass" WITH total_nodes, total_edges, healthy_invariants, count(t) as passing_tests
 CREATE (:Report {node_id:"report-" + toString(timestamp()), created_at:datetime(),
   total_nodes:total_nodes, total_edges:total_edges,
-  healthy_invariants:healthy_invariants, passing_tests:passing_tests});
+  healthy_invariants:healthy_invariants, passing_tests:passing_tests, project:"system"});

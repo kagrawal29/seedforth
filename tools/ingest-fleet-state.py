@@ -121,6 +121,7 @@ if changed:
         f'node_id:"fleet-event-{timestamp}", '
         f'type:"state_change", '
         f'description:"{changes}", '
+        f'project:"system", '
         f'created_at:datetime()'
         f'}})'
     )
