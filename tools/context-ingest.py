@@ -155,6 +155,7 @@ def ingest_mandate(name, base, use_llm):
     q("MATCH (n:EntityProfile) WHERE n.project=$name DETACH DELETE n", {"name": name})
 
     north_star, goals, profiles, needs_llm = basic_ns, [], [], True
+    blockers, milestones, workitems = [], [], []
     if use_llm:
         try:
             prompt = (
@@ -163,18 +164,35 @@ def ingest_mandate(name, base, use_llm):
                 "2. goals: 3-5 measurable goals, each with success_criteria "
                 "(array of strings)\n"
                 "3. profiles: people/roles/entities involved\n"
+                "4. blockers: things currently blocking progress, each with "
+                "a description and who/what is blocking it\n"
+                "5. milestones: key dates/deadlines, each with a title, due date, "
+                "and status\n"
+                "6. workitems: open next-steps/action items from the Pending/Next "
+                "sections, each with a title and optional goal it serves\n"
                 "Return JSON: {\"north_star\": \"...\", \"goals\": "
                 "[{\"goal\": \"...\", \"success_criteria\": [...]}], "
-                "\"profiles\": [\"...\"]}\n\nSEED.md:\n%s"
+                "\"profiles\": [\"...\"], \"blockers\": "
+                "[{\"description\": \"...\", \"blocked_by\": \"...\"}], "
+                "\"milestones\": [{\"title\": \"...\", \"due\": \"...\", "
+                "\"status\": \"...\"}], \"workitems\": [{\"title\": \"...\", "
+                "\"serves_goal\": \"...\"}]}\n\nSEED.md:\n%s"
                 % (name, text[:6000])
             )
             data = extract_json(llm_json(prompt, "You parse SEED.md files into "
-                                      "mandate, measurable goals, and profiles."))
+                                      "mandate, measurable goals, blockers, "
+                                      "milestones, and work items."))
             north_star = str(data.get("north_star") or basic_ns).strip()
             goals = [g for g in data.get("goals") or []
                      if isinstance(g, dict) and g.get("goal")][:5]
             profiles = [p.strip() for p in data.get("profiles") or []
                         if isinstance(p, str) and p.strip()]
+            blockers = [b for b in data.get("blockers") or []
+                        if isinstance(b, dict) and b.get("description")]
+            milestones = [m for m in data.get("milestones") or []
+                          if isinstance(m, dict) and m.get("title")]
+            workitems = [w for w in data.get("workitems") or []
+                         if isinstance(w, dict) and w.get("title")]
             needs_llm = False
         except Exception as e:
             print("    [llm failed for %s: %s] using basic parse" % (name, e))
@@ -217,8 +235,44 @@ def ingest_mandate(name, base, use_llm):
              "name": name, "pid": f"project-{name}"},
         )
 
+    for i, b in enumerate(blockers):
+        q(
+            "MERGE (b:Blocker {node_id:$id}) "
+            "SET b.description=$desc, b.blocked_by=$by, b.status='open', "
+            "b.created_at=datetime(), b.project=$name "
+            "WITH b MATCH (p:Project {node_id:$pid}) "
+            "MERGE (b)-[:BLOCKS {decay_protected:true}]->(p)",
+            {"id": f"blocker-{name}-{i}", "desc": b.get("description", ""),
+             "by": b.get("blocked_by", ""), "name": name,
+             "pid": f"project-{name}"},
+        )
+
+    for i, m in enumerate(milestones):
+        q(
+            "MERGE (m:Milestone {node_id:$id}) "
+            "SET m.title=$title, m.due=$due, m.status=coalesce($st, 'pending'), "
+            "m.created_at=datetime(), m.project=$name "
+            "WITH m MATCH (p:Project {node_id:$pid}) "
+            "MERGE (m)-[:MILESTONE_OF {decay_protected:true}]->(p)",
+            {"id": f"milestone-{name}-{i}", "title": m.get("title", ""),
+             "due": m.get("due", ""), "st": m.get("status"), "name": name,
+             "pid": f"project-{name}"},
+        )
+
+    for i, w in enumerate(workitems):
+        q(
+            "MERGE (w:WorkItem {node_id:$id}) "
+            "SET w.title=$title, w.status='open', w.deliverable='', "
+            "w.created_at=datetime(), w.project=$name "
+            "WITH w MATCH (p:Project {node_id:$pid}) "
+            "MERGE (w)-[:WORK_OF {decay_protected:true}]->(p)",
+            {"id": f"workitem-{name}-{i}", "title": w.get("title", ""),
+             "name": name, "pid": f"project-{name}"},
+        )
+
     return {"has_mandate": True, "goals": len(goals), "profiles": len(profiles),
-            "needs_llm": needs_llm}
+            "blockers": len(blockers), "milestones": len(milestones),
+            "workitems": len(workitems), "needs_llm": needs_llm}
 
 
 # ---------------------------------------------------------------- memory
