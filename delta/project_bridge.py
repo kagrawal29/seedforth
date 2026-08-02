@@ -25,7 +25,8 @@ class ProjectBridge:
     def __init__(self, name: str, data_dir: str, tmux_lead_pane: str,
                  nudge_prefix: str = "", outbox_poll_interval: int = 1,
                  serve_port: int = 0, session_id: str = "",
-                 runtime: str = "claude"):
+                 runtime: str = "claude",
+                 session_persist: Callable[[str, str], None] | None = None):
         self.name = name
         self.data_dir = Path(data_dir)
         self.tmux_lead_pane = tmux_lead_pane
@@ -34,6 +35,7 @@ class ProjectBridge:
         self.serve_port = serve_port
         self.session_id = session_id
         self.runtime = runtime
+        self._session_persist = session_persist
 
         # Shutdown coordination
         self._shutdown_event = threading.Event()
@@ -124,6 +126,13 @@ class ProjectBridge:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read())
             self.session_id = data.get("id", "")
+        # Persist so a bridge restart (opencode reboot) restores the same
+        # conversation instead of starting a fresh context.
+        if self.session_id and self._session_persist:
+            try:
+                self._session_persist(self.name, self.session_id)
+            except Exception:
+                pass
         return self.session_id
 
     def deliver_message(self, channel_id: str, user_name: str, text: str,
@@ -179,6 +188,12 @@ class ProjectBridge:
             except Exception as e:
                 print(f"HTTP delivery failed for {self.name}: {e}")
 
+        # HTTP path is the primary pipe — track for silence detection and log
+        if not user_name.startswith("delta:"):
+            self.last_inbox_time = time.time()
+        self._log_exchange("in", user_name, text, msg_id, channel_id or "")
+        self.touch_activity()
+
         threading.Thread(target=_deliver, daemon=True).start()
 
     def touch_activity(self) -> None:
@@ -205,6 +220,37 @@ class ProjectBridge:
             if task.get("status") in ("in_progress", "recurring"):
                 return True
         return False
+
+    def peek(self, lines: int = 40) -> str:
+        """Return recent conversation tail for opencode agents (no tmux).
+
+        Reads the newest log file's last N lines. Falls back to the
+        opencode stdout log if no jsonl exchanges exist yet.
+        """
+        if self.runtime == "claude":
+            return "(claude runtime: use tmux pane)"
+        logs = list(sorted(self.logs_dir.glob("*.jsonl")))
+        if logs:
+            tail = []
+            for line in logs[-1].read_text(errors="replace").strip().splitlines()[-lines:]:
+                try:
+                    entry = json.loads(line)
+                    tail.append(
+                        f"{entry.get('direction', '?')} {entry.get('user', '')}: "
+                        f"{entry.get('text', '')[:180]}"
+                    )
+                except (json.JSONDecodeError, OSError):
+                    tail.append(line[:180])
+            return "\n".join(tail) or "(no recent exchanges)"
+        out_log = self.data_dir / "logs" / "opencode-stdout.log"
+        if out_log.exists():
+            tail = out_log.read_text(errors="replace").strip().splitlines()[-lines:]
+            return "\n".join(tail) or "(empty)"
+        return "(no logs yet)"
+
+    def capture_tmux_scrollback(self, lines: int = 40) -> str:
+        """Compatibility shim for opencode runtime: same as peek()."""
+        return self.peek(lines)
 
     def shutdown(self) -> None:
         """Signal all watcher threads to stop. They exit within one poll cycle."""

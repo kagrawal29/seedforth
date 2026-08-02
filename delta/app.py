@@ -167,6 +167,7 @@ def _get_or_create_bridge(project_name: str) -> ProjectBridge | None:
         serve_port=info.serve_port,
         session_id=getattr(info, "session_id", ""),
         runtime=getattr(info, "runtime", "claude"),
+        session_persist=lambda pname, sid: registry.update(pname, session_id=sid),
     )
     # Restore last_activity from registry so the resource manager
     # doesn't immediately hibernate a freshly restored project
@@ -1359,7 +1360,10 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
             await message.channel.send("Admin only.")
             return
         await message.channel.send("Restarting hub...")
-        stop_claude_code(HUB_TMUX_PANE, grace=5)
+        # Hub runs as supervisor-managed opencode SuperAgent
+        subprocess.run(["supervisorctl", "stop", "proj-delta-hub"], capture_output=True)
+        await asyncio.sleep(2)
+        subprocess.run(["supervisorctl", "start", "proj-delta-hub"], capture_output=True)
         hub_bridge = bridges.pop(HUB_NAME, None)
         if hub_bridge:
             hub_bridge.shutdown()
