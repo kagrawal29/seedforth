@@ -106,13 +106,54 @@ def run(cypher):
         if data.get("errors"):
             return {"error": data["errors"][0]["message"][:300]}
         results = []
+        touched_ids = []
         for res in data.get("results", []):
             cols = res.get("columns", [])
             for row in res.get("data", []):
-                results.append(dict(zip(cols, row.get("row", []))))
+                r = dict(zip(cols, row.get("row", [])))
+                results.append(r)
+                # Hebbian: collect node_id-ish values so we can link the trace.
+                # Column names like "n.node_id" / "g.node_id" signal identity.
+                for col, v in r.items():
+                    if isinstance(v, dict):
+                        nid = v.get("node_id") or v.get("name") or v.get("id")
+                        if nid:
+                            touched_ids.append(str(nid))
+                    elif isinstance(v, list):
+                        for item in v:
+                            if isinstance(item, dict):
+                                nid = item.get("node_id") or item.get("name") or item.get("id")
+                                if nid:
+                                    touched_ids.append(str(nid))
+                    elif col.split(".")[-1] in ("node_id", "name", "id") and v:
+                        touched_ids.append(str(v))
+        _link_trace(trace_id, touched_ids)
         return {"results": results, "trace": trace_id, "query_hash": cypher_hash}
     except Exception as e:
         return {"error": str(e)}
+
+
+def _link_trace(trace_id, node_ids):
+    """Hebbian: link QueryTrace -> touched nodes with READS edges.
+
+    Frequently-touched nodes accumulate READS, and the weekly strengthen/decay
+    atom turns that frequency into edge-weight reinforcement.
+    """
+    if not trace_id or not node_ids:
+        return
+    seen = set()
+    for nid in node_ids[:50]:
+        if nid in seen or len(nid) > 200:
+            continue
+        seen.add(nid)
+        try:
+            _post([{"statement":
+                "MATCH (qt:QueryTrace {node_id:$tid}) "
+                "MATCH (n) WHERE n.node_id = $nid "
+                "MERGE (qt)-[:READS {decay_protected:true}]->(n)",
+                "parameters": {"tid": trace_id, "nid": nid}}])
+        except Exception:
+            pass
 
 
 def main():

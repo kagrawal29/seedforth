@@ -20,4 +20,9 @@ ON MATCH SET
   w.updated_at = datetime()
 RETURN w.node_id AS fold, w.snapshot_count AS snapshots;
 CYPHER
+
+# Hebbian consolidation: strengthen well-read paths, decay stale ones
+echo "[$(date)] Hebbian consolidation" >> $LOG
+python3 $DIR/../tools/hebbian-consolidate.py >> $LOG 2>&1 || true
+
 echo "[$(date)] Long cycle complete" >> $LOG
