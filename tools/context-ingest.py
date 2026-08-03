@@ -301,6 +301,15 @@ def ingest_decisions(name, base):
                  "content": content, "name": name, "file": f,
                  "pid": f"project-{name}"},
             )
+            # Also record as Knowledge so connect/converge/dream can wire it
+            q(
+                "MERGE (k:Knowledge {scope:$scope, label:$label}) "
+                "ON CREATE SET k.created_at=datetime(), k.node_id=$nid "
+                "SET k.content=$content, k.file_type='decision', k.project=$name, "
+                "k.source='context-ingest', k.updated_at=datetime()",
+                {"scope": name, "label": topic, "content": content,
+                 "nid": f"kn-ingest-{name}-{slugify(topic)}", "name": name},
+            )
             count += 1
     return count
 

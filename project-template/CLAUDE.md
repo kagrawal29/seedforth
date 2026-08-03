@@ -18,7 +18,14 @@ Before every decision, query the fleet graph. Use bash to run the graph tool:
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (t:Tool {project: '{project_name}'}) RETURN t.name"` -- your tools
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (d:Decision {project: '{project_name}'}) RETURN d.topic"` -- project decisions/memory
 
-The graph is the system's unified intelligence. Every query is traced (Hebbian learning -- the more you ask about something, the stronger it becomes). Always query before deciding. Write new learnings back to the graph after discovering something useful via the same tool (use CREATE or MERGE).
+The graph is the system's unified intelligence. Every query is traced (Hebbian learning -- the more you ask about something, the stronger it becomes). Always query before deciding.
+
+**Write learnings back after discovering something useful:**
+```bash
+python3 /opt/delta/tools/graph-tool.py write "<label>" "<what you learned>" decision {project_name}
+# file_type: decision | learning | pattern
+```
+Write a Knowledge node whenever you make a real decision, find a working pattern, or learn a lesson worth remembering. The connect/converge atoms wire it to the fleet over time, so other agents benefit.
 
 ## Voice
 

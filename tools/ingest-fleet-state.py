@@ -99,6 +99,25 @@ run_cypher(
     f'h.updated_at = datetime()'
 )
 
+# SubAgent heartbeat -- update status + updated_at for each supervisor program
+# so the agent-liveness invariant has a real signal (not a stale seed value).
+for line in sup_lines:
+    line = line.strip()
+    if not line or "proj-" not in line:
+        continue
+    prog = line.split()[0]
+    agent_name = prog.replace("proj-", "", 1)
+    if "RUNNING" in line:
+        run_cypher(
+            f"MERGE (sa:SubAgent {{name:\"{agent_name}\"}}) "
+            f"SET sa.status = 'active', sa.updated_at = datetime(), sa.project = 'system'"
+        )
+    elif "STOPPED" in line or "EXITED" in line or "FATAL" in line:
+        run_cypher(
+            f"MERGE (sa:SubAgent {{name:\"{agent_name}\"}}) "
+            f"SET sa.status = 'stopped', sa.updated_at = datetime(), sa.project = 'system'"
+        )
+
 # Emit FleetEvent only when state changes
 state = {
     "total_projects": total_projects,

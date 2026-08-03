@@ -67,6 +67,38 @@ def record_trace(cypher):
         return None, None
 
 
+def write_knowledge(label, content, file_type="learning", scope="seedforth",
+                    project="system", tags=None):
+    """Record a Knowledge node. This is the agent's write path into the graph.
+
+    Agents call this after discovering something reusable:
+      graph-tool.py write "How to fix X" "When Y happens, do Z" learning <project>
+
+    The node becomes part of the knowledge layer: connect/converge/dream
+    atoms wire it to SessionTraces and other knowledge over time.
+    """
+    ts = int(time.time() * 1000)
+    node_id = f"kn-{ts}-{AGENT}"
+    _post([
+        {
+            "statement": (
+                "MERGE (k:Knowledge {scope:$scope, label:$label}) "
+                "SET k.content=$content, k.file_type=$ft, k.project=$project, "
+                "k.source=$ag, k.tags=$tags, k.updated_at=datetime() "
+                "ON CREATE SET k.created_at=datetime(), k.node_id=$nid "
+                "RETURN k.node_id"
+            ),
+            "parameters": {
+                "scope": scope, "label": label, "content": content,
+                "ft": file_type, "project": project, "ag": AGENT,
+                "tags": tags or [], "nid": node_id,
+            },
+        },
+    ])
+    print(f"knowledge recorded: {scope}:{label} [{file_type}]")
+    return True
+
+
 def run(cypher):
     cypher_hash, trace_id = record_trace(cypher)
     try:
@@ -85,8 +117,18 @@ def run(cypher):
 
 def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "usage: graph-tool.py <cypher>"}))
+        print(json.dumps({"error": "usage: graph-tool.py <cypher> | graph-tool.py write <label> <content> [type] [project]"}))
         sys.exit(1)
+    if sys.argv[1] == "write":
+        label = sys.argv[2] if len(sys.argv) > 2 else ""
+        content = sys.argv[3] if len(sys.argv) > 3 else ""
+        ftype = sys.argv[4] if len(sys.argv) > 4 else "learning"
+        project = sys.argv[5] if len(sys.argv) > 5 else "system"
+        if not label or not content:
+            print(json.dumps({"error": "write requires <label> <content>"}))
+            sys.exit(1)
+        write_knowledge(label, content, ftype, project=project)
+        return
     cypher = " ".join(sys.argv[1:]).strip()
     out = run(cypher)
     print(json.dumps(out, indent=2, default=str))

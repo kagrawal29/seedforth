@@ -13,7 +13,12 @@ Before every decision, query the fleet graph. Use bash to run the graph tool:
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (k:Knowledge {scope: '<organization>'}) RETURN k.label"` -- see shared context
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (m:Measurement) RETURN m.metric, m.value ORDER BY m.created_at DESC LIMIT 10"` -- see fleet metrics
 
-The graph is the system's unified intelligence. Always query before deciding. Write new learnings back after discovering something useful.
+The graph is the system's unified intelligence. Always query before deciding. Write new learnings back after discovering something useful:
+```bash
+python3 /opt/delta/tools/graph-tool.py write "<label>" "<what you learned>" decision seedforth
+# file_type: decision | learning | pattern
+```
+The connect/converge atoms wire new Knowledge into the fleet over time.
 
 ## Fleet Compass -- Reading State
 
