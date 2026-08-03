@@ -203,11 +203,28 @@ def _init_git_repo(project_path: Path, linux_user: str = "") -> None:
     logger.info(f"Initialized git repo in {project_path}")
 
 
+def _role_model(role: str) -> str:
+    """Map a project role to a model. Analyst/ops roles use the cheaper
+    deepseek-chat; builder roles keep the full deepseek-v4-pro."""
+    return "deepseek/deepseek-chat" if role in ("analyst", "ops", "research") \
+        else "deepseek/deepseek-v4-pro"
+
+
+def _project_role(project_type: str) -> str:
+    """Map a project_type to a graph role. Personal/linkedin agents are
+    analyst-shaped (conversation, research, ops); everything else builds."""
+    if project_type in ("personal", "personal_dm", "persistent", "linkedin"):
+        return "analyst"
+    return "builder"
+
+
 def _write_opencode_jsonc(info) -> None:
     """Write or update opencode.jsonc for an opencode project."""
+    role = getattr(info, "role", "") or "builder"
+    model = _role_model(role)
     opencode_config = {
         "$schema": "https://opencode.ai/config.json",
-        "model": "deepseek/deepseek-v4-pro",
+        "model": model,
         "mcp": {
             "rube": {
                 "type": "remote",
@@ -228,15 +245,52 @@ def _write_opencode_jsonc(info) -> None:
         "agent": {
             "build": {
                 "mode": "primary",
-                "model": "deepseek/deepseek-v4-pro",
+                "model": model,
                 "permission": {"*": "allow"},
                 "prompt": "{file:./CLAUDE.md}"
+            },
+            "explore": {
+                "mode": "subagent",
+                "model": "deepseek/deepseek-chat",
+                "description": "Explore the project and fleet graph. Fast reads, no writes.",
+                "tools": {
+                    "read": True, "glob": True, "grep": True, "bash": True,
+                    "graph": True, "todo": True,
+                }
+            },
+            "general": {
+                "mode": "subagent",
+                "model": "deepseek/deepseek-chat",
+                "description": "General research and multi-step tasks for the project.",
+                "tools": {
+                    "read": True, "glob": True, "grep": True, "bash": True,
+                    "edit": True, "write": True, "graph": True, "todo": True,
+                }
             }
         }
     }
     config_path = Path(info.project_dir) / "opencode.jsonc"
     config_path.write_text(json.dumps(opencode_config, indent=2))
-    logger.info(f"Updated opencode.jsonc for {info.name}")
+    logger.info(f"Updated opencode.jsonc for {info.name} (role={role}, model={model})")
+
+    # Sync role into the fleet graph :Subagent node (best-effort)
+    try:
+        import urllib.request
+        import base64
+        _auth = base64.b64encode(
+            f"neo4j:9aac5c811e6d4f4f64a00c65666f3528".encode()).decode()
+        _body = json.dumps({"statements": [{"statement":
+            "MERGE (sa:SubAgent {name:$nm}) SET sa.role=$role, sa.model=$model, "
+            "sa.project='system', sa.updated_at=datetime()",
+            "parameters": {"nm": info.name, "role": role, "model": model}}]}).encode()
+        _req = urllib.request.Request(
+            "http://127.0.0.1:7474/db/neo4j/tx/commit", data=_body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Basic {_auth}"})
+        with urllib.request.urlopen(_req, timeout=5) as _r:
+            _r.read()
+    except Exception as e:
+        logger.warning(f"Subagent role sync failed for {info.name}: {e}")
 
 
 def _validate_name(name: str) -> None:
@@ -496,38 +550,13 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
     # OPENCODE RUNTIME: opencode.jsonc + supervisor
     # ---------------------------------------------------------------
     if runtime == "opencode":
-        # Write project-level opencode.jsonc
-        opencode_config = {
-            "$schema": "https://opencode.ai/config.json",
-            "model": "deepseek/deepseek-v4-pro",
-            "mcp": {
-                "rube": {
-                    "type": "remote",
-                    "url": "https://rube.app/mcp",
-                    "headers": {"Authorization": "Bearer {env:RUBE_BEARER_TOKEN}"}
-                },
-                "qdrant-memory": {
-                    "type": "local",
-                    "command": ["mcp-server-qdrant"],
-                    "environment": {
-                        "QDRANT_URL": "http://143.110.226.214:6333",
-                        "COLLECTION_NAME": "tetrahedron-memory",
-                        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
-                        "QDRANT_ALLOW_ARBITRARY_FILTER": "true"
-                    }
-                }
-            },
-            "agent": {
-                "build": {
-                    "mode": "primary",
-                    "model": "deepseek/deepseek-v4-pro",
-                    "permission": {"*": "allow"},
-                    "prompt": "{file:./CLAUDE.md}"
-                }
-            }
-        }
-        config_path = Path(project_dir) / "opencode.jsonc"
-        config_path.write_text(json.dumps(opencode_config, indent=2))
+        # Write project-level opencode.jsonc (role-based model + subagents)
+        from delta.registry import ProjectInfo as _PI
+        tmp_info = _PI(
+            name=name, project_dir=project_dir, data_dir=f"{project_dir}/delta-config",
+            tmux_session="", tmux_lead_pane="", role=_project_role(project_type),
+        )
+        _write_opencode_jsonc(tmp_info)
         logger.info(f"Wrote opencode.jsonc to {project_dir}")
 
         # Add opencode artifacts to .gitignore
@@ -605,6 +634,7 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
             serve_port=serve_port,
             web_port=web_port,
             supervisor_program=f"proj-{name}",
+            role=_project_role(project_type),
         )
         registry.add(info)
 

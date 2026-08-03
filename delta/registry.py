@@ -17,6 +17,7 @@ class ProjectInfo:
         "is_dream_space", "status", "last_activity", "ttyd_port",
         "project_type", "unipile_account_id",
         "runtime", "serve_port", "web_port", "supervisor_program", "session_id",
+        "role",
     )
 
     def __init__(self, name: str, project_dir: str, data_dir: str,
@@ -29,10 +30,11 @@ class ProjectInfo:
                  project_type: str = "standard",
                  unipile_account_id: str = "",
                  runtime: str = "claude",
-                 serve_port: int = 0,
-                 web_port: int = 0,
-                  supervisor_program: str = "",
-                  session_id: str = ""):
+                  serve_port: int = 0,
+                  web_port: int = 0,
+                   supervisor_program: str = "",
+                   session_id: str = "",
+                   role: str = ""):
         self.name = name
         self.project_dir = project_dir
         self.data_dir = data_dir
@@ -55,6 +57,7 @@ class ProjectInfo:
         self.web_port = web_port
         self.supervisor_program = supervisor_program
         self.session_id = session_id
+        self.role = role
 
     def to_dict(self) -> dict:
         return {
@@ -80,6 +83,7 @@ class ProjectInfo:
             "web_port": self.web_port,
             "supervisor_program": self.supervisor_program,
             "session_id": self.session_id,
+            "role": self.role,
         }
 
     @classmethod
@@ -107,6 +111,7 @@ class ProjectInfo:
             web_port=d.get("web_port", 0),
             supervisor_program=d.get("supervisor_program", ""),
             session_id=d.get("session_id", ""),
+            role=d.get("role", ""),
         )
 
 
