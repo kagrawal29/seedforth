@@ -27,6 +27,7 @@ Read fleet state from the graph every cycle:
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (r:Report) RETURN r.total_nodes, r.healthy_invariants ORDER BY r.created_at DESC LIMIT 1"` -- system health
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (ap:ActionProposal {status:'pending'}) RETURN ap.type, ap.description"` -- pending actions
 - `python3 /opt/delta/tools/graph-tool.py "MATCH (h:SystemHealth) RETURN h.load_15min, h.cpu_pct, h.active_agents"` -- system health
+- `python3 /opt/delta/tools/graph-tool.py "MATCH (m:Metric) WHERE m.created_at > datetime() - duration({hours:24}) RETURN m.agent, m.metric, m.value"` -- spend/tokens per agent
 
 ## Fleet Levers -- Steering
 

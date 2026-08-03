@@ -23,4 +23,7 @@ python3 $TOOLS/graph-runner.py --protocol protocol-direction >> $LOG 2>&1 || tru
 # 4. STEERING: SuperAgent acts on proposals (below-gate only)
 python3 $TOOLS/steering-executor.py >> $LOG 2>&1 || true
 
+# 5. OBSERVABILITY: opencode spend/latency metrics -> Metric nodes
+python3 $TOOLS/metrics-collector.py 7 >> $LOG 2>&1 || true
+
 echo "[$(date)] Deep cycle complete" >> $LOG
