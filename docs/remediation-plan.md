@@ -135,18 +135,22 @@ Store `(:DirectionScore {entity, score, computed_at})`, trend nightly, flag `dri
 ### P3.1 Knowledge/Convergence ingestion
 **Gap:** `:Knowledge`=0. Connect/converge/decay/dream/route (half the OS) are no-ops.
 **Build:** agents write `:Knowledge {file_type:'decision|learning|pattern'}` via graph-tool (writes, not just reads). Context-ingest writes decisions as `:Knowledge`. Then connect/converge/decay/dream become real.
+**DONE (2026-08-03):** `graph-tool.py write <label> <content> <type> <project>`; context-ingest decisions→Knowledge (118 nodes); fixed converge MERGE/SET ordering + decay-ttl multi-statement; 5 Convergence nodes detected. Connect→converge→dream pipeline live.
 
 ### P3.2 Role/subagent machinery
 **Gap:** all agents identical. No subagents.
 **Build:** provision subagent definitions in opencode.jsonc (explorer/general for each project); per-role model allocation (personal→deepseek-chat); `role` field on ProjectInfo; graph `:Subagent.role` updated on provision.
+**DONE (2026-08-03):** `role` on ProjectInfo; builder→deepseek-v4-pro / analyst→deepseek-chat; opencode.jsonc writes build+explore+general subagents; 24 SubAgent.role synced on provision + backfill.
 
 ### P3.3 Hebbian strengthening
 **Gap:** QueryTrace accumulates, never links to nodes, no strengthen/decay.
 **Build:** graph-tool links traces to touched node_ids; a weekly atom strengthens fired paths / decays unused (adjust edge weights, not delete).
+**DONE (2026-08-03):** graph-tool links QueryTrace→touched nodes via `:READS`; `hebbian-consolidate.py` in the weekly long cycle strengthens read paths (>=3 reads → edge weight +0.1/read) and decays stale ones (0.95×). Boost + edge weights verified.
 
 ### P3.4 Observability
 **Gap:** no spend/latency tracking.
 **Build:** opencode stats via API per agent; DeepSeek spend via billing API; `:Metric` nodes in graph.
+**DONE (2026-08-03):** `metrics-collector.py` parses `opencode stats` per active agent → `:Metric` nodes (cost/tokens/sessions) in the deep cycle. Hub can query spend per agent. Note: DeepSeek billing API not wired — opencode stats covers cost today.
 
 ---
 
