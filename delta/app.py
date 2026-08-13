@@ -1426,6 +1426,54 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
         count = refresh_templates(registry)
         await message.channel.send(f"Done. Updated {count} project(s).")
 
+    elif cmd in ("approve_invariant", "reject_invariant", "list_proposals"):
+        if not is_admin:
+            await message.channel.send("Admin only.")
+            return
+        await _handle_invariant_governance(cmd, args, message)
+
+
+async def _handle_invariant_governance(cmd: str, args: dict, message) -> None:
+    """Invariant Governance — humans own the rules.
+
+    approve-invariant <id> [reason]  -> activate the invariant into law
+    reject-invariant  <id> [reason]  -> decline the proposal
+    list proposals                   -> show pending proposals
+    """
+    import subprocess as _sp
+    TOOL = ["python3", "/opt/delta/tools/invariant-governance.py"]
+
+    if cmd == "list_proposals":
+        try:
+            r = _sp.run(TOOL + ["list", "--status", "proposed"],
+                        capture_output=True, text=True, timeout=30)
+            out = (r.stdout or r.stderr).strip()
+        except Exception as e:
+            out = f"list failed: {e}"
+        await message.channel.send(f"```\n{out or '(no pending proposals)'}\n```")
+        return
+
+    proposal_id = (args.get("proposal_id") or "").strip()
+    reason = (args.get("reason") or "").strip()
+    if not proposal_id:
+        await message.channel.send(
+            "Usage: `approve-invariant <proposal_id> [reason]` or "
+            "`reject-invariant <proposal_id> [reason]`\n"
+            "See pending ones with `list proposals`.")
+        return
+
+    verb = "approve" if cmd == "approve_invariant" else "reject"
+    sub_cmd = "approve" if cmd == "approve_invariant" else "reject"
+    argv = TOOL + [sub_cmd, proposal_id, "--by", "kagrawal29-admin"]
+    if reason:
+        argv += ["--reason", reason]
+    try:
+        r = _sp.run(argv, capture_output=True, text=True, timeout=30)
+        out = (r.stdout or r.stderr).strip()
+    except Exception as e:
+        out = f"governance command failed: {e}"
+    await message.channel.send(f"```\n{out}\n```")
+
 
 # -- Hub (orchestrator) ------------------------------------------------------
 
@@ -2171,8 +2219,15 @@ async def _admin_steering_digest_loop():
                     "RETURN ap.node_id, ap.type, ap.entity, ap.description "
                     "ORDER BY ap.generated_at"
                 )
+                # Governance: surface invariants awaiting human decision
+                inv_proposals = _ql(
+                    "MATCH (p:InvariantProposal {status:'proposed'}) "
+                    "RETURN p.node_id, p.label, p.proposed_by, p.proposed_at "
+                    "ORDER BY p.proposed_at"
+                )
             except Exception as e:
                 logger.warning(f"steering digest graph read failed: {e}")
+                rows = inv_proposals = []
 
             user = client.get_user(int(ADMIN_DISCORD_ID))
             if not user:
@@ -2195,8 +2250,17 @@ async def _admin_steering_digest_loop():
                     await user.send("\n".join(lines))
                 except Exception as e:
                     logger.warning(f"could not DM admin steering digest: {e}")
-            else:
-                logger.info("steering digest: no above-gate proposals")
+            if inv_proposals:
+                lines = [f"**{len(inv_proposals)} invariant proposal(s) await your approval:**"]
+                for pid, label, by, at in inv_proposals[:10]:
+                    lines.append(f"- `{pid}` — {label[:80]} (proposed by {by})")
+                lines.append("Reply: `approve-invariant <id>` or `reject-invariant <id> <reason>`")
+                try:
+                    await user.send("\n".join(lines))
+                except Exception as e:
+                    logger.warning(f"could not DM invariant proposals: {e}")
+            if not rows and not inv_proposals:
+                logger.info("steering digest: no proposals")
 
             last_digest = str(now)
             last_fired[last_key] = last_digest

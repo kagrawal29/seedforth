@@ -108,6 +108,22 @@ def parse(text: str) -> Optional[tuple[str, dict]]:
     if lower == "refresh templates":
         return ("refresh_templates", {})
 
+    # -- Invariant Governance --
+    if lower.startswith("approve-invariant") or lower.startswith("approve invariant"):
+        rest = stripped.split(None, 2)
+        proposal_id = rest[1] if len(rest) > 1 else ""
+        reason = rest[2] if len(rest) > 2 else ""
+        return ("approve_invariant", {"proposal_id": proposal_id, "reason": reason})
+
+    if lower.startswith("reject-invariant") or lower.startswith("reject invariant"):
+        rest = stripped.split(None, 2)
+        proposal_id = rest[1] if len(rest) > 1 else ""
+        reason = rest[2] if len(rest) > 2 else ""
+        return ("reject_invariant", {"proposal_id": proposal_id, "reason": reason})
+
+    if lower in ("list proposals", "invariant proposals", "proposals"):
+        return ("list_proposals", {})
+
     return None
 
 

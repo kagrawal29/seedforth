@@ -38,6 +38,8 @@ ALLOWED_BRIDGES = [
     "SCOPES_TO", "ENFORCES_THROUGH", "DECLARES", "EMBODIED_BY", "FOLLOWS",
     "FEEDS", "VALIDATES", "VACATES", "ENFORCED_BY", "HOLDS", "VOICED_BY",
     "HAS_PROTOCOL", "BLOCKED_ON",
+    # Governance provenance — must NEVER be pruned by the immune system
+    "GOVERNS", "DECIDES_ON", "VALIDATES", "ADDRESSES",
 ]
 
 LOG_ONLY = "__LOG_ONLY__"
