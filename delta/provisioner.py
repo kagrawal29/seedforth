@@ -1082,9 +1082,27 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
         bridge.shutdown()
         del bridges[name]
 
-    # 6. Mark as hibernated in registry
-    registry.update(name, status="hibernated")
+    # 6. Mark as hibernated in registry + graph (with timestamp for
+    #    steering-consistency: only work AFTER this time is a violation)
+    from datetime import datetime as _dt, timezone as _tz
+    registry.update(name, status="hibernated", hibernated_at=_dt.now(_tz.utc).isoformat())
     _write_project_event(name, "hibernated")
+    try:
+        import urllib.request, base64, json as _json
+        _auth = base64.b64encode(
+            f"neo4j:9aac5c811e6d4f4f64a00c65666f3528".encode()).decode()
+        _body = _json.dumps({"statements": [{"statement":
+            "MATCH (p:Project {node_id:$pid}) SET p.hibernated_at=datetime(), "
+            "p.status='hibernated', p.updated_at=datetime()",
+            "parameters": {"pid": f"project-{name}"}}]}).encode()
+        _req = urllib.request.Request(
+            "http://127.0.0.1:7474/db/neo4j/tx/commit", data=_body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Basic {_auth}"})
+        with urllib.request.urlopen(_req, timeout=5) as _r:
+            _r.read()
+    except Exception:
+        pass
 
     logger.info(f"{name} hibernated")
     return True

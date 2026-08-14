@@ -40,6 +40,7 @@ ALLOWED_BRIDGES = [
     "HAS_PROTOCOL", "BLOCKED_ON",
     # Governance provenance — must NEVER be pruned by the immune system
     "GOVERNS", "DECIDES_ON", "VALIDATES", "ADDRESSES",
+    "DRIVES",
 ]
 
 LOG_ONLY = "__LOG_ONLY__"

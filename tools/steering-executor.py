@@ -128,6 +128,65 @@ def main():
             else:
                 print(f"    ESCALATE (still failing)")
 
+        elif ptype == "agent_fatal":
+            # Fatal agent = crash-loop. If it has been FATAL for 2+ days,
+            # quarantine it: stop the supervisor program, mark quarantined in
+            # the graph, escalate ONCE and resolve the daily repeat.
+            # Quarantine keeps the config so the agent can be revived after fix.
+            age_days = None
+            try:
+                age_rows = ql(
+                    "MATCH (ap:ActionProposal {node_id:$pid}) "
+                    "RETURN duration.between(ap.generated_at, datetime()).days",
+                    {"pid": pid},
+                )
+                if age_rows and age_rows[0][0] is not None:
+                    age_days = age_rows[0][0]
+            except Exception:
+                pass
+            if age_days is None:
+                age_days = 0
+            if age_days < 2:
+                print(f"    fresh fatal (<2d), leaving for observation")
+                continue
+
+            # Find which agent is fatal
+            fatal_agent = None
+            try:
+                import subprocess as _sp
+                r = _sp.run(["supervisorctl", "status"], capture_output=True,
+                            text=True, timeout=15)
+                for line in r.stdout.split("\n"):
+                    if "FATAL" in line:
+                        fatal_agent = line.split()[0].replace("proj-", "", 1)
+                        break
+            except Exception:
+                pass
+            if not fatal_agent:
+                print(f"    no FATAL agent in supervisor, resolving stale proposal")
+                if not DRY_RUN:
+                    resolve_proposal(pid, "no FATAL agent found, stale proposal")
+                continue
+            if DRY_RUN:
+                print(f"    would quarantine {fatal_agent}")
+                continue
+            _sp = __import__("subprocess")
+            _sp.run(["supervisorctl", "stop", f"proj-{fatal_agent}"],
+                    capture_output=True, timeout=15)
+            try:
+                q(
+                    "MATCH (p:Project {node_id:'project-' + $n}) "
+                    "SET p.status='quarantined', p.lifecycle_state='dormant', "
+                    "p.quarantined_at=datetime(), p.updated_at=datetime()",
+                    {"n": fatal_agent},
+                )
+            except Exception:
+                pass
+            resolve_proposal(
+                pid,
+                f"quarantined crash-looping agent {fatal_agent} (fatal {age_days}d+) — revive after fix",
+            )
+
         elif ptype == "system_health":
             rows = ql(
                 "MATCH (h:SystemHealth) RETURN h.load_15min ORDER BY h.updated_at DESC LIMIT 1"

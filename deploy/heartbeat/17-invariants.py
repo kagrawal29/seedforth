@@ -39,6 +39,7 @@ ALLOWED_BRIDGES = [
     "TOUCHES", "CONCEPTUALLY_RELATED_TO", "RAN", "RESPONDS_TO",
     # Governance layer
     "GOVERNS", "DECIDES_ON", "VALIDATES", "ADDRESSES",
+    "DRIVES",
 ]
 
 

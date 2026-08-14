@@ -189,6 +189,16 @@ def main():
     print(f"=== FLEET SCANNER ({time.strftime('%Y-%m-%d %H:%M')}) ===")
     for name, proj in sorted(targets):
         project_dir = proj.get("project_dir", f"/home/proj-{name}/{name}")
+        status = proj.get("status", "active")
+        # Hibernated projects are not producing. Skipping commit/artifact
+        # scans prevents ghost signals (pre-hibernation commits within the
+        # lookback window showing as "fresh work"). Deploys/outcomes stay —
+        # they are durable point-in-time state, not activity.
+        if status in ("hibernated", "hibernating"):
+            scan_deployments(name, project_dir, since_ts)
+            scan_outcomes(name, project_dir, since_ts)
+            print(f"  scanned (hibernated, activity skipped): {name}")
+            continue
         scan_commits(name, project_dir, since_ts)
         scan_outbox(name, project_dir, since_ts)
         scan_artifacts(name, project_dir, since_ts)

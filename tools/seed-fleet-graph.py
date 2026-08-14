@@ -76,17 +76,19 @@ def seed_fleet():
         if r is not None:
             print(f"  SubAgent: {name} ({run_status})")
 
-    # Seed Hub SubAgent
+    # Seed Hub SubAgent — name must match the fleet-ingest heartbeat name
+    # ("delta-hub") so MERGE collapses into ONE node, not a duplicate.
     run_cypher(
-        'MERGE (sa:SubAgent {node_id:"subagent-delta-hub"}) '
-        'SET sa.name="Delta Hub", sa.role="SuperAgent orchestrator", '
-        'sa.model="deepseek-v4-pro", sa.status="active", sa.owner="Kshitiz"'
+        'MERGE (sa:SubAgent {name:"delta-hub"}) '
+        'SET sa.node_id="subagent-delta-hub", sa.role="SuperAgent orchestrator", '
+        'sa.model="deepseek-v4-pro", sa.status="active", sa.owner="Kshitiz", '
+        'sa.project="system"'
     )
-    print("  SubAgent: Delta Hub")
+    print("  SubAgent: delta-hub")
 
     # Link Hub → Project (OVERSEES)
     run_cypher(
-        'MATCH (hub:SubAgent {node_id:"subagent-delta-hub"}) '
+        'MATCH (hub:SubAgent {name:"delta-hub"}) '
         'MATCH (p:Project) '
         'WHERE p.name <> "__hub__" '
         'MERGE (hub)-[:OVERSEES]->(p)'
