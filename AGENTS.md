@@ -2,6 +2,16 @@
 
 This is the parent repo for all SeedForth projects. It contains no application code — only this registry and coordination file.
 
+## Core principle — think in graph, not files and scripts
+
+Mycelium (the delta-server Neo4j graph, `bolt://143.110.226.214:7687`) is the system's **program**, not just its memory. New behavior, rules, capabilities, decisions, cadence, and state all live IN the graph as nodes (`:Protocol`, `:CypherAtom`, `:Knowledge`, `:Model`, `:SubAgent`, `:Decision`, …), executed by `graph-runner.py` on heartbeat/dream/deep cadences. Files and scripts are only for external I/O (`:ExternalAtom`) — webhooks, message sending, attachment downloads.
+
+Before writing a Python script or a config file, ask: **does this belong in the graph?** Write a node and let the graph-runner execute it.
+
+- Capability is self-describable — `:CypherAtom.semantic` lets agents discover what they can do by meaning.
+- State and the rules that transform it live together — no drift between a script and the data it reads.
+- Hebbian hardening (`fire_count` on `QueryTrace`) only works when the behavior lives in the graph.
+
 ## Conventions
 
 - No emojis in code or commits
@@ -41,6 +51,8 @@ SeedForth/
   tetrahedron/           # Remote server orchestrator
   revti-digital/         # Charlie agent system for Revti Digital
   flowing-indian/        # Flowing Indian website (Next.js, Vercel)
+  sceneforth-os/         # Sceneforth OS Starter Reel Pack micro-earner (Next.js, local only)
+  seedforthing/          # SeedForth dream-to-reality pipeline (PPIS lead-gen game, Delta-managed)
 ```
 
 ## Project Registry
@@ -65,8 +77,11 @@ SeedForth/
 | Flowing Indian | `flowing-indian/` | `kartiksahu/flowing-indian-website` | Movement/flow practice site — marketing + events/Razorpay funnel. Deploys to flowingindian.com via Vercel | Next.js 16 / TS / Tailwind | Active |
 | AI Camera Proposal | `ai_camera_proposal/` | local only | AI road inspection proposal docs | — | Config-only |
 | Delta Hub | `delta-projects/delta-hub/` | `kagrawal29/delta-hub` | Delta ecosystem hub | — | Hibernating |
-| Mycelium | `tetrahedron/projects/mycelium/` | `kagrawal29/mycelium` | Living knowledge graph — Neo4j + APOC + Qdrant + Ollama. Self-maintaining, fractal, Hebbian panel, dream engine. Upstream of maverick. | Python / Cypher | Active |
-| Maverick | `tetrahedron/projects/maverick/` | `Qubit-Capital/maverick` | Team distribution of mycelium for Qubit Capital residency. What teammates clone and install. Syncs from kagrawal29/mycelium. | Python / Cypher | Active |
+| Mycelium | `tetrahedron/projects/mycelium/` (repo); graph on delta-server `mycelium-neo4j` :7687 | `kagrawal29/mycelium` | **Single source of truth** — living knowledge graph mapping complete system state (projects, agents, goals, tools, decisions, fleet health). Neo4j + APOC + Qdrant + Ollama. Delta and Charlie are interfaces over it. | Python / Cypher | Active |
+| Maverick | `tetrahedron/projects/maverick/` | `Qubit-Capital/maverick` | Deprecated team-distribution fork of mycelium for Qubit Capital residency. Not part of SeedForth's active system; its CLI references are purged. | Python / Cypher | Deprecated |
+| Sceneforth OS | `sceneforth-os/` | local only | Starter Reel Pack micro-earner — guided brand intake, bespoke campaign concept preview, test-mode Razorpay checkout gate. Thin customer-facing slice of the wider Sceneforth OS vision; not the full production system. Built, local-only, not deployed. | Next.js 16 / TS strict / Tailwind | Built (not live) |
+| Heritage Food Diary | `heritage-diaries` (delta-managed, server-only) | local only | Om Kanwar's heritage food brand — agentic brand-partnership machine (₹10L/mo goal). First Charlie OS deployment: one CEO agent (Charlie) over revenue/research/operations divisions. Uses WhatsApp + LinkedIn + Instagram (Unipile). | Python / Delta | Active |
+| Seedforthing | `seedforthing/` | local only | SeedForth's own dream-to-reality pipeline — PPIS lead-gen game (LinkedIn outreach via Unipile, 9-min sprint, 21-day arc) with a self-healing coordinator. | Python / JS | Active |
 
 ### Relationships
 
@@ -75,7 +90,11 @@ SeedForth/
 - **delta** was extracted from tetrahedron into its own repo; server path is `/opt/delta`
 - **delta-projects/** is a container folder — individual projects inside have their own repos
 - **Solve OS** is SeedForth's commercial entry product — uses LinkedIn signals to match problems to solvers, lead gen first
-- **Mycelium** is upstream; **Maverick** is the team-distribution fork. Work lands on `kagrawal29/mycelium`; syncs over to `Qubit-Capital/maverick` via PR for teammates to pull. The forest lives on pulse-server (Neo4j dev:7698, prod:7699 behind bolt-proxy), shared Qdrant on pulse + delta.
+- **Mycelium is the single source of truth.** The living graph lives on delta-server (`mycelium-neo4j`, `bolt://143.110.226.214:7687`, ~15k nodes). It maps complete system state — projects, agents, goals, tools, decisions, fleet health — and is kept current by the ingest/heartbeat cron. Delta and Charlie are interfaces that navigate it.
+- **Maverick is deprecated.** The old Qubit-Capital team-distribution CLI + pulse-server graphs (bolt-proxy :7698/:7699) are legacy and off-limits for SeedForth operations. References are purged from the agent templates.
+- **Delta platform has two personas per project:** **Delta** (internal/Discord, full access) and **Charlie** (client-facing/WhatsApp, warm non-technical voice, scoped permissions). Clients see only Charlie.
+- **Messaging channels:** **WhatsApp** via `whatsapp_webhook.py` + `whatsapp_config.json` on delta-server (agent number `+48 739 478 485`, routing in `/opt/delta/tools/whatsapp_config.json`). **LinkedIn + Instagram** via **Unipile** (`api38.unipile.com:16885`). Separate mechanisms.
+- **Charlie OS** is the "one CEO agent over divisions" pattern, first deployed in **Heritage Food Diary**. Its intelligence layer is the mycelium graph — agents read/write it via `graph-tool.py`.
 
 ### Per-Project CLAUDE.md — Session Continuity
 
