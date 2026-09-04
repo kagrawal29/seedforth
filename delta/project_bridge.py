@@ -498,7 +498,7 @@ class ProjectBridge:
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     data = json.loads(resp.read().decode())
 
-                in_progress = data.get("in_progress", [])
+                in_progress = data.get("in_progress", []) if isinstance(data, dict) else []
                 current_items = set(
                     str(item) for item in in_progress
                 )
