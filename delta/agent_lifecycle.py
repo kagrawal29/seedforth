@@ -162,7 +162,10 @@ def start_agent_serve(project_name: str, serve_port: int, project_dir: str,
     if not os.path.exists(config_path):
         _write_supervisor_config(project_name, serve_port, project_dir, user, env)
     _set_autostart(project_name, True)
-    _run(["supervisorctl", "start", f"proj-{project_name}"], check=True)
+    try:
+        _run(["supervisorctl", "start", f"proj-{project_name}"], check=True)
+    except subprocess.CalledProcessError:
+        pass  # already running
     return _wait_for_healthy(serve_port)
 
 
