@@ -408,12 +408,8 @@ class ProjectBridge:
 
     def watch_progress(self, callback: Callable[[str], None],
                         rate_limit: int = 25) -> None:
-        """Poll progress signals and synthesize human messages.
-
-        Dispatches to opencode HTTP polling or legacy file-based watching
-        depending on self.runtime.
-        """
-        if self.runtime == "opencode" and self.serve_port:
+        """Poll progress signals and synthesize human messages."""
+        if self.serve_port:
             self._watch_progress_opencode(callback, rate_limit)
             return
 
