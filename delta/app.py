@@ -2816,16 +2816,6 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
 
     # Wake from hibernation if needed
     if project.status == "hibernated":
-        if project.runtime != "opencode":
-            hub_bridge = bridges.get(HUB_NAME)
-            if hub_bridge:
-                auth_err = hub_bridge.check_auth_error()
-                if auth_err:
-                    logger.warning(f"Auth failure before waking {project_name}: {auth_err}")
-                    await message.channel.send(
-                        "I'm having trouble connecting right now. The admin has been notified."
-                    )
-                    return
         logger.info(f"Restoring hibernated persistent agent '{project_name}' on DM")
         await message.channel.send("waking up, one sec")
         restore(project_name, registry)
@@ -3105,16 +3095,6 @@ async def on_message(message: discord.Message):
     # Check if hibernated and restore
     proj_info = registry.get(project_name)
     if proj_info and proj_info.status == "hibernated":
-        if proj_info.runtime != "opencode":
-            hub_bridge = bridges.get(HUB_NAME)
-            if hub_bridge:
-                auth_err = hub_bridge.check_auth_error()
-                if auth_err:
-                    logger.warning(f"Auth failure detected before wake for {project_name}: {auth_err}")
-                    await message.channel.send(
-                        "I'm having trouble connecting right now. The admin has been notified."
-                    )
-                    return
         logger.info(f"Restoring hibernated project '{project_name}' on channel message")
         await message.channel.send("waking up, one sec")
         restore(project_name, registry)
@@ -3135,13 +3115,8 @@ async def on_message(message: discord.Message):
 
     bridge.touch_activity()
 
-    # Check for auth failure before processing -- tell the user instead of silence.
-    # Check project bridge first, fall back to hub (project pane may be fresh with no errors yet).
+    # Check for auth failure before processing
     auth_err = bridge.check_auth_error()
-    if not auth_err and bridge.runtime != "opencode":
-        hub_bridge = bridges.get(HUB_NAME)
-        if hub_bridge:
-            auth_err = hub_bridge.check_auth_error()
     if auth_err:
         logger.warning(f"Auth failure detected for {project_name}: {auth_err}")
         await message.channel.send(
@@ -3170,29 +3145,15 @@ async def on_message(message: discord.Message):
                     await message.channel.send("couldn't restart. let an admin know.")
                 return
 
-    # Detect frustration: short message + pending inbox = agent stuck
-    # Skip for opencode projects — they use HTTP delivery, not inbox files
-    if bridge.runtime != "opencode":
-        pending = bridge.pending_inbox_count()
-        if (pending > 0
-                and len(text) < 30
-                and text.lower().strip().rstrip("?!.") in _FRUSTRATION_PATTERNS):
-            _restart_offers[channel_id] = (project_name, time.time())
-            await message.channel.send(
-                f"your agent seems stuck on something. want me to give it a kick?"
-            )
-            return
-
     # User re-engaged -- cancel any pending follow-ups
     cancelled = bridge.cancel_pending_followups()
     if cancelled:
         logger.info(f"Cancelled {cancelled} pending followup(s) for {project_name}")
 
-    if bridge.runtime == "opencode":
-        user_name = message.author.display_name or message.author.name
-        msg_id = f"msg-{int(time.time())}-{os.urandom(2).hex()}"
-        _start_typing(message.channel, channel_id)
-        logger.info(f"{message.author} -> {project_name}: {text[:80]}")
+    user_name = message.author.display_name or message.author.name
+    msg_id = f"msg-{int(time.time())}-{os.urandom(2).hex()}"
+    _start_typing(message.channel, channel_id)
+    logger.info(f"{message.author} -> {project_name}: {text[:80]}")
 
         def _send_to_discord(ch_id, resp_text):
             _stop_typing(ch_id)
