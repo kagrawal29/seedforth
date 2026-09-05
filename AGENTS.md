@@ -2,9 +2,11 @@
 
 ## What It Is
 
-Delta is a Discord bot that gives each project its own Claude Code instance. Users talk in Discord, Delta routes messages to isolated Claude Code processes via tmux, and Claude Code responds through a file-based bridge (inbox/outbox JSON files).
+Delta is a Discord bot that gives each project its own opencode agent, with two personas per project: **Delta** (internal/Discord) and **Charlie** (client-facing/WhatsApp). Users talk in Discord, Delta routes messages to isolated opencode agents running under supervisord, and the agent responds through a file-based bridge (inbox/outbox JSON files) plus an HTTP delivery path.
 
 A hub orchestrator handles DMs and @mentions -- it knows about all projects, can route users to project channels, and can create new projects on request.
+
+> Runtime is **opencode** (DeepSeek + OpenRouter APIs), not Claude Code. The tmux + Claude Code architecture is legacy. See `docs/migration-to-opencode.md` for the current spec.
 
 ## Architecture
 
@@ -12,9 +14,9 @@ A hub orchestrator handles DMs and @mentions -- it knows about all projects, can
 Discord message
   -> app.py (event handler)
   -> router.py (resolve channel/DM to project or hub)
-  -> project_bridge.py (write inbox JSON, nudge tmux pane)
-  -> Claude Code reads inbox, does work, writes outbox JSON
-  -> app.py outbox watcher sends response to Discord
+  -> project_bridge.py (write inbox JSON, deliver over HTTP)
+  -> opencode serve reads message, does work, replies over HTTP
+  -> app.py sends response to Discord
 ```
 
 ### System Users
@@ -22,12 +24,12 @@ Discord message
 ```
 delta (system user)          -- runs Discord bot process, owns /opt/delta
   |
-  +-- proj-delta-hub         -- runs Claude Code for hub (DMs + @mentions)
-  +-- proj-{project-name}    -- runs Claude Code per project (isolated)
+  +-- proj-delta-hub         -- runs opencode for hub (DMs + @mentions)
+  +-- proj-{project-name}    -- runs opencode per project (isolated)
 ```
 
-- `delta` user runs the Python bot process via systemd. It routes messages, manages bridges, polls outboxes. It never runs Claude Code directly.
-- `proj-*` users are sandboxed Linux users. Each runs their own Claude Code in a tmux session. They can only access their own home directory.
+- `delta` user runs the Python bot process via systemd. It routes messages, manages bridges, polls outboxes. It never runs the agent directly.
+- `proj-*` users are sandboxed Linux users. Each runs their own `opencode serve` under supervisord. They can only access their own home directory.
 - `delta` has scoped sudo: can create/delete project users, run commands as proj-* users, manage services.
 
 ### Directory Layout (Server)
@@ -109,7 +111,95 @@ Delta operates on the SeedForth Discord server with these channel types:
 - Have access to: Vercel (deploy), Rube MCP (Google services), GitHub (push/issues), Unipile (LinkedIn)
 - Maintain their own SEED.md, schedule, and conversation logs
 
-### Message Flow Detail
+### Agent Lifecycle & Conversation Flow (opencode runtime)
+
+This is the current (post-migration) flow. The tmux/Claude code path below is legacy and
+no longer in use since all agents were migrated to opencode serve.
+
+**Agents are persistent HTTP servers, not spawned per-message.**
+
+Each agent runs as `opencode serve --port {N}` under supervisord, as its own Linux user.
+The process stays alive 24/7 listening on localhost:{port}. It consumes ~270 MB at idle
+(Node.js runtime + opencode framework). This RAM is NEVER released while the process runs.
+
+#### Full message flow
+
+```
+Discord message
+  -> app.py (discord.py gateway, on_message event)
+  -> router.py resolve_channel(channel_id) -> project name
+  -> app.py _get_or_create_bridge(name) -> ProjectBridge instance
+  -> bridge.deliver_message() [app.py:3237]
+     1. Writes to logs/{today}.jsonl for conversation history
+     2. Spawns thread that POSTs to http://127.0.0.1:{port}/session/{sid}/message
+     3. OpenCode server:
+        a. Checks if session {sid} exists
+        b. If expired: creates new session, loads CLAUDE.md + SEED.md + AGENTS.md (~3-5s)
+        c. If active: context already loaded, instant (<1s)
+     4. LLM processes, returns response in HTTP response body
+     5. Bridge fires callback(channel_id, response_text)
+     6. app.py sends response to Discord channel
+```
+
+#### What "waking up" means
+
+"Waking up" is when the **LLM session context** has expired and needs to be reloaded.
+The process itself is always running. There is no process-level wake/sleep cycle.
+
+- **Session alive** (messaged recently): context cached, instant response
+- **Session expired** (idle > some period): reloads CLAUDE.md + SEED.md, 3-5 seconds
+- **"Typing" indicator**: Delta bot got the message, bridge delivered it, agent is processing
+
+There is NO explicit waking up message sent. The agent silently loads context and responds.
+
+#### Memory model
+
+| State | RAM usage | OpenCode process | LLM session |
+|---|---|---|---|
+| **RUNNING idle** | ~270 MB | Alive | Expired, no context loaded |
+| **RUNNING processing** | ~270-350 MB | Alive | Active, context+history loaded |
+| **STOPPED** | 0 MB | Dead | None |
+| **HIBERNATED (delta concept)** | ~270 MB | Alive (if autostart=true) | Expired |
+
+The "hibernation" in delta (`resource_manager.py`) only stops the **bridge** from
+polling outboxes. It does NOT stop the agent process itself unless the supervisor
+config has `autostart=false` and you `supervisorctl stop` it.
+
+To actually free RAM for an inactive project:
+```
+supervisorctl stop proj-{name}   # kills process, frees ~270 MB
+# Then set autostart=false in /etc/supervisor/conf.d/proj-{name}.conf
+# to prevent it starting on reboot
+```
+
+#### Hibernate vs stop vs delete
+
+| Action | Process | RAM freed | Data kept | Restartable |
+|---|---|---|---|---|
+| Delta hibernate | Bridge only stops polling | 0 MB | All data | Auto on message |
+| supvervisor stop | Kill process | ~270 MB | All data | supervisor start |
+| supervisor stop + autostart=false | Kill + no auto-restart | ~270 MB | All data | Manual start |
+| Archive + delete | Tar home dir, delete user | All | In /opt/delta/archived-projects/ | Restore from tar |
+
+#### When does RAM get freed
+
+- **Immediately** when `supervisorctl stop proj-{name}` kills the process
+- **NOT on delta-level hibernate** -- "hibernate" just marks the registry and stops
+  the bridge watcher. opencode serve keeps running.
+- **On reboot** if `autostart=false` -- process won't start at all
+
+#### Diagnosing stuck agents
+
+1. Check if process is alive: `supervisorctl status proj-{name}`
+2. Check for crash loops: `tail -50 {project_dir}/delta-config/logs/opencode-stderr.log`
+3. Check for config errors: look for `Configuration is invalid` or `lsp.disable` in stderr
+4. Stale inbox files can cause agents to process old tasks before responding: `ls {project_dir}/inbox/`
+5. Permission errors: delta user needs `o+x` on `/home/proj-*/` to traverse into inbox dirs
+
+### Legacy Message Flow (tmux + Claude Code)
+
+This flow is deprecated and was replaced by the opencode HTTP path above.
+Kept for historical reference only.
 
 1. User sends Discord message
 2. `app.py` receives via discord.py gateway
