@@ -12,10 +12,6 @@ import time
 from pathlib import Path
 
 from delta.agent_lifecycle import start_agent_serve, stop_agent_serve
-from delta.lifecycle import (
-    start_claude_code, stop_claude_code, create_tmux_session, kill_tmux_session,
-    _allocate_port, start_ttyd, stop_ttyd,
-)
 from delta.registry import ProjectInfo, Registry
 
 logger = logging.getLogger(__name__)
@@ -485,6 +481,22 @@ def _setup_project_dirs(name: str, github_repo: str = "",
     return project_dir, data_dir, username
 
 
+def _allocate_port(registry, range_start: int = 8000, range_end: int = 8999) -> int:
+    """Allocate an available port, skipping assigned ports in the registry."""
+    assigned = set()
+    if registry:
+        for pname in registry.list_projects():
+            info = registry.get(pname)
+            if info:
+                assigned.add(getattr(info, "serve_port", 0))
+                assigned.add(getattr(info, "web_port", 0))
+                assigned.add(getattr(info, "ttyd_port", 0))
+    for port in range(range_start, range_end + 1):
+        if port not in assigned:
+            return port
+    raise RuntimeError(f"No available ports in range {range_start}–{range_end}")
+
+
 def _finalize_project(name: str, project_dir: str, data_dir: str,
                       username: str, discord_channel_id: str,
                       github_repo: str, owner_discord_id: str,
@@ -492,23 +504,12 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
                       project_type: str = "standard",
                       admin_brief: str = "",
                       unipile_account_id: str = "",
-                      runtime: str = "claude") -> ProjectInfo:
-    """Write CLAUDE.md, launch agent, register.
-
-    Dispatches on runtime: claude uses tmux + Claude Code, opencode uses
-    supervisord + opencode serve.
-    """
+                      runtime: str = "opencode") -> ProjectInfo:
+    """Write CLAUDE.md, launch opencode agent, register."""
     tmux_session = f"proj-{name}"
     tmux_pane = f"{tmux_session}:lead"
     server_host = os.getenv("DELTA_SERVER_HOST", "")
-
-    # Allocate ttyd / web port early for CLAUDE.md URL
-    if runtime == "claude":
-        port = _allocate_port(registry)
-        ttyd_url = f"http://{server_host}:{port}" if server_host and port else ""
-    else:
-        port = 0
-        ttyd_url = f"http://{server_host}:8280" if server_host else ""
+    ttyd_url = f"http://{server_host}:8280" if server_host else ""
 
     # Write CLAUDE.md from template -- select template based on project_type
     if project_type == "personal":
@@ -548,100 +549,96 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
 
     # ---------------------------------------------------------------
     # OPENCODE RUNTIME: opencode.jsonc + supervisor
-    # ---------------------------------------------------------------
-    if runtime == "opencode":
-        # Write project-level opencode.jsonc (role-based model + subagents)
-        from delta.registry import ProjectInfo as _PI
-        tmp_info = _PI(
-            name=name, project_dir=project_dir, data_dir=f"{project_dir}/delta-config",
-            tmux_session="", tmux_lead_pane="", role=_project_role(project_type),
-        )
-        _write_opencode_jsonc(tmp_info)
-        logger.info(f"Wrote opencode.jsonc to {project_dir}")
+    from delta.registry import ProjectInfo as _PI
+    tmp_info = _PI(
+        name=name, project_dir=project_dir, data_dir=f"{project_dir}/delta-config",
+        tmux_session="", tmux_lead_pane="", role=_project_role(project_type),
+    )
+    _write_opencode_jsonc(tmp_info)
+    logger.info(f"Wrote opencode.jsonc to {project_dir}")
 
-        # Add opencode artifacts to .gitignore
-        gitignore_path = Path(project_dir) / ".gitignore"
-        existing = gitignore_path.read_text() if gitignore_path.exists() else ""
-        additions = []
-        if "opencode.jsonc" not in existing:
-            additions.append("opencode.jsonc")
-        if ".opencode/" not in existing:
-            additions.append(".opencode/")
-        if additions:
-            gitignore_path.write_text(existing + "\n" + "\n".join(additions) + "\n")
+    # Add opencode artifacts to .gitignore
+    gitignore_path = Path(project_dir) / ".gitignore"
+    existing = gitignore_path.read_text() if gitignore_path.exists() else ""
+    additions = []
+    if "opencode.jsonc" not in existing:
+        additions.append("opencode.jsonc")
+    if ".opencode/" not in existing:
+        additions.append(".opencode/")
+    if additions:
+        gitignore_path.write_text(existing + "\n" + "\n".join(additions) + "\n")
 
-        # Allocate serve and web ports
-        serve_port = _allocate_port(registry, range_start=7700, range_end=7899)
-        web_port = _allocate_port(registry, range_start=7900, range_end=8099)
+    # Allocate serve and web ports
+    serve_port = _allocate_port(registry, range_start=7700, range_end=7899)
+    web_port = _allocate_port(registry, range_start=7900, range_end=8099)
 
-        # Fix file ownership and make initial git commit
-        if username:
-            import subprocess as _sp
-            for fname in ["CLAUDE.md", ".gitignore", "opencode.jsonc"]:
-                fpath = Path(project_dir) / fname
-                if fpath.exists():
-                    _sp.run(["sudo", "chown", f"{username}:", str(fpath)],
-                            capture_output=True, text=True)
-            from delta.isolation import run_as_user
-            run_as_user(username, f"git -C {project_dir} add -A")
-            run_as_user(username, f'git -C {project_dir} commit -m "Initial project setup"')
-        else:
-            import subprocess as _sp
-            _sp.run(["git", "-C", project_dir, "add", "-A"],
-                    capture_output=True, text=True)
-            _sp.run(["git", "-C", project_dir, "commit", "-m", "Initial project setup"],
-                    capture_output=True, text=True)
+    # Fix file ownership and make initial git commit
+    if username:
+        import subprocess as _sp
+        for fname in ["CLAUDE.md", ".gitignore", "opencode.jsonc"]:
+            fpath = Path(project_dir) / fname
+            if fpath.exists():
+                _sp.run(["sudo", "chown", f"{username}:", str(fpath)],
+                        capture_output=True, text=True)
+        from delta.isolation import run_as_user
+        run_as_user(username, f"git -C {project_dir} add -A")
+        run_as_user(username, f'git -C {project_dir} commit -m "Initial project setup"')
+    else:
+        import subprocess as _sp
+        _sp.run(["git", "-C", project_dir, "add", "-A"],
+                capture_output=True, text=True)
+        _sp.run(["git", "-C", project_dir, "commit", "-m", "Initial project setup"],
+                capture_output=True, text=True)
 
-        # Set up GitHub repo in Seedforth org and push initial commit
-        seedforth_repo = _setup_github_repo(name, project_dir, username, github_repo)
-        if seedforth_repo and username:
-            from delta.isolation import run_as_user
-            branch = "master"
-            run_as_user(username, f"git -C {project_dir} push -u origin {branch} 2>/dev/null || true")
-            logger.info(f"Pushed initial commit to {seedforth_repo}")
-        elif seedforth_repo:
-            import subprocess as _sp
-            _sp.run(["git", "-C", project_dir, "push", "-u", "origin", "master"],
-                    capture_output=True, text=True)
+    # Set up GitHub repo in Seedforth org and push initial commit
+    seedforth_repo = _setup_github_repo(name, project_dir, username, github_repo)
+    if seedforth_repo and username:
+        from delta.isolation import run_as_user
+        branch = "master"
+        run_as_user(username, f"git -C {project_dir} push -u origin {branch} 2>/dev/null || true")
+        logger.info(f"Pushed initial commit to {seedforth_repo}")
+    elif seedforth_repo:
+        import subprocess as _sp
+        _sp.run(["git", "-C", project_dir, "push", "-u", "origin", "master"],
+                capture_output=True, text=True)
 
-        # Start agent via supervisor
-        extra_env: dict = {}
-        if project_type == "linkedin" and unipile_account_id:
-            extra_env["UNIPILE_ACCOUNT_ID"] = unipile_account_id
-            for key in ("UNIPILE_DSN", "UNIPILE_API_KEY"):
-                val = os.environ.get(key, "")
-                if val:
-                    extra_env[key] = val
-        start_agent_serve(name, serve_port, project_dir, username,
-                          extra_env=extra_env if extra_env else None)
+    # Start agent via supervisor
+    extra_env: dict = {}
+    if project_type == "linkedin" and unipile_account_id:
+        extra_env["UNIPILE_ACCOUNT_ID"] = unipile_account_id
+        for key in ("UNIPILE_DSN", "UNIPILE_API_KEY"):
+            val = os.environ.get(key, "")
+            if val:
+                extra_env[key] = val
+    start_agent_serve(name, serve_port, project_dir, username,
+                      extra_env=extra_env if extra_env else None)
 
-        # Register
-        info = ProjectInfo(
-            name=name,
-            project_dir=project_dir,
-            data_dir=data_dir,
-            tmux_session=tmux_session,
-            tmux_lead_pane=tmux_pane,
-            nudge_prefix="delta-config/inbox",
-            github_repo=seedforth_repo or github_repo,
-            linux_user=username,
-            discord_channel_id=discord_channel_id,
-            owner_discord_id=owner_discord_id,
-            is_dream_space=is_dream_space,
-            ttyd_port=0,
-            project_type=project_type,
-            runtime="opencode",
-            serve_port=serve_port,
-            web_port=web_port,
-            supervisor_program=f"proj-{name}",
-            role=_project_role(project_type),
-        )
-        registry.add(info)
+    # Register
+    info = ProjectInfo(
+        name=name,
+        project_dir=project_dir,
+        data_dir=data_dir,
+        tmux_session=tmux_session,
+        tmux_lead_pane=tmux_pane,
+        nudge_prefix="delta-config/inbox",
+        github_repo=seedforth_repo or github_repo,
+        linux_user=username,
+        discord_channel_id=discord_channel_id,
+        owner_discord_id=owner_discord_id,
+        is_dream_space=is_dream_space,
+        ttyd_port=0,
+        project_type=project_type,
+        runtime="opencode",
+        serve_port=serve_port,
+        web_port=web_port,
+        supervisor_program=f"proj-{name}",
+        role=_project_role(project_type),
+    )
+    registry.add(info)
 
-        return info
+    return info
 
     # ---------------------------------------------------------------
-    # CLAUDE RUNTIME: hooks, settings, trust, tmux (existing code)
     # ---------------------------------------------------------------
 
     # Copy hooks directory into project
@@ -793,7 +790,7 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
                     admin_brief: str = "",
                     target_user_id: str = "",
                     unipile_account_id: str = "",
-                    runtime: str = "claude") -> ProjectInfo:
+                    runtime: str = "opencode") -> ProjectInfo:
     """Provision a new project end-to-end.
 
     Creates a new Discord channel, sets up project files, launches Claude Code.
@@ -840,7 +837,7 @@ async def provision_in_channel(name: str, registry: Registry, discord_bot, guild
                                project_type: str = "standard",
                                admin_brief: str = "",
                                unipile_account_id: str = "",
-                               runtime: str = "claude") -> ProjectInfo:
+                               runtime: str = "opencode") -> ProjectInfo:
     """Provision a project using an existing Discord channel.
 
     Same as provision() but skips channel creation and uses the given channel_id.
@@ -891,7 +888,7 @@ def refresh_templates(registry) -> int:
             continue
 
         # Dispatch on runtime for agent restart
-        project_runtime = getattr(info, "runtime", "claude")
+        project_runtime = getattr(info, "runtime", "opencode")
 
         server_host = os.getenv("DELTA_SERVER_HOST", "")
         ttyd_port = getattr(info, "ttyd_port", 0)
@@ -1050,7 +1047,7 @@ def git_save(project_dir: str, linux_user: str = "") -> bool:
 
 
 def hibernate(name: str, registry, bridges: dict) -> bool:
-    """Hibernate a project: save state, stop agent, kill session, shutdown bridge.
+    """Hibernate a project: save state, stop agent, shutdown bridge.
 
     Does NOT delete project dir or Discord channel.
     Returns True on success.
@@ -1065,25 +1062,16 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
     # 1. Git save
     git_save(info.project_dir, info.linux_user)
 
-    # 2. Stop web terminal / agent based on runtime
-    project_runtime = getattr(info, "runtime", "claude")
-    if project_runtime == "opencode":
-        stop_agent_serve(name, keep_config=True)
-    else:
-        stop_ttyd(name)
-        # 3. Stop Claude Code
-        stop_claude_code(info.tmux_lead_pane, grace=5)
-        # 4. Kill tmux session
-        kill_tmux_session(info.tmux_session)
+    # 2. Stop opencode agent
+    stop_agent_serve(name, keep_config=True)
 
-    # 5. Shutdown bridge watchers
+    # 3. Shutdown bridge watchers
     bridge = bridges.get(name)
     if bridge:
         bridge.shutdown()
         del bridges[name]
 
-    # 6. Mark as hibernated in registry + graph (with timestamp for
-    #    steering-consistency: only work AFTER this time is a violation)
+    # 4. Mark as hibernated in registry + graph
     from datetime import datetime as _dt, timezone as _tz
     registry.update(name, status="hibernated", hibernated_at=_dt.now(_tz.utc).isoformat())
     _write_project_event(name, "hibernated")
@@ -1109,10 +1097,9 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
 
 
 def restore(name: str, registry) -> bool:
-    """Restore a hibernated project: re-launch agent, mark active.
+    """Restore a hibernated project: re-launch opencode agent, mark active.
 
     Project dir and git repo already exist.
-    Dispatches on runtime: opencode uses supervisor, claude uses tmux.
     Returns True on success.
     """
     info = registry.get(name)
@@ -1126,41 +1113,10 @@ def restore(name: str, registry) -> bool:
 
     logger.info(f"Restoring {name}")
 
-    project_runtime = getattr(info, "runtime", "claude")
-
-    if project_runtime == "opencode":
-        start_agent_serve(
-            name, info.serve_port, info.project_dir,
-            info.linux_user or None,
-        )
-    else:
-        # Ensure .claude.json exists (prevents theme/onboarding prompts)
-        if info.linux_user:
-            user_home = Path(f"/home/{info.linux_user}")
-            claude_json = user_home / ".claude.json"
-            if user_home.exists() and not claude_json.exists():
-                claude_json.write_text(json.dumps({
-                    "theme": "dark",
-                    "hasCompletedOnboarding": True,
-                }))
-                import subprocess as _sp
-                _sp.run(["sudo", "chown", f"{info.linux_user}:", str(claude_json)],
-                        capture_output=True, text=True)
-
-        # Re-create tmux session
-        create_tmux_session(info.tmux_session)
-
-        # Start Claude Code
-        start_claude_code(
-            info.project_dir, info.tmux_lead_pane,
-            linux_user=info.linux_user or None,
-        )
-
-        # Restart web terminal
-        port = info.ttyd_port or _allocate_port(registry)
-        start_ttyd(name, info.tmux_session, port)
-        if not info.ttyd_port:
-            registry.update(name, ttyd_port=port)
+    start_agent_serve(
+        name, info.serve_port, info.project_dir,
+        info.linux_user or None,
+    )
 
     # Mark as active
     from datetime import datetime, timezone
@@ -1176,27 +1132,14 @@ def restore(name: str, registry) -> bool:
 
 
 async def teardown(name: str, registry: Registry, discord_bot, guild) -> bool:
-    """Tear down a project completely.
-
-    Dispatches on runtime: opencode uses supervisor stop, claude uses tmux kill.
-    Returns True on success.
-    """
+    """Tear down a project completely. Returns True on success."""
     info = registry.get(name)
     if not info:
         raise ValueError(f"Project '{name}' not found")
 
-    tmux_session = info.tmux_session
-    tmux_pane = info.tmux_lead_pane
-    project_runtime = getattr(info, "runtime", "claude")
-
-    # 1. Stop agent
+    # 1. Stop opencode agent
     logger.info(f"Stopping agent for {name}")
-    if project_runtime == "opencode":
-        stop_agent_serve(name, keep_config=False)
-    else:
-        stop_ttyd(name)
-        stop_claude_code(tmux_pane)
-        kill_tmux_session(tmux_session)
+    stop_agent_serve(name, keep_config=False)
 
     # 2. Delete Discord channel
     if discord_bot and guild and info.discord_channel_id:

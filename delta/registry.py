@@ -29,7 +29,7 @@ class ProjectInfo:
                  last_activity: str = "", ttyd_port: int = 0,
                  project_type: str = "standard",
                  unipile_account_id: str = "",
-                 runtime: str = "claude",
+                 runtime: str = "opencode",
                   serve_port: int = 0,
                   web_port: int = 0,
                    supervisor_program: str = "",

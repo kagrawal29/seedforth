@@ -24,11 +24,7 @@ _delta_dir = Path(__file__).parent.parent
 load_dotenv(_delta_dir / os.environ.get("DELTA_CONFIG_FILE", "delta.env"))
 
 from delta import commands
-from delta.lifecycle import (
-    is_claude_running, is_session_alive, get_project_health,
-    start_claude_code, stop_claude_code,
-    create_tmux_session, _allocate_port, start_ttyd,
-)
+from delta.agent_lifecycle import is_agent_running
 from delta.project_bridge import ProjectBridge
 from delta.provisioner import provision, provision_in_channel, teardown, restore, LOCAL_MODE, LOCAL_PROJECTS_DIR
 from delta.registry import Registry
@@ -163,11 +159,9 @@ def _get_or_create_bridge(project_name: str) -> ProjectBridge | None:
     bridge = ProjectBridge(
         name=info.name,
         data_dir=info.data_dir,
-        tmux_lead_pane=info.tmux_lead_pane,
         nudge_prefix=info.nudge_prefix,
         serve_port=info.serve_port,
         session_id=getattr(info, "session_id", ""),
-        runtime=getattr(info, "runtime", "claude"),
         session_persist=lambda pname, sid: registry.update(pname, session_id=sid),
     )
     # Restore last_activity from registry so the resource manager
@@ -1061,14 +1055,11 @@ def _format_project_status(name: str) -> str:
     if info.status == "hibernated":
         return f"**{name}** -- hibernated (will wake on contact)"
 
-    if info.runtime == "opencode":
-        health = {"agent_running": is_agent_running(info.serve_port), "session_alive": True}
-    else:
-        health = get_project_health(info.tmux_lead_pane)
+    agent_ok = is_agent_running(info.serve_port)
     bridge = _get_or_create_bridge(name)
     pending = bridge.pending_inbox_count() if bridge else 0
 
-    if health.get("agent_running", health.get("claude_running")):
+    if agent_ok:
         auth_err = bridge.check_auth_error() if bridge else None
         if auth_err:
             status_line = "running but auth expired -- messages stuck"
@@ -1076,10 +1067,8 @@ def _format_project_status(name: str) -> str:
             status_line = "running, messages waiting"
         else:
             status_line = "running, idle"
-    elif health["session_alive"]:
-        status_line = "stopped"
     else:
-        status_line = "offline"
+        status_line = "stopped"
 
     # Show active tasks from schedule
     schedule = bridge.get_schedule() if bridge else []
@@ -1110,19 +1099,15 @@ def _format_all_status() -> str:
         if info.status == "hibernated":
             lines.append(f"`z` **{name}** | hibernated | owner: <@{owner}>")
             continue
-        agent_ok = is_agent_running(info.serve_port) if info.runtime == "opencode" else None
-        if info.runtime != "opencode":
-            health = get_project_health(info.tmux_lead_pane)
-        else:
-            health = {"claude_running": False}
+        agent_ok = is_agent_running(info.serve_port)
         bridge = _get_or_create_bridge(name)
         pending = bridge.pending_inbox_count() if bridge else 0
-        auth_err = bridge.check_auth_error() if bridge and (agent_ok or health["claude_running"]) else None
+        auth_err = bridge.check_auth_error() if bridge and agent_ok else None
         ram = _get_user_ram(info.linux_user) if info.linux_user else "?"
         if auth_err:
             icon = "!"
             state = "auth expired"
-        elif not (agent_ok if info.runtime == "opencode" else health["claude_running"]):
+        elif not agent_ok:
             icon = "-"
             state = "stopped"
         elif pending > 0:
@@ -1975,12 +1960,7 @@ async def _hub_snapshot_loop():
                 if not info:
                     continue
                 if info.status == "active":
-                    if info.runtime == "opencode":
-                        health = {"agent_running": is_agent_running(info.serve_port), "session_alive": True}
-                        health_str = "running" if health["agent_running"] else "stopped"
-                    else:
-                        health = get_project_health(info.tmux_lead_pane)
-                        health_str = "running" if health["claude_running"] else "stopped"
+                    health_str = "running" if is_agent_running(info.serve_port) else "stopped"
                 else:
                     health_str = info.status
 
@@ -2152,12 +2132,10 @@ async def _wake_and_get_bridge(project_name: str) -> ProjectBridge | None:
         logger.info(f"Waking {project_name} for scheduled task")
         restore(project_name, registry)
         _start_watchers(project_name)
-        await asyncio.sleep(8)  # Wait for Claude Code to boot
+        await asyncio.sleep(5)
         # Verify it actually started
         info = registry.get(project_name)
-        agent_ok = is_agent_running(info.serve_port) if (info and info.runtime == "opencode") else True
-        claude_ok = is_claude_running(info.tmux_lead_pane) if (info and info.runtime != "opencode") else True
-        if info and not (agent_ok and claude_ok):
+        if info and not is_agent_running(info.serve_port):
             logger.warning(f"Post-boot check failed for {project_name} (scheduled wake)")
             return None
 
@@ -2671,8 +2649,7 @@ async def _silence_nudge_loop():
                     continue
 
                 try:
-                    from delta.lifecycle import nudge_lead
-                    nudge_lead(bridge.tmux_lead_pane, _SILENCE_NUDGE_TEXT)
+                    bridge._nudge("silence-nudge")
                     state["count"] += 1
                     state["last_nudge"] = now
                     logger.info(f"Silence nudge #{state['count']} sent to {name}")
@@ -2687,11 +2664,10 @@ async def _silence_nudge_loop():
 # -- Restore active projects on startup --------------------------------------
 
 def _restore_active_projects() -> int:
-    """Recreate tmux sessions and Claude Code for active projects after restart.
+    """Restart opencode agents for active projects after service restart.
 
-    After a systemd service restart, tmux sessions are gone but the registry
-    still lists projects as active. This function detects that and restores them.
-    Also ensures ttyd is running for active projects.
+    After a systemd service restart, supervisord-managed agents keep running,
+    but any stopped ones need to be restarted.
     Returns the number of projects restored.
     """
     restored = 0
@@ -2701,52 +2677,17 @@ def _restore_active_projects() -> int:
         if not info or info.status != "active":
             continue
 
-        if info.runtime == "opencode":
-            # opencode projects use supervisord -- boot staggered so the
-            # 4-core box doesn't get slammed by 21 simultaneous opencode boots
-            runner = get_runner(info)
-            runner.start(info)
-            booted += 1
-            if booted % 3 == 0:
-                time.sleep(5)
-            if is_agent_running(info.serve_port):
-                logger.info(f"OpenCode project {name} healthy after restore")
-                restored += 1
-            else:
-                logger.warning(f"OpenCode project {name} not healthy after restore")
-            continue
-
-        session_alive = is_session_alive(info.tmux_session)
-        claude_running = is_claude_running(info.tmux_lead_pane)
-
-        if session_alive and claude_running:
-            # Ensure ttyd is running even if project was already up
-            if not info.ttyd_port:
-                port = _allocate_port(registry)
-                if start_ttyd(name, info.tmux_session, port):
-                    registry.update(name, ttyd_port=port)
-                    logger.info(f"Started ttyd for already-running {name} on port {port}")
-            logger.info(f"Project {name} already running, skipping restore")
-            continue
-
-        logger.info(f"Restoring project {name} (session={session_alive}, claude={claude_running})")
-
-        if not session_alive:
-            create_tmux_session(info.tmux_session)
-
-        if not is_claude_running(info.tmux_lead_pane):
-            start_claude_code(
-                info.project_dir, info.tmux_lead_pane,
-                linux_user=info.linux_user or None,
-            )
-
-        # Start web terminal
-        port = info.ttyd_port or _allocate_port(registry)
-        if start_ttyd(name, info.tmux_session, port):
-            if not info.ttyd_port:
-                registry.update(name, ttyd_port=port)
-
-        restored += 1
+        # opencode projects use supervisord -- boot staggered
+        runner = get_runner(info)
+        runner.start(info)
+        booted += 1
+        if booted % 3 == 0:
+            time.sleep(5)
+        if is_agent_running(info.serve_port):
+            logger.info(f"OpenCode project {name} healthy after restore")
+            restored += 1
+        else:
+            logger.warning(f"OpenCode project {name} not healthy after restore")
 
     return restored
 
@@ -2889,11 +2830,9 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
         await message.channel.send("waking up, one sec")
         restore(project_name, registry)
         _start_watchers(project_name)
-        await asyncio.sleep(8)
+        await asyncio.sleep(5)
         proj_check = registry.get(project_name)
-        agent_ok = is_agent_running(proj_check.serve_port) if (proj_check and proj_check.runtime == "opencode") else True
-        claude_ok = is_claude_running(proj_check.tmux_lead_pane) if (proj_check and proj_check.runtime != "opencode") else True
-        if proj_check and not (agent_ok and claude_ok):
+        if proj_check and not is_agent_running(proj_check.serve_port):
             logger.warning(f"Post-boot check failed for persistent agent {project_name}")
             await message.channel.send(
                 "Had trouble waking up. Try again in a moment."
@@ -3184,12 +3123,10 @@ async def on_message(message: discord.Message):
         if not bridge:
             await message.channel.send(f"Could not restore **{project_name}**.")
             return
-        # Give Claude Code time to boot, then verify it started
-        await asyncio.sleep(8)
+        # Give opencode time to boot, then verify
+        await asyncio.sleep(5)
         proj_info_check = registry.get(project_name)
-        agent_ok = is_agent_running(proj_info_check.serve_port) if (proj_info_check and proj_info_check.runtime == "opencode") else True
-        claude_ok = is_claude_running(proj_info_check.tmux_lead_pane) if (proj_info_check and proj_info_check.runtime != "opencode") else True
-        if proj_info_check and not (agent_ok and claude_ok):
+        if proj_info_check and not is_agent_running(proj_info_check.serve_port):
             logger.warning(f"Post-boot check failed for {project_name}")
             await message.channel.send(
                 "Had trouble waking up. Try again in a moment."

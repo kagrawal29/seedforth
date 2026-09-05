@@ -1,7 +1,7 @@
 """Per-project bridge wrapper -- parameterized on instance, not module-level config.
 
-Each project gets its own ProjectBridge with its own inbox/outbox/logs dirs
-and tmux target. Claude Code is always running (no conductor time-slicing).
+Each project gets its own ProjectBridge with HTTP delivery to opencode serve.
+Sole runtime after Phase 5 migration. No tmux/Claude Code paths remain.
 """
 
 import json
@@ -16,25 +16,20 @@ from pathlib import Path
 from random import choices
 from typing import Callable
 
-from delta.lifecycle import is_claude_running
-
 
 class ProjectBridge:
     """Bridge instance for a single project."""
 
-    def __init__(self, name: str, data_dir: str, tmux_lead_pane: str,
+    def __init__(self, name: str, data_dir: str,
                  nudge_prefix: str = "", outbox_poll_interval: int = 1,
                  serve_port: int = 0, session_id: str = "",
-                 runtime: str = "claude",
                  session_persist: Callable[[str, str], None] | None = None):
         self.name = name
         self.data_dir = Path(data_dir)
-        self.tmux_lead_pane = tmux_lead_pane
         self.nudge_prefix = nudge_prefix or "delta-config/inbox"
         self.outbox_poll_interval = outbox_poll_interval
         self.serve_port = serve_port
         self.session_id = session_id
-        self.runtime = runtime
         self._session_persist = session_persist
 
         # Shutdown coordination
@@ -138,7 +133,7 @@ class ProjectBridge:
     def deliver_message(self, channel_id: str, user_name: str, text: str,
                         msg_id: str = "", callback: Callable | None = None) -> None:
         """Deliver message to opencode agent via HTTP. Response delivered via callback."""
-        if self.runtime != "opencode" or not self.serve_port:
+        if not self.serve_port:
             return
 
         if not msg_id:
@@ -222,13 +217,7 @@ class ProjectBridge:
         return False
 
     def peek(self, lines: int = 40) -> str:
-        """Return recent conversation tail for opencode agents (no tmux).
-
-        Reads the newest log file's last N lines. Falls back to the
-        opencode stdout log if no jsonl exchanges exist yet.
-        """
-        if self.runtime == "claude":
-            return "(claude runtime: use tmux pane)"
+        """Return recent conversation tail from log files."""
         logs = list(sorted(self.logs_dir.glob("*.jsonl")))
         if logs:
             tail = []
@@ -261,7 +250,7 @@ class ProjectBridge:
         self._nudge(msg_id)
 
     def _nudge(self, msg_id: str) -> None:
-        """Nudge the agent to process inbox. Uses .nudge file for opencode."""
+        """Nudge the agent via HTTP health ping."""
         if self.serve_port:
             nudge_file = self.data_dir / ".nudge"
             nudge_file.touch()
@@ -272,12 +261,6 @@ class ProjectBridge:
                 )
             except Exception:
                 pass
-        if self.runtime == "claude":
-            cmd = f"Process message from {self.nudge_prefix}/{msg_id}.json"
-            target = self.tmux_lead_pane
-            subprocess.run(["tmux", "send-keys", "-t", target, "-l", cmd], check=True)
-            time.sleep(0.3)
-            subprocess.run(["tmux", "send-keys", "-t", target, "Enter"], check=True)
 
     def watch_followups(self, callback: Callable[[dict], None]) -> None:
         """Poll followups/ for messages whose deliver_after time has passed.
@@ -382,8 +365,8 @@ class ProjectBridge:
             self._shutdown_event.wait(self.outbox_poll_interval)
 
     def is_project_active(self) -> bool:
-        """Check if the agent runtime is active for this project."""
-        if self.runtime == "opencode" and self.serve_port:
+        """Check if the opencode agent is reachable."""
+        if self.serve_port:
             try:
                 urllib.request.urlopen(
                     f"http://127.0.0.1:{self.serve_port}/global/health",
@@ -392,7 +375,7 @@ class ProjectBridge:
                 return True
             except Exception:
                 return False
-        return is_claude_running(self.tmux_lead_pane)
+        return False
 
     def check_silence(self, timeout: int = 25) -> bool:
         """Check if agent has been silent for `timeout` seconds.
@@ -641,10 +624,7 @@ class ProjectBridge:
         return entries[-max_lines:]
 
     def check_auth_error(self, lines: int = 50) -> str | None:
-        """Check error channel or tmux scrollback for auth errors.
-
-        Returns the error message if found, None if auth looks fine.
-        """
+        """Check error files for auth errors. Returns message or None."""
         errors_dir = self.data_dir / "errors"
         if errors_dir.exists():
             error_files = sorted(
@@ -659,29 +639,4 @@ class ProjectBridge:
                         return data.get("message", str(data))
                 except (json.JSONDecodeError, OSError):
                     pass
-
-        if self.runtime == "claude":
-            try:
-                result = subprocess.run(
-                    ["tmux", "capture-pane", "-t", self.tmux_lead_pane,
-                     "-p", "-S", f"-{lines}"],
-                    capture_output=True, text=True,
-                )
-                if result.returncode != 0:
-                    return None
-                scrollback = result.stdout.rstrip()
-            except OSError:
-                return None
-
-            auth_signals = ["OAuth token", "token has expired",
-                            "authentication failed", "Unauthorized",
-                            "auth token", "login required",
-                            "not logged in", "please run /login",
-                            "hit your limit", "You've hit your limit"]
-            for signal in auth_signals:
-                if signal.lower() in scrollback.lower():
-                    for line in scrollback.split("\n"):
-                        if signal.lower() in line.lower():
-                            return line.strip()[:200]
-                    return signal
         return None

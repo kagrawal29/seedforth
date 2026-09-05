@@ -1,10 +1,11 @@
 """opencode agent lifecycle management via supervisord.
 
 Each project runs `opencode serve` as a supervisord-managed process
-with HTTP health checks, file-based inbox/outbox, and per-project isolation.
-Replaces the tmux-based lifecycle.py for opencode projects.
+with HTTP health checks and per-project isolation.
+Sole runtime after Phase 5 migration. No tmux/Claude Code paths remain.
 """
 
+import json
 import logging
 import os
 import subprocess
@@ -15,6 +16,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 30
+DEFAULT_MODEL = "openrouter/deepseek/deepseek-v4-pro"
 
 
 def _run(cmd: list[str], check: bool = False) -> subprocess.CompletedProcess:
@@ -29,12 +31,82 @@ def is_agent_running(serve_port: int) -> bool:
         return False
 
 
+def is_agent_responding(serve_port: int) -> bool:
+    """Check if agent can actually process sessions (not just port open)."""
+    if not is_agent_running(serve_port):
+        return False
+    try:
+        resp = requests.post(
+            f"http://127.0.0.1:{serve_port}/session",
+            json={}, timeout=5)
+        if resp.status_code in (200, 201):
+            data = resp.json()
+            sid = data.get("id", "")
+            if sid:
+                requests.delete(
+                    f"http://127.0.0.1:{serve_port}/session/{sid}",
+                    timeout=3)
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def _wait_for_healthy(serve_port: int, timeout: int = DEFAULT_TIMEOUT) -> bool:
     for _ in range(timeout):
         if is_agent_running(serve_port):
             return True
         time.sleep(1)
     return False
+
+
+def _write_opencode_project_config(project_dir: str, linux_user: str) -> None:
+    """Write a valid opencode.jsonc for the project directory."""
+    config = {
+        "$schema": "https://opencode.ai/config.json",
+        "model": DEFAULT_MODEL,
+        "permission": {"*": "allow"},
+    }
+    cfg_path = os.path.join(project_dir, "opencode.jsonc")
+    with open(cfg_path, "w") as f:
+        json.dump(config, f, indent=2)
+    uid = int(subprocess.run(["id", "-u", linux_user], capture_output=True, text=True).stdout.strip())
+    gid = int(subprocess.run(["id", "-g", linux_user], capture_output=True, text=True).stdout.strip())
+    os.chown(cfg_path, uid, gid)
+
+
+def _write_user_opencode_config(linux_user: str) -> None:
+    """Write a valid user-level opencode.jsonc so serve doesn't pick up stale configs."""
+    user_info = subprocess.run(
+        ["id", "-u", linux_user], capture_output=True, text=True, check=True)
+    uid = int(user_info.stdout.strip())
+    gid = int(subprocess.run(
+        ["id", "-g", linux_user], capture_output=True, text=True, check=True).stdout.strip())
+
+    cfg_dir = f"/home/{linux_user}/.config/opencode"
+    os.makedirs(cfg_dir, exist_ok=True)
+    os.chown(cfg_dir, uid, gid)
+
+    cfg_path = f"{cfg_dir}/opencode.jsonc"
+    config = {
+        "$schema": "https://opencode.ai/config.json",
+        "model": DEFAULT_MODEL,
+        "permission": {"*": "allow"},
+    }
+    with open(cfg_path, "w") as f:
+        json.dump(config, f, indent=2)
+    os.chown(cfg_path, uid, gid)
+
+
+def _set_autostart(project_name: str, value: bool) -> None:
+    config_path = f"/etc/supervisor/conf.d/proj-{project_name}.conf"
+    if not os.path.exists(config_path):
+        return
+    val_str = "true" if value else "false"
+    subprocess.run(
+        ["sed", "-i", f"s/autostart=.*/autostart={val_str}/", config_path],
+        capture_output=True, text=True)
+    _run(["supervisorctl", "update"])
 
 
 def _write_supervisor_config(project_name: str, serve_port: int, project_dir: str,
@@ -49,9 +121,6 @@ def _write_supervisor_config(project_name: str, serve_port: int, project_dir: st
         "UNIPILE_API_KEY": os.environ.get("UNIPILE_API_KEY", ""),
         "COMPOSIO_API_KEY": os.environ.get("COMPOSIO_API_KEY", ""),
         "MYCELIUM_TARGET": os.environ.get("MYCELIUM_TARGET", "dev"),
-        "LOCAL_NEO4J_URI": os.environ.get("LOCAL_NEO4J_URI", "bolt://localhost:7687"),
-        "LOCAL_NEO4J_USER": os.environ.get("LOCAL_NEO4J_USER", "neo4j"),
-        "LOCAL_NEO4J_PASSWORD": os.environ.get("LOCAL_NEO4J_PASSWORD", ""),
     }
     if extra_env:
         env_vars.update(extra_env)
@@ -65,7 +134,7 @@ def _write_supervisor_config(project_name: str, serve_port: int, project_dir: st
         f"user={linux_user}\n"
         f"directory={project_dir}\n"
         f"environment={env_str}\n"
-        f"autostart=true\n"
+        f"autostart=false\n"
         f"autorestart=true\n"
         f"startsecs=5\n"
         f"stopwaitsecs=10\n"
@@ -80,16 +149,8 @@ def _write_supervisor_config(project_name: str, serve_port: int, project_dir: st
         f.write(config)
     logger.info(f"Wrote supervisor config: {config_path}")
 
-
-def _set_autostart(project_name: str, value: bool) -> None:
-    config_path = f"/etc/supervisor/conf.d/proj-{project_name}.conf"
-    if not os.path.exists(config_path):
-        return
-    val_str = "true" if value else "false"
-    subprocess.run(
-        ["sed", "-i", f"s/autostart=.*/autostart={val_str}/", config_path],
-        capture_output=True, text=True)
-    _run(["supervisorctl", "update"])
+    _write_opencode_project_config(project_dir, linux_user)
+    _write_user_opencode_config(linux_user)
 
 
 def start_agent_serve(project_name: str, serve_port: int, project_dir: str,
