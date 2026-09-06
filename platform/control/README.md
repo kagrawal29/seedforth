@@ -22,6 +22,29 @@ ISO expires_at. Tokens must have at least 32 characters and must never enter Git
 NEO4J_PASSWORD and optional CONTROL_NEO4J_URL are external runtime settings.
 The server binds only 127.0.0.1:8787. Do not publish it directly to the internet.
 
+## Capability broker (qualification stage)
+
+`broker.py` dispatches only adapters supplied by trusted release code. Graph
+contracts reserve bounded action units, bind mandate identity/version and worker
+fence, recheck holds/grants/deadlines at dispatch, and settle through a separate
+broker principal. Action units currently measure authorized adapter calls, not
+currency or model tokens. Monetary/model budgets remain to be implemented.
+
+`receipt_journal.py` persists restricted I/O receipts before graph settlement.
+Replay settles evidence only and cannot dispatch work. Unknown outcomes retain
+their budget reservation. Recovery is tested for lost replies before and after
+graph commit. A process dying before it can persist its result still requires
+adapter-specific outcome reconciliation; it must never be blindly redispatched.
+
+`git_inspection.py` is the first concrete, read-only adapter. Its immutable scope
+bindings permit commit/root-tree inspection only, not arbitrary Git commands,
+repository code execution, checkout, push, or access to another project.
+
+The broker is not exposed to agents or deployed as a worker service yet. Isolated
+worker identities, grant/mandate admission, the executor, model budgets, and
+provider-specific outcome reconciliation are remaining delivery work. Do not
+repair the legacy division-worker launch independently of these boundaries.
+
 `python3 -m control.migrate --endpoint URL --revision SHA` explicitly applies the
 authored additive schema, verified pilot identities, and operation generation.
 First validate on a restored snapshot. It does not switch any scheduler or enable

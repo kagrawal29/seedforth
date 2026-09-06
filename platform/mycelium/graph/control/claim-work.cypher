@@ -4,13 +4,15 @@ WITH DISTINCT principal,grant.scope AS scope
 MATCH (s:ControlScope {node_id:scope,work_enabled:true})
 MATCH (principal)-[:REPRESENTS]->(agent:SubAgent)
 MATCH (w:WorkItem {node_id:$id,scope_id:scope})
+MATCH (w)-[:AUTHORIZED_BY]->(m:Mandate {node_id:w.mandate_id,scope_id:scope,enabled:true})
 SET w._lock=coalesce(w._lock,0)+1
-WITH w,agent WHERE w.status='ready' AND w.hold=false AND w.state_version=$version
+WITH w,agent,m WHERE w.status='ready' AND w.hold=false AND w.state_version=$version
+AND m.expires_at>datetime()
 AND NOT EXISTS { MATCH (w)-[:DEPENDS_ON]->(d) WHERE coalesce(d.status,'unknown')<>'done' OR coalesce(d.hold,false)=true }
 SET w.status='in_progress',w.state_version=w.state_version+1,w.updated_at=datetime(),
-w.fence=coalesce(w.fence,0)+1,w.lease_until=datetime()+duration({seconds:90})
+w.fence=coalesce(w.fence,0)+1,w.lease_until=datetime()+duration({seconds:90}),w.assignee_id=agent.node_id
 CREATE (e:ExecutionSession {node_id:$attempt,scope_id:$scope,project:$scope,actor:$actor,
-status:'running',started_at:datetime(),fence:w.fence,work_version:w.state_version})
+status:'running',started_at:datetime(),fence:w.fence,work_version:w.state_version,mandate_version:m.version,mandate_id:m.node_id})
 CREATE (e)-[:EXECUTES]->(w)
 CREATE (e)-[:PERFORMED_BY]->(agent)
 MERGE (w)-[:ASSIGNED_TO]->(agent)

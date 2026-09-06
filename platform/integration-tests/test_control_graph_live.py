@@ -51,15 +51,23 @@ def case(graph):
                 "CREATE (b:Principal {node_id:$worker,enabled:true}) "
                 "CREATE (b)-[:HAS_GRANT]->(:Grant {node_id:$worker+'-grant',scope:$scope,"
                 "revoked:false,permissions:['read','work.execute']}) "
-                "CREATE (b)-[:REPRESENTS]->(:SubAgent {node_id:$worker,project:$scope})",
+                "CREATE (b)-[:REPRESENTS]->(:SubAgent {node_id:$worker,project:$scope}) "
+                "CREATE (:Mandate {node_id:$scope+'-mandate',scope_id:$scope,enabled:true,version:1,budget_id:$scope+'-budget',"
+                "expires_at:datetime()+duration('PT1H'),allowed_capabilities:[$scope+'-cap']})"
+                "-[:HAS_BUDGET]->(:Budget {node_id:$scope+'-budget',scope_id:$scope,total_units:2,reserved_units:0,spent_units:0}) "
+                "CREATE (:Capability {node_id:$scope+'-cap',enabled:true,policy_generation:'fixture-policy',cost_units:1,max_seconds:30}) "
+                "CREATE (broker:Principal {node_id:$scope+'-broker',enabled:true})"
+                "-[:HAS_GRANT]->(:Grant {scope:$scope,revoked:false,permissions:['invocation.settle']})",
                 dict(scope=scope, actor=actor, worker=worker))
     return dict(scope=scope, actor=actor, worker=worker, id=scope+'-work', milestone=scope+'-m')
 
 
 def create(graph, c):
-    return graph.operation('create-work', c['actor'], c['scope'], id=c['id'],
+    rows=graph.operation('create-work', c['actor'], c['scope'], id=c['id'],
                            milestone=c['milestone'], title='Verify staged artifact',
                            acceptance='Independent checker accepts exact hash',request_hash='request-a')
+    graph.query("MATCH (w:WorkItem {node_id:$id}),(m:Mandate {node_id:$scope+'-mandate'}) SET w.mandate_id=m.node_id MERGE (w)-[:AUTHORIZED_BY]->(m)",c)
+    return rows
 
 
 def ready(graph, c):
@@ -263,3 +271,83 @@ def test_full_migration_and_upgrade_plan_are_idempotent(graph):
     assert graph.query("MATCH (w:WorkItem {scope_id:'seedforth-platform'}) RETURN count(w) AS n")[0]['n']==22
     assert graph.query("MATCH (:ControlScope {node_id:'seedforth-platform'})-[:MAPS_PROJECT]->(p:Project) RETURN p.node_id AS id")==[{'id':'proj-mycelium'}]
     assert graph.query("MATCH (w:WorkItem {scope_id:'seedforth-platform'}) WHERE w.status<>'proposed' RETURN count(w) AS n")[0]['n']==0
+
+
+def invocation_params(graph,case):
+    ready(graph,case)
+    attempt=claim(graph,case)[0]
+    return dict(attempt=attempt['attempt'],fence=attempt['fence'],invocation=uuid4().hex,
+        capability=case['scope']+'-cap',generation='fixture-policy',params_hash='fixture-arguments',cost_units=1,max_seconds=30)
+
+
+def test_invocation_budget_idempotency_and_exhaustion(graph,case):
+    params=invocation_params(graph,case)
+    admit=lambda p:graph.operation('admit-invocation',case['worker'],case['scope'],**p)
+    assert admit(params)[0]['status']=='admitted'
+    assert admit(params)[0]['status']=='admitted'
+    assert admit({**params,'params_hash':'changed-intent'})==[]
+    assert admit({**params,'invocation':uuid4().hex})
+    assert admit({**params,'invocation':uuid4().hex})==[]
+    budget=graph.query("MATCH (b:Budget {node_id:$scope+'-budget'}) RETURN b.reserved_units AS reserved,b.spent_units AS spent",case)[0]
+    assert budget==dict(reserved=2,spent=0)
+
+
+def test_dispatch_rechecks_hold_and_broker_can_release_admission(graph,case):
+    params=invocation_params(graph,case)
+    graph.operation('admit-invocation',case['worker'],case['scope'],**params)
+    graph.operation('hold-work',case['actor'],case['scope'],id=case['id'],version=2,hold=True,event_id=uuid4().hex)
+    assert graph.operation('dispatch-invocation',case['worker'],case['scope'],invocation=params['invocation'],params_hash=params['params_hash'])==[]
+    settled=graph.operation('settle-invocation',case['scope']+'-broker',case['scope'],invocation=params['invocation'],
+        outcome='cancelled',result_hash='cancelled',artifact_hash=None,artifact_ref=None,event_id=uuid4().hex)
+    assert settled[0]['budget_reserved']==0 and settled[0]['budget_spent']==0
+
+
+def test_unknown_result_holds_budget_and_worker_cannot_forge_settlement(graph,case):
+    params=invocation_params(graph,case)
+    graph.operation('admit-invocation',case['worker'],case['scope'],**params)
+    assert graph.operation('dispatch-invocation',case['worker'],case['scope'],invocation=params['invocation'],params_hash=params['params_hash'])
+    settle=dict(invocation=params['invocation'],outcome='unknown',result_hash='timeout',artifact_hash=None,artifact_ref=None,event_id=uuid4().hex)
+    assert graph.operation('settle-invocation',case['worker'],case['scope'],**settle)==[]
+    unknown=graph.operation('settle-invocation',case['scope']+'-broker',case['scope'],**settle)[0]
+    assert unknown['budget_reserved']==1 and unknown['budget_spent']==0
+    graph.query("MATCH (g:Grant {node_id:$id}) SET g.revoked=true",{'id':case['worker']+'-grant'})
+    final=graph.operation('settle-invocation',case['scope']+'-broker',case['scope'],**{**settle,'outcome':'succeeded','event_id':uuid4().hex})[0]
+    assert final['budget_reserved']==0 and final['budget_spent']==1
+    assert graph.operation('settle-invocation',case['scope']+'-broker',case['scope'],**{**settle,'outcome':'succeeded','event_id':uuid4().hex})==[]
+
+
+@pytest.mark.parametrize('lost_after_commit',[False,True])
+def test_broker_runs_real_git_inspection_once(graph,case,tmp_path,lost_after_commit):
+    import subprocess
+    from control.broker import Broker
+    from control.git_inspection import GitInspection
+    from control.receipt_journal import ReceiptJournal
+    repository=tmp_path/'repo';repository.mkdir()
+    subprocess.run(['git','init','-q',str(repository)],check=True)
+    (repository/'fixture.txt').write_text('fixture content\n')
+    subprocess.run(['git','-C',str(repository),'add','fixture.txt'],check=True)
+    subprocess.run(['git','-C',str(repository),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
+                    '-c','commit.gpgsign=false','commit','-qm','fixture'],check=True)
+    revision=subprocess.check_output(['git','-C',str(repository),'rev-parse','HEAD'],text=True).strip()
+    adapter=GitInspection({case['scope']:repository},tmp_path/'artifacts')
+    graph.query("MATCH (c:Capability {node_id:$id}) SET c.policy_generation=$generation",
+                dict(id=case['scope']+'-cap',generation=adapter.generation))
+    params=invocation_params(graph,case)
+    class LossyGraph:
+        lost=False
+        def query(self,*a,**k): return graph.query(*a,**k)
+        def operation(self,name,*a,**k):
+            if name=='settle-invocation' and not self.lost:
+                self.lost=True
+                if lost_after_commit:
+                    graph.operation(name,*a,**k)
+                raise ConnectionError('simulated settlement connection loss')
+            return graph.operation(name,*a,**k)
+    broker=Broker(LossyGraph(),case['scope']+'-broker',{case['scope']+'-cap':adapter},ReceiptJournal(tmp_path/'receipts'))
+    args=dict(actor=case['worker'],scope=case['scope'],attempt=params['attempt'],fence=params['fence'],
+              invocation=params['invocation'],capability=params['capability'],arguments={'revision':revision})
+    with pytest.raises(ConnectionError): broker.invoke(**args)
+    assert broker.recover_receipts()==[params['invocation']]
+    assert broker.recover_receipts()==[]
+    assert broker.invoke(**args)['status']=='succeeded'
+    assert len(list((tmp_path/'artifacts').glob('*.json')))==1

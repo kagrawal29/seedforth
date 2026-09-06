@@ -91,6 +91,28 @@ loopback board is an early interface, not the complete UX or remote-access promi
 No autonomous product outcome, archival, public MCP, scheduler retirement, or
 30-day soak has been demonstrated. Preserve this distinction in progress reports.
 
+## Broker implementation qualification
+
+- Added graph-native invocation admission, dispatch, and settlement. Admission
+  reserves bounded action units once per intent. Mandate ID/version, scope, lease,
+  capability generation, cost, deadline, and holds are enforced. Claims now bind
+  an explicit mandate and current assignee rather than silently accepting no mandate.
+- Separate broker authority admits results after worker revocation, including
+  unknown outcomes that retain reservations. Failed executions are charged their
+  reserved bound conservatively. Cancellation before dispatch releases it.
+- Trusted dispatch uses immutable adapter bindings, never graph-supplied imports
+  or shell commands. The concrete Git adapter only inspects pinned commit/tree IDs.
+- Durable private receipt journal supports recovery without redispatch. Real Git
+  fixture tests cover connection loss before and after the graph commits settlement.
+- Full current suite: 44 passed on disposable Neo4j in 5.89s. Local unit suite:
+  25 passed. Production read-only preflight: Mandate/Budget/InvocationResult have
+  zero records, Capability has 21 records with zero duplicate non-null node IDs.
+- These broker changes are not yet promoted to production or exposed to workers.
+  Runtime remains on control release 6fe3ee4. Before promotion, test against restored
+  production data and finish concurrency/revocation/deadline qualification. Next
+  integrate the isolated worker/executor and actual project workflows. This is
+  execution-foundation progress, not a completed autonomous product outcome.
+
 ## Execution rules
 
 Implement graph-native domain behavior in authored Cypher; external adapters and

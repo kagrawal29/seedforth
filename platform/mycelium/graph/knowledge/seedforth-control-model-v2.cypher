@@ -4,6 +4,10 @@ CREATE CONSTRAINT seedforth_atomrun_id IF NOT EXISTS FOR (n:AtomRun) REQUIRE n.n
 CREATE CONSTRAINT seedforth_versioned_protocolrun_id IF NOT EXISTS FOR (n:VersionedProtocolRun) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_testrun_id IF NOT EXISTS FOR (n:TestRun) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_invocation_id IF NOT EXISTS FOR (n:Invocation) REQUIRE n.node_id IS UNIQUE;
+CREATE CONSTRAINT seedforth_invocation_result_id IF NOT EXISTS FOR (n:InvocationResult) REQUIRE n.node_id IS UNIQUE;
+CREATE CONSTRAINT seedforth_mandate_id IF NOT EXISTS FOR (n:Mandate) REQUIRE n.node_id IS UNIQUE;
+CREATE CONSTRAINT seedforth_budget_id IF NOT EXISTS FOR (n:Budget) REQUIRE n.node_id IS UNIQUE;
+CREATE CONSTRAINT seedforth_capability_id IF NOT EXISTS FOR (n:Capability) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_receipt_id IF NOT EXISTS FOR (n:Receipt) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_transition_id IF NOT EXISTS FOR (n:StateTransition) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_observation_id IF NOT EXISTS FOR (n:Observation) REQUIRE n.node_id IS UNIQUE;
