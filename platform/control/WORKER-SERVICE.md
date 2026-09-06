@@ -10,7 +10,7 @@ listening state, clears activation variables and sets close-on-exec before any
 adapter launches a process. Systemd retains the socket across broker restarts.
 See the [upstream activation contract](https://github.com/systemd/systemd/blob/main/src/systemd/sd-daemon.h).
 
-Deployment prerequisites (not yet provisioned):
+Deployment contract (Cajon pilot provisioned; broader lifecycle remains pending):
 
 - A dedicated `seedforth-workers` group; only launcher-selected isolated workers
   receive the corresponding supplemental GID and a bind-mounted socket file.
@@ -22,14 +22,22 @@ Deployment prerequisites (not yet provisioned):
 - External `worker-bindings.json` contains only `repositories`, mapping canonical
   pilot/platform scope IDs to trusted absolute repository directories. No module,
   command, permission, mandate or budget is accepted in this I/O binding file.
-  Repositories must be readable by the service's dynamic user and not writable
-  by workers. Retain private source access boundaries during provisioning.
+  Repositories are private copies readable by the unprivileged `seedforth-broker`
+  account through `seedforth-source-read`, and not writable by the broker or
+  workers. Workers never receive this group or the legacy project directories.
 - Author `principal-capability-broker` with only required settlement grants and
   promote `capability-git-inspection-v1` with the exact computed generation/cost/
   duration. Neither action is performed by service startup. Work needs separately
   authorized graph mandates, budgets, readiness and an isolated launcher.
 - Provision the service/socket units explicitly after qualification. The existing
   control deployment adapter deliberately does not activate them automatically.
+
+The initial pilot uses a one-hour credential/graph grant and two artifact action
+units with no monetary spending. Provisioning does not enable the Cajon scope or
+launch work. Refreshing expired authority is an explicit owner-delegated operation,
+not automatic extension by a worker. The source copy is a shallow read-only bare
+Git repository pinned to the reviewed base revision. The broker component has its
+own `worker-current` link; changing it does not replace Delta or the human gateway.
 
 Receipts persist in the service-private StateDirectory. Startup drains recoverable
 receipts before accepting requests. Each dispatch also drains receipts under a

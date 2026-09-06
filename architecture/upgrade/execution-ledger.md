@@ -327,3 +327,33 @@ actions disabled until their authority and postconditions are implemented.
 - Next land this verified candidate through the production governed attempt,
   separate exact-artifact verification/review and safe source/deployment promotion.
   Then expand useful work to Flowing Indian and continue the full upgrade scope.
+
+## Production protected broker provisioned
+
+- Worker component ae992b14d9e398de2a0f36a1a789ffc7e9ca2d99 is installed at
+  /opt/seedforth/worker-current. Main Delta remains 1770e7c and control remains
+  7b433aa. Both worker socket/service and existing Delta/control services are active.
+- Uses an unprivileged static broker account, private StateDirectory, source-read
+  group and root-private worker socket directory. Socket mode 0660 grants only
+  seedforth-workers. The broker's pinned shallow source copy is root-owned and
+  group-readable, not writable by workers or the broker. No legacy project mount
+  or Docker/Neo4j credential is exposed to workers.
+- Qualified authority twice on disposable and restored graph, preserving 47
+  projects and all scope holds. Immutable-release suite: 95 passed in 14.79s.
+  Qualification JUnit admitted to the live platform plan as release evidence.
+- Provisioning initially stopped at Git's cross-owner local transport check before
+  creating credentials/grants. Exact upload-pack source trust (not global wildcard
+  trust) allowed the private clone; provisioning then resumed from inspected state.
+  Installer source now includes that exact-path fix for future reconstruction.
+- Pilot worker principal has Cajon-only read/execute grants, two bounded artifact
+  invocation units, and no monetary authorization. Credential and mandate expire
+  2026-09-06T17:08:00.013208+00:00. Secrets are root-private external files; never
+  copy them into tool output or the repository. Work scope is still disabled/held.
+- Live private API read-work succeeded; other-scope read and review were denied;
+  claiming the held task was denied. Service restart retained the same listening
+  socket inode and recovered API access. Graph independently confirms zero pilot
+  attempts, zero spent/reserved units. No product work has executed in production.
+- Next run the reviewed candidate via the isolated production worker under this
+  bounded mandate, verify its exact artifact independently, review and safely
+  promote the source/deployment. If authority expires first, inspect graph/receipt
+  state and explicitly renew the bounded pilot; never silently bypass expiry.

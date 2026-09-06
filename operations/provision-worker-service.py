@@ -66,7 +66,11 @@ def provision(revision):
     os.chown(repositories,0,read_gid);repositories.chmod(0o750)
     repo=repositories/'cajon-2a518d9.git'
     if not repo.exists():
-        run('git','-c','safe.directory='+source,'clone','--bare','--no-hardlinks','--depth','1','file://'+source,str(repo))
+        # Local Git transport clears the caller's command-scope configuration.
+        # This upload-pack command is fixed deployment code, never worker input.
+        run('git','clone','--bare','--no-hardlinks','--depth','1',
+            '--upload-pack=git -c safe.directory='+source+'/.git upload-pack',
+            'file://'+source,str(repo))
     if run('git','-C',str(repo),'rev-parse','HEAD')!=expected:
         raise RuntimeError('private_source_copy_mismatch')
     for path in [repo,*repo.rglob('*')]:
