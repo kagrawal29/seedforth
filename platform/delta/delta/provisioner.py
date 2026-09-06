@@ -175,15 +175,14 @@ def _setup_github_repo(name: str, project_dir: str, linux_user: str = "",
 
 
 def _init_git_repo(project_path: Path, linux_user: str = "") -> None:
-    """Initialize a git repo with .gitignore if one doesn't exist."""
+    """Initialize a git repo and enforce the platform runtime boundary."""
     import subprocess
 
     git_dir = project_path / ".git"
     if git_dir.exists():
-        # Already a repo (cloned). Just add .gitignore if missing.
-        gitignore = project_path / ".gitignore"
-        if not gitignore.exists():
-            gitignore.write_text(_GITIGNORE_CONTENT)
+        # Already a repo (cloned). Add only the missing platform rules; never
+        # replace project-authored ignore rules.
+        _ensure_platform_gitignore(project_path)
         return
 
     if linux_user:
@@ -198,9 +197,18 @@ def _init_git_repo(project_path: Path, linux_user: str = "") -> None:
         subprocess.run(["git", "-C", str(project_path), "config", "user.name", "Delta"],
                        capture_output=True, text=True)
 
-    gitignore = project_path / ".gitignore"
-    gitignore.write_text(_GITIGNORE_CONTENT)
+    _ensure_platform_gitignore(project_path)
     logger.info(f"Initialized git repo in {project_path}")
+
+
+def _ensure_platform_gitignore(project_path: Path) -> None:
+    """Append platform runtime rules without replacing project rules."""
+    gitignore = project_path / ".gitignore"
+    existing = gitignore.read_text() if gitignore.exists() else ""
+    if _GITIGNORE_CONTENT.strip() in existing:
+        return
+    separator = "\n" if existing and not existing.endswith("\n") else ""
+    gitignore.write_text(existing + separator + _GITIGNORE_CONTENT)
 
 
 def _role_model(role: str) -> str:

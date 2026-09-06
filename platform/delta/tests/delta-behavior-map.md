@@ -162,7 +162,8 @@ Comprehensive mapping of all behavior paths in the Delta Discord bot codebase.
 **Code path:** `resource_manager_loop()` -> `hibernate()` in provisioner.
 **Steps:**
 1. `git_save()`: git add -A, commit "hibernate: <timestamp>", push (best-effort).
-   - Force-adds `delta-config/logs/` past gitignore.
+   - Runtime logs remain outside Git; hibernation saves source and durable
+     project intent only.
 2. `stop_claude_code()`: Ctrl+C, wait grace period, force-kill if needed.
 3. `kill_tmux_session()`: kills the tmux session.
 4. `bridge.shutdown()`: signals all watcher threads to stop, removes from bridges dict.
