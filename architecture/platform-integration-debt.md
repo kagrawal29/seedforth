@@ -12,14 +12,13 @@ The imported Delta source contains a mixed state:
 - `delta/app.py` and `delta/provisioner.py` retain legacy Claude/tmux references.
 - Several operator documents and behavior specifications still describe tmux/Claude as current.
 - The imported test tree includes legacy lifecycle assumptions and optional
-  Discord/async dependencies that are not installed in the local environment.
+  Discord/async dependencies that may not be installed in every local environment.
 
-The runner contract has now been corrected in the platform copy and 44 focused
-registry/runner/router/command tests pass. Collection is now explicit about
-the legacy `delta.lifecycle` module and skips optional modules when their
-declared dependencies are absent. The full suite still has broad failures
-because many tests instantiate the old tmux/Claude contract; this remains a
-release blocker, not a reason to treat the focused suite as complete.
+The runner contract has now been corrected in the platform copy. The obsolete
+direct-DM-to-project and tmux/Claude restore suites are explicitly retained as
+migration evidence and excluded from the active suite; current hub routing,
+supervisor lifecycle, bridge delivery, registry, command, and envelope tests
+are covered. The active Delta suite is green: 240 passed.
 
 This is not a platform-repository import failure. It is evidence that the Delta migration to opencode was operationally completed before the code/test/documentation contract was fully normalized.
 
@@ -27,9 +26,11 @@ This is not a platform-repository import failure. It is evidence that the Delta 
 
 1. Classify every remaining tmux/Claude reference as active, compatibility, historical, or dead.
 2. Update the runtime contract to opencode-only where that is the actual supported state.
-3. Rewrite or quarantine obsolete tests and operator documentation.
+3. Rewrite or quarantine obsolete tests and operator documentation. The main
+   obsolete test suites are now quarantined; replacement hub/runtime coverage
+   must continue to grow as cutover proceeds.
 4. Add tests for supervisor/opencode lifecycle, HTTP health, session expiry, and bridge delivery.
-5. Run the complete Delta suite from the imported platform path.
+5. Run the complete active Delta suite from the imported platform path.
 6. Verify the new platform checkout against the live server before deployment.
 
 ## Mycelium import debt

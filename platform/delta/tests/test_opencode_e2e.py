@@ -93,7 +93,7 @@ class TestCleanPipeline(unittest.TestCase):
         assert callback_called[0][0] == "12345"
         assert "hello from agent" in callback_called[0][1]
 
-    def test_deliver_message_without_callback_still_writes_outbox(self):
+    def test_deliver_message_without_callback_still_records_exchange(self):
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_resp = MagicMock()
             mock_resp.read.return_value = json.dumps({
@@ -106,8 +106,8 @@ class TestCleanPipeline(unittest.TestCase):
 
         time.sleep(2)
 
-        outbox = os.path.join(self.info.data_dir, "outbox")
-        files = [f for f in os.listdir(outbox) if f.endswith(".json")]
+        logs = os.path.join(self.info.data_dir, "logs")
+        files = [f for f in os.listdir(logs) if f.endswith(".jsonl")]
         assert len(files) >= 1
 
     def test_deliver_message_uses_existing_session(self):

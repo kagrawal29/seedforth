@@ -845,7 +845,7 @@ class TestSendReportNudge:
         call_args = bridge.write_inbox.call_args
         assert "calm" in call_args[0][2]  # nudge text contains style
         assert "progress" in call_args[0][2]
-        bridge.send_to_lead.assert_called_once_with("msg-123")
+        bridge.nudge.assert_called_once_with("msg-123")
         bridge.touch_activity.assert_called_once()
 
 

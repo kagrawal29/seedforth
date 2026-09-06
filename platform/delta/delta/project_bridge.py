@@ -26,7 +26,7 @@ class ProjectBridge:
                  nudge_prefix: str = "", outbox_poll_interval: int = 1,
                  serve_port: int = 0, session_id: str = "",
                  session_persist: Callable[[str, str], None] | None = None,
-                 tmux_lead_pane: str = ""):
+                 tmux_lead_pane: str = "", runtime: str = "opencode"):
         self.name = name
         self.data_dir = Path(data_dir)
         self.nudge_prefix = nudge_prefix or "delta-config/inbox"
@@ -34,6 +34,7 @@ class ProjectBridge:
         self.serve_port = serve_port
         self.session_id = session_id
         self._session_persist = session_persist
+        self.runtime = runtime
         # Deprecated constructor compatibility for older callers/tests. The
         # opencode HTTP runtime does not use a terminal pane.
         self._legacy_tmux_lead_pane = tmux_lead_pane

@@ -19,16 +19,16 @@ def test_create_user_success(mock_run):
     result = create_user("myapp")
     assert result == "proj-myapp"
 
-    # First call: useradd, second call: chmod
-    assert mock_run.call_count == 2
+    # User creation also provisions opencode's shared config and data dirs.
+    assert mock_run.call_count == 5
     useradd_call = mock_run.call_args_list[0]
     assert "useradd" in useradd_call[0][0]
     assert "-m" in useradd_call[0][0]
     assert "/home/proj-myapp" in useradd_call[0][0]
 
-    chmod_call = mock_run.call_args_list[1]
+    chmod_call = mock_run.call_args_list[2]
     assert "chmod" in chmod_call[0][0]
-    assert "750" in chmod_call[0][0]
+    assert "2770" in chmod_call[0][0]
 
 
 @patch("delta.isolation.subprocess.run")

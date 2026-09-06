@@ -51,8 +51,7 @@ async def test_teardown_deletes_local_dir(tmp_registry, local_projects_dir):
 
     with patch("delta.provisioner.LOCAL_MODE", True), \
          patch("delta.provisioner.LOCAL_PROJECTS_DIR", str(local_projects_dir)), \
-         patch("delta.provisioner.stop_claude_code"), \
-         patch("delta.provisioner.kill_tmux_session"):
+         patch("delta.provisioner.stop_agent_serve"):
 
         from delta.provisioner import teardown
         result = await teardown("test-proj", tmp_registry, None, None)
@@ -82,8 +81,7 @@ async def test_teardown_refuses_outside_sandbox(tmp_registry, tmp_path, local_pr
 
     with patch("delta.provisioner.LOCAL_MODE", True), \
          patch("delta.provisioner.LOCAL_PROJECTS_DIR", str(local_projects_dir)), \
-         patch("delta.provisioner.stop_claude_code"), \
-         patch("delta.provisioner.kill_tmux_session"):
+         patch("delta.provisioner.stop_agent_serve"):
 
         from delta.provisioner import teardown
         result = await teardown("rogue-proj", tmp_registry, None, None)
@@ -110,8 +108,7 @@ async def test_teardown_refuses_sandbox_root(tmp_registry, local_projects_dir):
 
     with patch("delta.provisioner.LOCAL_MODE", True), \
          patch("delta.provisioner.LOCAL_PROJECTS_DIR", str(local_projects_dir)), \
-         patch("delta.provisioner.stop_claude_code"), \
-         patch("delta.provisioner.kill_tmux_session"):
+         patch("delta.provisioner.stop_agent_serve"):
 
         from delta.provisioner import teardown
         result = await teardown("root-proj", tmp_registry, None, None)
@@ -137,8 +134,7 @@ async def test_teardown_skips_when_no_project_dir(tmp_registry, local_projects_d
 
     with patch("delta.provisioner.LOCAL_MODE", True), \
          patch("delta.provisioner.LOCAL_PROJECTS_DIR", str(local_projects_dir)), \
-         patch("delta.provisioner.stop_claude_code"), \
-         patch("delta.provisioner.kill_tmux_session"):
+         patch("delta.provisioner.stop_agent_serve"):
 
         from delta.provisioner import teardown
         result = await teardown("no-dir-proj", tmp_registry, None, None)

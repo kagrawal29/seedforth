@@ -67,7 +67,6 @@ def test_start_agent_serve_success(mock_write_config, mock_run, mock_wait_health
         "myproject", 7700, "/home/proj-myproject/myproject", "proj-myproject", {}
     )
     assert mock_run.call_args_list == [
-        call(["supervisorctl", "update"], check=True),
         call(["supervisorctl", "start", "proj-myproject"], check=True),
     ]
     mock_wait_healthy.assert_called_once_with(7700)
