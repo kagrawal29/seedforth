@@ -13,7 +13,9 @@ set -euo pipefail
 # been smoke-tested.
 
 TARGET="/home/proj-seedforthing/seedforthing/delta-config/.vercel-token-charlietheagent"
-API="https://api.vercel.com/v2/user"
+# A project-scoped token cannot call the user endpoint. Validate against the
+# exact project it is intended to deploy.
+API="https://api.vercel.com/v9/projects/prj_ubMP9vcriuaqrrU4HK6FFO62dD1q?teamId=team_uyYPbgdCvgMaUAtmitpuunDs"
 
 if [[ "${1:-}" != "--stdin" ]]; then
   echo "usage: $0 --stdin" >&2
