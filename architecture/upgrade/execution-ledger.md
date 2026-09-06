@@ -228,3 +228,37 @@ actions disabled until their authority and postconditions are implemented.
   remains 7b433aa. The first adapter still only inspects Git provenance. Next add
   useful isolated code/model capabilities and scoped launcher provisioning with
   monetary budgets and independent product acceptance; full-plan scope remains.
+
+## Product-grounded source and acceptance baseline
+
+- Rechecked live scopes: Flowing Indian and Cajon remain held. Actual agent working
+  directories are /home/proj-flowing-indian/flowing-indian and
+  /home/proj-cajon-sensei/cajon-sensei, not /opt/delta/projects paths. A running
+  opencode process still does not establish useful execution or a deployed app.
+- Local Flowing Indian has preexisting tracked/untracked edits, preserved untouched.
+  Existing webhook tests read local secrets and call Clerk; do not run them as
+  isolated tests or send synthetic payment webhooks to production by accident.
+- Added explicit-path, exact-commit Git blob snapshots for worker/source-sensing
+  inputs. No working-tree reads, symlinks, submodules, history enumeration, mutable
+  revision names, arbitrary paths or repository execution. Coverage and untrusted
+  source status are explicit. Size/deadline bounds and secret-pattern tripwires
+  are defense-in-depth, not exhaustive secret classification.
+- Local tests: 12 passed. Full disposable Linux suite: 83 passed in 12.28s.
+  Actual local snapshots succeeded for Cajon app/index.html at
+  498b17acbd832b37744b9138abf3e4d52bc81f57 and Flowing API order/verify at
+  c84e0fa4453f02a60ac992f403cfa8f79900004c. These are local-checkout provenance,
+  not an assertion that remote runtime or production serves those revisions.
+- Playwright CLI reproduced a real Cajon defect: after 200ms simulated time at
+  80bpm the app credits one complete loop (expected zero, full cycle 3000ms).
+  New cajon-loop.playwright.js fails on the current app as expected. No app fix
+  has been made. Playback-only milestone unlocks also lack clean-playing evidence
+  and need a separate honest UX decision rather than silently claiming mastery.
+- Admitted authored pilot finding twice in staging, then to live Mycelium:
+  wi-cajon-partial-loop-credit is proposed/held, with an independent failed
+  baseline TestRun and acceptance criteria. Verified through scoped read-work and
+  read-evidence. Admission source hash:
+  d9904103615656e0e367b69e9ade017054165f78ff346b5e01328c85e2c0a206.
+- Snapshot adapter and worker service remain source-only. Next connect scoped
+  artifact delivery and bounded model/code proposal execution, then use this
+  real failing case to qualify the complete product loop. Do not count the
+  baseline finding or source snapshots as a fixed product or accepted outcome.
