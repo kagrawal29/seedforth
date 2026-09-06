@@ -19,6 +19,8 @@ The repository includes a dependency-light boundary suite at
 The real Neo4j bootstrap/replay gate can be run against a disposable container
 with `bash platform/integration-tests/run-disposable.sh`. It exits with status
 2 when Docker is unavailable and never uses the production graph endpoint.
+The latest evidence is recorded in
+[`verification-2026-09-06.md`](verification-2026-09-06.md).
 The current production release passed the schema/bootstrap, active Delta,
 graph-health, fleet-reconciliation, and rollback checks and is deployed on
 `delta2`. The disposable replay and deliberate-mismatch harnesses remain

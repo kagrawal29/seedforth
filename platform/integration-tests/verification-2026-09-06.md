@@ -1,0 +1,22 @@
+# Platform integration verification — 2026-09-06
+
+## Executed gates
+
+| Gate | Evidence | Result |
+|---|---|---|
+| Contract boundary tests | `pytest platform/integration-tests` in isolated test environment | 9 passed |
+| Delta active suite | `pytest platform/delta/tests/ -x -q` in same environment | 240 passed, 2 deprecation warnings |
+| Disposable Neo4j bootstrap | `run-disposable.sh` on `delta2` with `neo4j:5-community` | Passed twice/idempotent |
+| Progress replay | Same disposable run, same `message_id` submitted twice | One durable `Signal` |
+| Production safety check | Delta service, heartbeat timer, restart count, current symlink | Active, active, 0 restarts, `bed326a` |
+
+The disposable run used a temporary container on port `17474`, never the
+production Neo4j endpoint. Its container was removed by the harness trap. The
+production runtime remained on immutable release `bed326a` throughout.
+
+## Interpretation
+
+The platform boundary is now verified at three levels: pure contract logic,
+disposable graph behavior, and non-mutating production health. The remaining
+integration backlog is deliberate-mismatch injection against a disposable
+server reconciliation process; it is not represented as passed here.
