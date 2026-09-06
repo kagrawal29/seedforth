@@ -73,3 +73,23 @@ identity audit sensing and actual remote-client trials remain release work. The
 current access page supplies all-client revocation; finer per-client administration
 and the integrated work board remain UX work. Do not equate this tested identity
 surface with the full autonomous system or an elapsed unattended soak.
+
+## Production deployment boundary
+
+Run an independently pinned identity component as a static system user, with a
+0700 state directory and root-protected loaded graph credentials. HTTP binds only
+127.0.0.1:8788. A reviewed graph DeploymentPolicy names the issuer, resource and
+eligible project scopes; the adapter validates a narrow deployment envelope.
+Nginx application routes remain closed until legacy credential isolation and
+the remote boundary are qualified. Do not install dependencies into Delta's env.
+
+Operator invitation/reset uses a private Unix socket and Linux SO_PEERCRED uid0,
+not an HTTP admin tool or a caller-supplied role. It only enrolls an existing graph
+principal. The operator client writes invitations to a new0600 file, never stdout
+or URLs. Root recovery is distinct from human approval of business actions.
+
+Credential backups use SQLite's online backup API, not copying a live database
+file. Restore qualification must invalidate sessions, OAuth families, pending
+invites and recovery codes and disable restored logins before exposure; otherwise
+restoring an old snapshot could resurrect revoked credentials. Keep original
+backups private and preserve account/principal mappings for operator re-enrollment.

@@ -1,0 +1,35 @@
+[Unit]
+Description=SeedForth human identity and scoped OAuth (private loopback)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=seedforth-identity
+Group=seedforth-identity
+WorkingDirectory=/opt/seedforth/identity-current
+StateDirectory=seedforth-identity
+StateDirectoryMode=0700
+RuntimeDirectory=seedforth-identity
+RuntimeDirectoryMode=0700
+UMask=0077
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
+Environment=PYTHONPATH=/opt/seedforth/identity-current/platform
+ExecStart=/opt/seedforth/shared/identity-venv/bin/python -m control.identity_runtime
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+MemoryMax=512M
+TasksMax=64
+TimeoutStopSec=15s
+
+[Install]
+WantedBy=multi-user.target
