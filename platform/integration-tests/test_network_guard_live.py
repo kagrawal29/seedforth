@@ -48,6 +48,10 @@ time.sleep(60)
         for name in names:
             run('ip','netns','add',name);created.append(name)
             ns(name,'ip','link','set','lo','up')
+            # These isolated links have unique, explicitly assigned addresses.
+            # Avoid asynchronous link-local DAD racing the forwarding baseline.
+            ns(name,'sysctl','-w','net.ipv6.conf.default.accept_dad=0')
+            ns(name,'sysctl','-w','net.ipv6.conf.all.accept_dad=0')
         ns(a,'ip','link','add','eth0','type','veth','peer','name','peer0')
         ns(a,'ip','link','set','peer0','netns',b)
         ns(b,'ip','link','set','peer0','name','eth0')
@@ -76,7 +80,12 @@ time.sleep(60)
             if probe(a,'10.239.218.2',22):break
             time.sleep(.05)
         for address in ['10.239.218.2','fd42:239:218::2']:
-            baseline={p:probe(a,address,p) for p in [22,6083,7474,7687,8900]}
+            deadline=time.monotonic()+8
+            while True:
+                assert all(p.poll() is None for p in processes),'fixture listener exited'
+                baseline={p:probe(a,address,p) for p in [22,6083,7474,7687,8900]}
+                if all(baseline.values()) or time.monotonic()>=deadline:break
+                time.sleep(.05)
             assert all(baseline.values()),(address,baseline)
         path=Path(__file__).parents[2]/'operations/network-guard.py'
         code="import importlib.util; s=importlib.util.spec_from_file_location('g',"+repr(str(path))+");g=importlib.util.module_from_spec(s);s.loader.exec_module(g);g.enforce(dict(id='network-policy-internal-services-v1',version=1,interface='eth0',ports=[6083,7474,7687]))"
