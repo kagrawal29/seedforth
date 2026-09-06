@@ -20,7 +20,7 @@ from control.graph import Graph, GraphError
 
 WEB = Path(__file__).parent / 'web'
 FIELDS = {
-    'read-scope': {}, 'read-work': {}, 'read-timeline': {'id':str},
+    'read-scope': {}, 'read-work': {}, 'read-sources': {}, 'read-timeline': {'id':str},
     'create-work': {'id':str,'milestone':str,'title':str,'acceptance':str},
     'ready-work': {'id':str,'version':int},
     'hold-work': {'id':str,'version':int,'hold':bool},

@@ -24,12 +24,13 @@ function fail(error) {
 }
 async function refresh() {
   try {
-    const [project, work] = await Promise.all([operation('read-scope'),operation('read-work')]);
+    const [project, work, sources] = await Promise.all([operation('read-scope'),operation('read-work'),operation('read-sources')]);
     if (project.data.length !== 1) throw new Error('Project identity unavailable or ambiguous');
     online = true; $('error').textContent = ''; $('connection').textContent = 'Connected';
     $('login').hidden = true; $('workspace').hidden = false;
     $('project-name').textContent = project.data[0].name;
-    $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · Runtime freshness not yet verified`;
+    const sourceSummary=sources.data.length ? sources.data.map(s=>`${s.adapter}: ${s.process_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'})`).join(' · ') : 'Runtime source not registered';
+    $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · ${sourceSummary}`;
     const p = project.data[0];
     $('authority').textContent = `Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`;
     const attention = work.data.filter(w => w.hold || ['blocked','review'].includes(w.status));
@@ -82,6 +83,8 @@ function disconnect() {
   credential='';scope='';selected=null;online=false;
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
   $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();
+  for (const id of ['project-name','freshness','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
+  $('inspector').hidden=true;
   $('connection').textContent='Disconnected';
 }
 $('connect').addEventListener('submit',event=>{event.preventDefault();generation++;credential=$('token').value;scope=$('scope').value;$('token').value='';refresh();});

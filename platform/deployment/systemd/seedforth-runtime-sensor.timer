@@ -1,0 +1,11 @@
+[Unit]
+Description=Observe registered SeedForth runtime sources each minute
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=seedforth-runtime-sensor.service
+
+[Install]
+WantedBy=timers.target

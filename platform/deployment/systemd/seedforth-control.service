@@ -1,0 +1,30 @@
+[Unit]
+Description=SeedForth scoped control gateway (loopback)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/seedforth/control-current
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+LoadCredential=access.json:/opt/seedforth/shared/env/control-access.json
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
+Environment=CONTROL_CREDENTIALS_FILE=%d/access.json
+Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+ExecStart=/usr/bin/python3 -m control.server --port 8787
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+MemoryMax=256M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

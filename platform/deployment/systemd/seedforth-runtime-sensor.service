@@ -1,0 +1,26 @@
+[Unit]
+Description=SeedForth scoped runtime observations
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+DynamicUser=yes
+WorkingDirectory=/opt/seedforth/control-current
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
+Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+EnvironmentFile=/opt/seedforth/shared/env/control-release.env
+ExecStart=/usr/bin/python3 -m control.sense_runtime
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+MemoryMax=192M
+TasksMax=32
+TimeoutStartSec=45
+

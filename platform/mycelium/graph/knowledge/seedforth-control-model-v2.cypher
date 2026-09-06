@@ -11,6 +11,7 @@ CREATE CONSTRAINT seedforth_principal_id IF NOT EXISTS FOR (n:Principal) REQUIRE
 CREATE CONSTRAINT seedforth_grant_id IF NOT EXISTS FOR (n:Grant) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_scope_id IF NOT EXISTS FOR (n:ControlScope) REQUIRE n.node_id IS UNIQUE;
 CREATE CONSTRAINT seedforth_operation_id IF NOT EXISTS FOR (n:ControlOperation) REQUIRE n.node_id IS UNIQUE;
+CREATE CONSTRAINT seedforth_operation_revision_id IF NOT EXISTS FOR (n:OperationRevision) REQUIRE n.node_id IS UNIQUE;
 MERGE (s:SchemaContract {node_id:'schema-seedforth-control-v2'})
 ON CREATE SET s.version='2.0.0',s.project='system',s.created_at=datetime()
 SET s.source='platform/mycelium/graph/knowledge/seedforth-control-model-v2.cypher';

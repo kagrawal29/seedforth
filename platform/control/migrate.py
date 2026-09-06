@@ -8,7 +8,8 @@ from control.graph import Graph, GraphError, operation_sources
 
 ROOT = Path(__file__).resolve().parents[1] / 'mycelium/graph/knowledge'
 SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cypher',
-           'seedforth-upgrade-pilot-scopes.cypher']
+           'seedforth-upgrade-pilot-scopes.cypher','seedforth-pilot-runtime-sources.cypher',
+           'seedforth-control-owner.cypher']
 
 
 def migrate(graph, revision):

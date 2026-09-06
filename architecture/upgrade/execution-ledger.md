@@ -32,7 +32,11 @@ Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
   Scratch directory: /tmp/seedforth-upgrade.Eb1GkXTC.
 - Authored additive v2 migration succeeded twice against restored production data.
   Most recent source hash: 01268043a5e5457434033a16d6817ccb42249bba1aba6e8241c6cde91c934b72.
-  No production migration or scheduler cutover has run yet.
+  This migration is now applied and verified in production from immutable commit
+  6f232e9b599ba9e22322f0eda8524dc76c2acfb1 (also pushed to the upgrade branch).
+  Both pilot scopes are active but held for new execution, 11 reviewed graph
+  operations exist, all 47 project records remain, and Delta/heartbeat stay active.
+  Main platform symlink remains on 1770e7c. No scheduler cutover has run yet.
 - Initial loopback gateway and responsive board implemented. Per-principal scoped
   bootstrap credentials are not OAuth. Public remote MCP is not delivered yet.
 - Browser fixture checks passed: desktop project/inspector, 390px mobile layout,
@@ -40,8 +44,16 @@ Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
   fixture UX validation, not production browser-to-worker acceptance.
 - Restored-data container stopped after migration verification to close the
   temporary loopback read surface. Its dedicated volume and backup are retained.
-- Production deployment, graph migration, remote interface, and autonomy trials
-remain incomplete. Do not describe this ledger as completion of the upgrade.
+- Next component includes runtime SourceStreams and append-only Observations with
+  idempotency, late-event preservation, failed-collection visibility, and stale
+  projection. Process observation never changes owner-directed portfolio state.
+- Sensing/gateway/runner suite: 32 passed in the disposable graph. Updated schema,
+  sources, and owner bootstrap grants applied twice to the restored snapshot;
+  source hash edc37dbc8d3ed87d7de4c814a71fb98f08d7d591d79f85b61aa1a1bcf622b54f.
+  Restore container stopped again. Separate hardened loopback services prepared;
+  source polling is not autonomous project execution.
+- Full runtime cutover, public remote interface, and autonomy trials remain
+  incomplete. Do not describe this ledger as completion of the upgrade.
 
 ## Execution rules
 

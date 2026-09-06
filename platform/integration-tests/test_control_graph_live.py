@@ -124,6 +124,10 @@ def test_changed_graph_operation_is_not_executed(graph, case):
             graph.operation('read-scope',case['actor'],case['scope'])
     finally:
         graph.promote()
+    import hashlib
+    revisions=graph.query("MATCH (:ControlOperation {node_id:'control-read-scope'})-[:HAS_REVISION]->(v:OperationRevision) RETURN v.cypher AS cypher,v.source_hash AS hash")
+    assert revisions
+    assert all(hashlib.sha256(row['cypher'].encode()).hexdigest()==row['hash'] for row in revisions)
 
 
 def test_lease_renewal_and_expiry_require_reconciliation(graph, case):
@@ -198,3 +202,29 @@ def test_real_runner_records_per_atom_and_stops_failed_chain(graph, monkeypatch)
                      "RETURN r.status AS status,r.atoms_ok AS ok,count(a) AS attempts",{'pid':pid})
     assert rows==[{'status':'failed','ok':1,'attempts':2}]
     assert graph.query("MATCH (n:MustNotExist) RETURN count(n) AS n")[0]['n']==0
+
+
+def test_runtime_observations_replay_late_failure_and_staleness(graph, case):
+    from datetime import datetime,timedelta,timezone
+    graph.query("MATCH (p:Principal {node_id:$actor}) "
+        "CREATE (p)-[:HAS_GRANT]->(:Grant {scope:$scope,revoked:false,permissions:['source.observe']}) "
+        "CREATE (:SourceStream {node_id:$scope+'-source',scope_id:$scope,enabled:true,"
+        "adapter:'local-opencode-process-v1',freshness_seconds:180})",case)
+    now=datetime.now(timezone.utc)
+    params=dict(source=case['scope']+'-source',observed_at=now.isoformat(),status='running',
+        process_count=1,revision='fixture',event_id=uuid4().hex,payload_hash='fixture-hash')
+    assert graph.operation('record-runtime-observation',case['actor'],case['scope'],**params)
+    assert graph.operation('record-runtime-observation',case['actor'],case['scope'],**params)
+    assert graph.query("MATCH (o:Observation {node_id:$event_id}) RETURN count(o) AS n",params)[0]['n']==1
+    assert graph.operation('record-runtime-observation',case['worker'],case['scope'],**params)==[]
+    late={**params,'event_id':uuid4().hex,'observed_at':(now-timedelta(minutes=1)).isoformat(),
+          'status':'stopped','process_count':0,'payload_hash':'late'}
+    graph.operation('record-runtime-observation',case['actor'],case['scope'],**late)
+    assert graph.operation('read-sources',case['actor'],case['scope'])[0]['process_status']=='running'
+    failed={**params,'event_id':uuid4().hex,'observed_at':(now+timedelta(seconds=1)).isoformat(),
+            'status':'collection_failed','process_count':0,'payload_hash':'failed'}
+    graph.operation('record-runtime-observation',case['actor'],case['scope'],**failed)
+    assert graph.operation('read-sources',case['actor'],case['scope'])[0]['evidence_status']=='degraded'
+    graph.query("MATCH (s:SourceStream {node_id:$source}) SET s.last_success_at=datetime()-duration('PT4M')",params)
+    row=graph.operation('read-sources',case['actor'],case['scope'])[0]
+    assert row['evidence_status']=='stale' and row['process_status']=='unknown'

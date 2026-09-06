@@ -27,9 +27,13 @@ class GraphError(RuntimeError):
 
 class Graph:
     def __init__(self, endpoint=None, user=None, password=None):
-        self.endpoint = endpoint or os.environ.get("CONTROL_NEO4J_URL", "http://127.0.0.1:7474")
-        self.user = user if user is not None else os.environ.get("NEO4J_USER", "neo4j")
-        self.password = password if password is not None else os.environ.get("NEO4J_PASSWORD", "")
+        supplied = {}
+        credential_file = os.environ.get('CONTROL_GRAPH_CREDENTIALS')
+        if credential_file:
+            supplied = json.loads(Path(credential_file).read_text())
+        self.endpoint = endpoint or supplied.get('endpoint') or os.environ.get("CONTROL_NEO4J_URL", "http://127.0.0.1:7474")
+        self.user = user if user is not None else supplied.get('user', os.environ.get("NEO4J_USER", "neo4j"))
+        self.password = password if password is not None else supplied.get('password', os.environ.get("NEO4J_PASSWORD", ""))
 
     def query(self, statement, params=None):
         headers = {"Content-Type": "application/json"}
@@ -54,9 +58,19 @@ class Graph:
         for path in operation_sources():
             cypher = path.read_text()
             digest = hashlib.sha256(cypher.encode()).hexdigest()
+            old=self.query("MATCH (a:ControlOperation {node_id:$id}) RETURN a.cypher AS cypher,a.source_hash AS hash,a.source AS source",
+                           {'id':'control-'+path.stem})
+            if old and old[0]['hash'] == hashlib.sha256(old[0]['cypher'].encode()).hexdigest():
+                self.query("MATCH (a:ControlOperation {node_id:$id}) "
+                           "MERGE (v:OperationRevision {node_id:$id+':'+$hash}) "
+                           "ON CREATE SET v.cypher=$cypher,v.source_hash=$hash,v.source=$source,v.recorded_at=datetime() "
+                           "MERGE (a)-[:HAS_REVISION]->(v)",{'id':'control-'+path.stem,**old[0]})
             self.query("MERGE (a:ControlOperation:CypherAtom {node_id:$id}) "
                        "SET a.cypher=$cypher,a.source_hash=$hash,a.project='system',"
-                       "a.semantic=$semantic,a.source=$source,a.promoted_at=datetime()",
+                       "a.semantic=$semantic,a.source=$source,a.promoted_at=datetime(),a.current_revision=$id+':'+$hash "
+                       "MERGE (v:OperationRevision {node_id:a.current_revision}) "
+                       "ON CREATE SET v.cypher=$cypher,v.source_hash=$hash,v.source=$source,v.recorded_at=datetime() "
+                       "MERGE (a)-[:HAS_REVISION]->(v)",
                        {"id": "control-" + path.stem, "cypher": cypher, "hash": digest,
                         "semantic": path.stem.replace('-', ' '),
                         "source": "platform/mycelium/graph/control/" + path.name})
