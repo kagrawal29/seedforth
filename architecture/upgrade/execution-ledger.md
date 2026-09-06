@@ -92,9 +92,13 @@ No autonomous product outcome, archival, public MCP, scheduler retirement, or
 30-day soak has been demonstrated. Preserve this distinction in progress reports.
 
 Current deployment update: control release 7b433aa is live (see promotion evidence
-below). Broker Cypher and worker boundary source are deployed, but the production
-broker/isolated-worker daemon and useful model/code capabilities still need to be
-implemented and provisioned. Do not confuse source promotion with active execution.
+below). Worker component 3d8feef is live and the first bounded Cajon code pilot has
+completed through production invocation, fresh browser verification, delegated
+review and source application. This is a deterministic executor of an agent-authored
+proposal, not generalized model-driven autonomy. Next address the explicit checkout
+follow-up, Flowing Indian's pilot, model/cost controls, remote MCP, Graphify and
+the remaining full-plan phases. Do not confuse one accepted code artifact with
+completion of the system upgrade or proof of long-term autonomous operation.
 
 ## Broker implementation qualification
 
@@ -357,3 +361,37 @@ actions disabled until their authority and postconditions are implemented.
   bounded mandate, verify its exact artifact independently, review and safely
   promote the source/deployment. If authority expires first, inspect graph/receipt
   state and explicitly renew the bounded pilot; never silently bypass expiry.
+
+## First bounded production code pilot completed
+
+- Worker release 3d8feef7c4a6a37c4c723d9b5d9735dcf68f9579 qualified with 99 tests
+  in 14.34s, including the actual graph-authored executor inside the restricted
+  Docker worker. Worker release updated separately; control/Delta unchanged.
+- Job contains only scope/work/attempt/invocation identities. Actual instruction
+  is admitted to Mycelium, read by the claimant, and enforced by broker capability,
+  mandate, lease and budget checks. Existing/uncertain attempts are not restarted.
+- Production attempt attempt-cajon-pilot-v1 executed invocation-cajon-pilot-v1 and
+  generated Receipt a269f0ed-2eea-46b0-be86-6e911c3706bd, entering review. One
+  artifact action unit spent, zero reserved and no monetary spending. Worker has
+  no network, repository mount, Docker socket or graph/provider credentials.
+- Its exact candidate file matches the staged verified hash. Fresh Playwright CLI
+  run against the actual production artifact passed all 12 scenarios. Linked
+  TestRun qualification-cajon-production-pilot-v1 verifies the exact Receipt hash.
+- Delegated source-promotion Decision guards the before Git blob and after file
+  hash. GitHub master had advanced from the server copy but its app blob was
+  identical to the tested base. One-file PR #1 merged as
+  9f694ee4d544927b7df109d6f2f5c739ec78ab0d in Seedforth/cajon-sensei.
+- Server fast-forward did not complete. It has pre-existing operational edits;
+  those were preserved. Only app/index.html was atomically replaced after two
+  before-image checks, preserving ownership/mode and retaining root-private backup.
+  After hash verified dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  Git HEAD was deliberately not rewritten; public hosting is not yet verified.
+- Review transitioned wi-cajon-partial-loop-credit to done/version 5 and recorded
+  one verified accepted_artifact ProgressEvent. Review is explicitly owner-delegated
+  operator action, not personal owner acceptance. The scope is held again.
+- Created held follow-up wi-cajon-checkout-reconcile to preserve operational edits
+  while restoring a coherent source checkout/release and checking hosting state.
+  Evidence summary: evidence/cajon-production-pilot-20260906.json.
+- This establishes a real bounded code-fix loop. It does not establish generalized
+  model planning, continuous useful autonomy, other product outcomes, secure public
+  MCP, full human UX, Graphify, safe portfolio archival or unattended soak success.
