@@ -87,6 +87,8 @@ Operator invitation/reset uses a private Unix socket and Linux SO_PEERCRED uid0,
 not an HTTP admin tool or a caller-supplied role. It only enrolls an existing graph
 principal. The operator client writes invitations to a new0600 file, never stdout
 or URLs. Root recovery is distinct from human approval of business actions.
+Bootstrap files belong under /opt/seedforth/shared/identity-operator (root0700),
+not the shared env directory, whose existing group traversal must be preserved.
 
 Credential backups use SQLite's online backup API, not copying a live database
 file. Restore qualification must invalidate sessions, OAuth families, pending

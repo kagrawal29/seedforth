@@ -4,6 +4,14 @@ import json
 import os
 from pathlib import Path
 import socket
+import re
+
+
+def validate_target(target,directory=Path('/opt/seedforth/shared/identity-operator'),owner_uid=0):
+    if (target.parent!=directory or target.is_symlink() or target.exists()
+            or not re.fullmatch(r'human-invitation-[A-Za-z0-9_.-]{1,96}\.json',target.name)
+            or directory.is_symlink() or directory.stat().st_uid!=owner_uid or directory.stat().st_mode&0o077):
+        raise ValueError('invalid_invitation_output_target')
 
 
 def request(operation,principal=None):
@@ -36,14 +44,12 @@ if __name__=='__main__':
     parser.add_argument('--principal')
     parser.add_argument('--output')
     args=parser.parse_args()
+    if os.geteuid()!=0:raise ValueError('root_operator_required')
     if args.operation in {'invite','reset'}:
         if not args.principal or not args.output:
             parser.error('invitation/reset requires principal and private output file')
         target=Path(args.output)
-        if (target.parent!=Path('/opt/seedforth/shared/env') or target.is_symlink() or target.exists()
-                or not target.name.startswith('human-invitation-')
-                or target.parent.stat().st_uid!=0 or target.parent.stat().st_mode&0o077):
-            raise ValueError('invalid_invitation_output_target')
+        validate_target(target)
         fd=os.open(target,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
         try:
             result=request(args.operation,args.principal)
