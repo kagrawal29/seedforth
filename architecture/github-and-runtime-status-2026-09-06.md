@@ -25,11 +25,12 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - WAHA: running on localhost `:3000`
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
-- Immutable consolidated release staged at
-  `/opt/seedforth/releases/9633ca2`, with `/opt/seedforth/current` pointing to
-  it; existing services have not been switched
+- Immutable consolidated releases are staged at
+  `/opt/seedforth/releases/a8adca5`; the published release is clean, but
+  `/opt/seedforth/current` still points to the previously validated
+  `ff350d9` release because existing services have not been switched
 - Linux/amd64 Mycelium CLI artifact staged under the release and reports
-  version `9633ca2`
+  version `a8adca5` from `/opt/seedforth/shared/bin/mycelium`
 
 ## Live graph snapshot
 
