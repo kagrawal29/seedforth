@@ -495,3 +495,45 @@ actions disabled until their authority and postconditions are implemented.
   dispatch/credential migration, governed cadence replacement, Graphify, second
   useful product pilot, archival and unattended qualification. The entire goal
   remains incomplete; this security milestone is not a substitute for that scope.
+
+## MCP boundary and durable conversation intake
+
+- Control release2aed97e3ced22735f8281d24d6c866daeba044c1 is live, deployed
+  2026-09-06T17:12:01Z. Main1770e7c, worker3d8feef and securityafcc87b unchanged.
+  Shared Boundary now accepts bounded scoped graph reads and private durable
+  conversation admission/readback. Owner has conversation-only grants for the
+  three existing scopes, with no new execution/spend/model authority.
+- Official MCP SDK2.1.1 adapter uses the same boundary after independent token
+  verification. Four tools and a schema resource provide scoped metadata, current
+  work, direction intake and conversation recovery. Qualified dependencies are
+  pinned separately from the running Delta environment. SDK is installed only in
+  test environments so far; no public or persistent production MCP server exists.
+- Conversation keys are originator/scope-bound. Graph reducers serialize message
+  sequence and idempotence, reject changed intent on replay, exclude other people,
+  and store direction as uninterpreted content. Intake returns queued/not_started
+  and explicitly states the governed Delta processor is not yet qualified. It does
+  not fabricate an answer, WorkItem, Invocation, spend or progress.
+- Actual official SDK client over TCP HTTP passed discovery/401 metadata, Origin
+  rejection, graph/work reads, cross-scope denial, durable reconnect, graph-grant
+  revocation and credential removal. Separate graph tests passed concurrent
+  admission, request collision, cross-person privacy and hostile text containment.
+  Initial SDK test exposed unstructured return typing; explicit typed structured
+  output fixed it. No tests use real provider or owner credentials.
+- Immutable release:123passed in26.45s. Qualification JUnit hash
+  57b383b37bc541b66233dec8023792f185f9ff8edfe7e19c03a68b0396aa06e2
+  is recorded in live Mycelium against W21. Playwright CLI control-board regression
+  also passed after the shared-boundary change. Browser and fixture server stopped.
+- Migration applied twice to the restored production graph with zero prior nodes
+  carrying the new conversation labels. All47 projects and scope holds preserved.
+  Live migration and authenticated HTTP readback returned30 bounded metadata rows
+  per existing scope. No synthetic conversation was left queued in production.
+  Restore container stopped again; data volume retained.
+- The digest-file MCP verifier is a private qualification/enrollment adapter, not
+  an OAuth authorization server. Public login/consent, PKCE/client registration,
+  refresh/narrowed scopes, TLS, abuse limits, actual desktop/mobile agent trials
+  and the originator-bound Delta processor are still required. Do not publish this
+  adapter with a fictitious issuer or shared administrator credential as a shortcut.
+- Continue by completing actual remote identity/access and the governed conversation
+  processor, then integrating the richer board/Charlie experience with useful
+  autonomous work. Legacy credential/writer isolation, Graphify, Flowing pilot,
+  portfolio archival, recovery and unattended qualification remain in the full goal.
