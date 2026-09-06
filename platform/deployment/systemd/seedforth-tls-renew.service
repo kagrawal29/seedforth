@@ -1,0 +1,18 @@
+[Unit]
+Description=Renew SeedForth public IP certificate and reload validated nginx
+Wants=network-online.target
+After=network-online.target nginx.service
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/opt/seedforth/shared/certbot-venv/bin/certbot renew --non-interactive --config-dir /opt/seedforth/shared/acme-production/config --work-dir /opt/seedforth/shared/acme-production/work --logs-dir /opt/seedforth/shared/acme-production/logs --webroot --webroot-path /var/lib/seedforth-acme --deploy-hook "/usr/sbin/nginx -t && /usr/bin/systemctl reload nginx.service"
+TimeoutStartSec=300
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/opt/seedforth/shared/acme-production /var/lib/seedforth-acme /var/log/nginx
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+MemoryMax=256M
+TasksMax=32
