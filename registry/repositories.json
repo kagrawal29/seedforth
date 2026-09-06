@@ -2,7 +2,7 @@
   "schema_version": 1,
   "workspace": "SeedForth",
   "platform_target": "seedforth",
-  "live_deployment": {"server":"delta2","release":"c15b960","delta_unit":"seedforth-delta.service","heartbeat_timer":"seedforth-mycelium-heartbeat.timer","legacy_delta_unit":"delta.service","status":"active"},
+  "live_deployment": {"server":"delta2","release":"1addd37","delta_unit":"seedforth-delta.service","heartbeat_timer":"seedforth-mycelium-heartbeat.timer","legacy_delta_unit":"delta.service","status":"active"},
   "repositories": [
     {"name":"mycelium","role":"platform","local_path":"tetrahedron/projects/mycelium","github":"kagrawal29/mycelium","canonical_branch":"main","observed_server_path":"/opt/seedforth/current","target_server_path":"/opt/seedforth/current/platform/mycelium","status":"active"},
     {"name":"delta","role":"platform","local_path":"delta","github":"kagrawal29/delta","canonical_branch":"main","observed_server_path":"/opt/seedforth/current","legacy_server_path":"/opt/delta","target_server_path":"/opt/seedforth/current/platform/delta","status":"active"},
