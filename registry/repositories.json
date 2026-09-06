@@ -3,8 +3,8 @@
   "workspace": "SeedForth",
   "platform_target": "seedforth",
   "repositories": [
-    {"name":"mycelium","role":"platform","local_path":"tetrahedron/projects/mycelium","github":"kagrawal29/mycelium","canonical_branch":"main","observed_server_path":"/opt/seedforth/current/platform/mycelium","target_server_path":"/opt/seedforth/current/platform/mycelium","status":"release-staged-not-cutover"},
-    {"name":"delta","role":"platform","local_path":"delta","github":"kagrawal29/delta","canonical_branch":"main","observed_server_path":"/opt/seedforth/current/platform/delta","legacy_server_path":"/opt/delta","target_server_path":"/opt/seedforth/current/platform/delta","status":"release-staged-not-cutover"},
+    {"name":"mycelium","role":"platform","local_path":"tetrahedron/projects/mycelium","github":"kagrawal29/mycelium","canonical_branch":"main","observed_server_path":"/opt/seedforth/current","target_server_path":"/opt/seedforth/current/platform/mycelium","status":"release-staged-not-cutover"},
+    {"name":"delta","role":"platform","local_path":"delta","github":"kagrawal29/delta","canonical_branch":"main","observed_server_path":"/opt/seedforth/current","legacy_server_path":"/opt/delta","target_server_path":"/opt/seedforth/current/platform/delta","status":"release-staged-not-cutover"},
     {"name":"flowing-indian","role":"product","local_path":"flowing-indian","github":"kartiksahu/flowing-indian-website","canonical_branch":"main","observed_server_path":"/home/proj-flowing-indian/flowing-indian","target_server_path":"/home/proj-flowing-indian/flowing-indian","status":"active"},
     {"name":"seedforthing","role":"product","local_path":"seedforthing","github":"Seedforth/seedforthing","canonical_branch":"master","observed_server_path":"/home/proj-seedforthing/seedforthing","target_server_path":"/home/proj-seedforthing/seedforthing","status":"active"},
     {"name":"solveOS","role":"product","local_path":"solveOS","github":"kagrawal29/solve-os","canonical_branch":"master","observed_server_path":null,"target_server_path":null,"status":"inactive"},

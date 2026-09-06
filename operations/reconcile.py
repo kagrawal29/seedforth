@@ -138,6 +138,7 @@ def main() -> int:
         # canonical release path so each is inspected as its own checkout.
         paths.extend(entry["legacy_server_path"] for entry in repos
                      if entry.get("legacy_server_path"))
+        paths = list(dict.fromkeys(paths))
         report["server"] = inspect_server(args.server, paths)
     if args.graph:
         report["graph"] = inspect_graph(args.graph)
