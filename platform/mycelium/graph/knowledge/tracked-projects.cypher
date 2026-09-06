@@ -110,14 +110,16 @@ MERGE (p:Project {name: 'revti-digital'})
       p.created_at          = datetime()
   RETURN p.name AS result;
 
-// ATOM 10: tetrahedron
+// ATOM 10: tetrahedron (historical reference only)
 MERGE (p:Project {name: 'tetrahedron'})
-  SET p.description         = 'Remote server orchestrator and personal OS — manages infrastructure and agent deployment',
+  SET p.description         = 'Retired remote server orchestrator and personal OS — preserved as historical reference',
       p.repo_url            = 'https://github.com/kagrawal29/tetrahedron',
       p.owner_alias         = 'Mycelium',
       p.visibility          = 'private',
       p.ingestion_scope     = 'code',
-      p.status              = 'pending-scope-confirmation',
+      p.status              = 'reference-only',
+      p.active              = false,
+      p.architecture_role   = 'reference',
       p.created_at          = datetime()
   RETURN p.name AS result;
 

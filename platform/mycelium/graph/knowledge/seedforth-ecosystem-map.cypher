@@ -6,20 +6,21 @@
 // agent, and repository is a node. Relationships describe what depends on what,
 // what runs where, and who manages what.
 //
-// Delta-server is the backbone. Charlie-server runs audioworld outreach.
+// Delta2 is the primary platform runtime. The historical delta-server remains
+// a legacy/rollback host. Charlie-server runs audioworld outreach.
 // Pulse-server is off-limits (not represented here).
 // ============================================================================
 
 // ############################################################################
 // SERVERS
 // ############################################################################
-MERGE (ds:Server {node_id: 'server-delta'})
+MERGE (ds:Server {node_id: 'server-delta2'})
 SET ds.project = 'seedforth',
-    ds.name = 'delta-server',
-    ds.ip = '143.110.226.214',
-    ds.ssh_alias = 'delta-server',
+    ds.name = 'delta2',
+    ds.ip = '185.192.96.100',
+    ds.ssh_alias = 'delta2',
     ds.provider = 'digitalocean',
-    ds.description = 'Primary SeedForth infrastructure server. Runs Tetrahedron bot, Delta bot, Observatory, Neo4j, FalkorDB, Qdrant, and all delta-managed projects.',
+    ds.description = 'Primary SeedForth platform runtime. Runs consolidated Delta, Mycelium Neo4j, supervisor, and delta-managed projects.',
     ds.status = 'active';
 
 MERGE (cs:Server {node_id: 'server-charlie'})
@@ -32,11 +33,11 @@ SET cs.project = 'seedforth',
     cs.status = 'active';
 
 // ############################################################################
-// SERVICES on delta-server
+// SERVICES on delta2
 // ############################################################################
 UNWIND [
   {id: 'svc-delta',             name: 'delta.service',           desc: 'Discord bot giving projects their own OpenCode agents', ports: '', health: 'active'},
-  {id: 'svc-tetrahedron-bot',   name: 'tetrahedron-bot.service', desc: 'Tetrahedron Discord supervisor bot', ports: '', health: 'active'},
+  {id: 'svc-tetrahedron-bot',   name: 'tetrahedron-bot.service', desc: 'Retired Tetrahedron supervisor (historical reference only)', ports: '', health: 'reference-only'},
   {id: 'svc-observatory',       name: 'observatory.service',     desc: 'Fleet monitoring dashboard on :8888', ports: '8888', health: 'active'},
   {id: 'svc-loom',              name: 'loom.service',            desc: 'Loom service', ports: '', health: 'active'},
   {id: 'svc-droplet-agent',     name: 'droplet-agent.service',   desc: 'Droplet management agent', ports: '', health: 'active'},
@@ -54,7 +55,7 @@ SET s.project = 'seedforth',
     s.health = svc.health,
     s.last_checked_at = datetime();
 
-MATCH (ds:Server {node_id: 'server-delta'}), (s:Service)
+MATCH (ds:Server {node_id: 'server-delta2'}), (s:Service)
 WHERE s.project = 'seedforth'
   AND s.node_id IN ['svc-delta','svc-tetrahedron-bot','svc-observatory','svc-loom','svc-droplet-agent','svc-supervisor','svc-ttyd','svc-neo4j','svc-falkordb','svc-qdrant']
 MERGE (ds)-[:HAS_SERVICE]->(s);
@@ -64,7 +65,7 @@ MERGE (ds)-[:HAS_SERVICE]->(s);
 // ############################################################################
 UNWIND [
   {name: 'mycelium',       desc: 'Living knowledge graph — the map of everything. This graph.', repo: 'kagrawal29/mycelium',            status: 'active',     runtime: 'cypher',   category: 'core'},
-  {name: 'tetrahedron',    desc: 'Remote server orchestrator + personal OS. Discord bot supervisor.', repo: 'kagrawal29/tetrahedron',    status: 'active',     runtime: 'python',   category: 'core'},
+  {name: 'tetrahedron',    desc: 'Retired remote server orchestrator preserved as historical reference.', repo: 'kagrawal29/tetrahedron',    status: 'reference-only', runtime: 'python', category: 'reference'},
   {name: 'delta',          desc: 'Discord bot giving projects their own OpenCode agents. Project registry + channel management.', repo: 'kagrawal29/delta', status: 'active', runtime: 'python', category: 'core'},
   {name: 'audioworld',     desc: 'LinkedIn outreach system on charlie-server.', repo: 'kagrawal29/audioworld', status: 'active',       runtime: 'python',   category: 'client'},
   {name: 'arie',           desc: 'LinkedIn intelligence agent (single-user prototype). Precedes ember.', repo: 'kagrawal29/arie',       status: 'hibernating', runtime: 'python', category: 'product'},
@@ -96,10 +97,11 @@ SET proj.project = p.name,
     proj.status = p.status,
     proj.runtime = p.runtime,
     proj.category = p.category,
+    proj.architecture_role = CASE WHEN p.name = 'tetrahedron' THEN 'reference' ELSE coalesce(proj.architecture_role, 'active') END,
     proj.created_at = coalesce(proj.created_at, datetime());
 
 // ############################################################################
-// DELTA-MANAGED PROJECTS (from delta-registry.json on delta-server)
+// DELTA-MANAGED PROJECTS (from delta-registry.json on delta2)
 // These are projects running under delta's supervision with dedicated linux users.
 // ############################################################################
 UNWIND [
@@ -144,16 +146,16 @@ MERGE (a1:Agent {node_id: 'agent-tetrahedron'})
 SET a1.project = 'tetrahedron',
     a1.name = 'Tetrahedron',
     a1.role = 'Personal OS + Infrastructure Commander',
-    a1.runs_on = 'delta-server',
-    a1.service = 'tetrahedron-bot.service',
+    a1.runs_on = 'historical',
+    a1.service = 'retired:tetrahedron-bot.service',
     a1.description = 'Discord supervisor bot. Manages priorities, decomposes tasks, tracks projects, provisions servers, deploys agent stacks. Spawns subagents for heavy lifting.',
-    a1.status = 'active';
+    a1.status = 'reference-only';
 
 MERGE (a2:Agent {node_id: 'agent-delta'})
 SET a2.project = 'delta',
     a2.name = 'Delta',
     a2.role = 'Discord Agent Platform',
-    a2.runs_on = 'delta-server',
+    a2.runs_on = 'delta2',
     a2.service = 'delta.service',
     a2.description = 'Discord bot that creates isolated OpenCode agent instances per project channel. Each project gets its own linux user, home directory, and supervised agent process.',
     a2.status = 'active';
@@ -211,9 +213,9 @@ MATCH (p:Project {node_id: 'proj-flowing-indian'}), (r:Repository {node_id: 'rep
 MATCH (p:Project {node_id: 'proj-delta-hub'}),      (r:Repository {node_id: 'repo-delta-hub'})      MERGE (p)-[:HAS_REPO]->(r);
 
 // --- Projects -> Servers (deployment location) ---
-MATCH (p:Project {node_id: 'proj-mycelium'}),   (s:Server {node_id: 'server-delta'})   MERGE (p)-[:DEPLOYS_TO]->(s);
-MATCH (p:Project {node_id: 'proj-tetrahedron'}), (s:Server {node_id: 'server-delta'})  MERGE (p)-[:DEPLOYS_TO]->(s);
-MATCH (p:Project {node_id: 'proj-delta'}),      (s:Server {node_id: 'server-delta'})   MERGE (p)-[:DEPLOYS_TO]->(s);
+MATCH (p:Project {node_id: 'proj-mycelium'}),   (s:Server {node_id: 'server-delta2'})   MERGE (p)-[:DEPLOYS_TO]->(s);
+MATCH (p:Project {node_id: 'proj-tetrahedron'}), (s:Server {node_id: 'server-delta2'})  MERGE (p)-[:DEPLOYS_TO]->(s);
+MATCH (p:Project {node_id: 'proj-delta'}),      (s:Server {node_id: 'server-delta2'})   MERGE (p)-[:DEPLOYS_TO]->(s);
 MATCH (p:Project {node_id: 'proj-audioworld'}), (s:Server {node_id: 'server-charlie'}) MERGE (p)-[:DEPLOYS_TO]->(s);
 
 // --- Agents -> Projects they manage ---
@@ -222,8 +224,8 @@ MATCH (a:Agent {node_id: 'agent-delta'}),       (p:Project {node_id: 'proj-delta
 MATCH (a:Agent {node_id: 'agent-audioworld'}),   (p:Project {node_id: 'proj-audioworld'})  MERGE (a)-[:MANAGES]->(p);
 
 // --- Agents run on Servers ---
-MATCH (a:Agent {node_id: 'agent-tetrahedron'}), (s:Server {node_id: 'server-delta'})   MERGE (a)-[:RUNS_ON]->(s);
-MATCH (a:Agent {node_id: 'agent-delta'}),       (s:Server {node_id: 'server-delta'})   MERGE (a)-[:RUNS_ON]->(s);
+MATCH (a:Agent {node_id: 'agent-tetrahedron'}), (s:Server {node_id: 'server-delta2'})   MERGE (a)-[:RUNS_ON]->(s);
+MATCH (a:Agent {node_id: 'agent-delta'}),       (s:Server {node_id: 'server-delta2'})   MERGE (a)-[:RUNS_ON]->(s);
 MATCH (a:Agent {node_id: 'agent-audioworld'}),   (s:Server {node_id: 'server-charlie'}) MERGE (a)-[:RUNS_ON]->(s);
 
 // --- Delta manages all delta-managed projects ---
@@ -232,7 +234,7 @@ MATCH (dm:Project) WHERE dm.category = 'delta-managed' AND dm.managed_by = 'delt
 MERGE (dm)-[:MANAGED_BY]->(d);
 
 // --- Dependency chain ---
-MATCH (p:Project {node_id: 'proj-mycelium'}),   (s:Server {node_id: 'server-delta'}) MERGE (p)-[:DEPENDS_ON]->(s);
+MATCH (p:Project {node_id: 'proj-mycelium'}),   (s:Server {node_id: 'server-delta2'}) MERGE (p)-[:DEPENDS_ON]->(s);
 MATCH (p:Project {node_id: 'proj-tetrahedron'}), (d:Project {node_id: 'proj-delta'}) MERGE (p)-[:DEPENDS_ON]->(d);
 MATCH (p:Project {node_id: 'proj-ember'}),      (a:Project {node_id: 'proj-arie'})   MERGE (p)-[:DEPENDS_ON]->(a);
 
@@ -259,7 +261,7 @@ SET pers.project = 'seedforth',
     pers.sample_questions = [
       'What is the current state of every project?',
       'Which services are down?',
-      'What depends on delta-server?',
+      'What depends on delta2?',
       'Where is audioworld running?',
       'Which LinkedIn accounts are active?',
       'Update all project statuses from live sources'

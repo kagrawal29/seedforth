@@ -2,13 +2,15 @@
 
 The graph IS the system. This document is a bootstrap pointer — the living version is the graph itself.
 
-Graph location: **delta-server** (143.110.226.214:7687), container `mycelium-neo4j`. Pulse-server (5.78.206.137) is off-limits for SeedForth.
+Graph location: **delta2** (185.192.96.100:7687), container `mycelium-neo4j`. The former delta-server (143.110.226.214) is legacy/rollback infrastructure. Pulse-server (5.78.206.137) is off-limits for SeedForth.
 
-Query the source of truth: `ssh delta-server "docker exec mycelium-neo4j cypher-shell -u neo4j -p '<password>' 'MATCH (p:Principle) RETURN p.label, p.description'"`
+Query the source of truth through the deployed platform tools and external
+environment contract; never put a graph credential in a shell argument. The
+legacy direct `cypher-shell` example is retired.
 
 ---
 
-## State (pre-migration snapshot from pulse-server -- to be re-bootstrapped on delta)
+## Historical state (pre-migration snapshot; not current authority)
 
 6,602 nodes. 13,697 edges. 87 tests. 37 protocols. Health: 67/100 DEGRADED (from last pulse-server state).
 
