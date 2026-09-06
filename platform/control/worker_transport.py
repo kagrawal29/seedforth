@@ -74,11 +74,21 @@ class WorkerServer(ThreadingMixIn,UnixStreamServer):
     daemon_threads=True
     request_queue_size=16
 
-    def __init__(self,path,boundary):
+    def __init__(self,path,boundary,listener=None):
         # Existing paths are not unlinked: an occupied/stale socket is an explicit
         # lifecycle issue, never evidence that another process can be replaced.
-        super().__init__(str(path),WorkerHandler)
-        os.chmod(path,0o660)
+        if listener is None:
+            super().__init__(str(path),WorkerHandler)
+            os.chmod(path,0o660)
+        else:
+            if (listener.family!=socket.AF_UNIX or listener.type!=socket.SOCK_STREAM
+                    or listener.getsockname()!=str(path)
+                    or not listener.getsockopt(socket.SOL_SOCKET,socket.SO_ACCEPTCONN)):
+                raise ValueError('invalid_worker_listener')
+            super().__init__(str(path),WorkerHandler,bind_and_activate=False)
+            self.socket.close()
+            self.socket=listener.dup()
+            self.socket.set_inheritable(False)
         self.boundary=boundary
         self.allowed_origins=set()
 

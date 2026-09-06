@@ -1,0 +1,33 @@
+[Unit]
+Description=SeedForth protected capability broker
+Requires=seedforth-worker.socket
+After=seedforth-worker.socket docker.service
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/seedforth/control-current
+StateDirectory=seedforth-worker
+StateDirectoryMode=0700
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+LoadCredential=workers.json:/opt/seedforth/shared/env/worker-access.json
+LoadCredential=bindings.json:/opt/seedforth/shared/env/worker-bindings.json
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
+Environment=CONTROL_WORKER_CREDENTIALS=%d/workers.json
+Environment=CONTROL_BROKER_BINDINGS=%d/bindings.json
+Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+ExecStart=/usr/bin/python3 -m control.worker_service
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=40s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+MemoryMax=256M
+TasksMax=64
+UMask=0077

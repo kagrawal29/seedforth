@@ -209,3 +209,22 @@ actions disabled until their authority and postconditions are implemented.
 - Next focus is the actual protected production executor with useful bounded
   model/code capabilities and independent project acceptance, plus the remote
   MCP, Graphify, portfolio/lifecycle and reliability work already in the full plan.
+
+## Protected service entry point qualification
+
+- Added Linux socket-activated broker entry point, restricted external repository
+  bindings, systemd sandbox units and durable receipt reconciliation before new
+  dispatch. The broker's socket survives process replacement without unlinking
+  another process's endpoint. The inherited descriptor cannot leak to adapters.
+- Exact worker identity remains credential-bound, and execution/budget/mandate
+  behavior remains in the authored graph operations. Startup cannot promote code,
+  grant access, create mandates or activate work. Recovery conflicts fail closed.
+- Full disposable Linux suite: 71 passed in 11.64s, including actual Docker worker,
+  inherited descriptor validation, two service instances over the same socket,
+  and recovery-before-dispatch checks. Systemd unit syntax validation passed.
+  Linux-only activation tests are explicitly skipped on macOS; their delta2
+  execution, not a local skip, is the qualifying evidence.
+- Service is source-only pending explicit provisioning. Current live control
+  remains 7b433aa. The first adapter still only inspects Git provenance. Next add
+  useful isolated code/model capabilities and scoped launcher provisioning with
+  monetary budgets and independent product acceptance; full-plan scope remains.
