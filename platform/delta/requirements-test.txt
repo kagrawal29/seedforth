@@ -1,0 +1,4 @@
+# Reproducible validation environment for the Delta platform.
+-r requirements.txt
+pytest>=8.0
+pytest-asyncio>=0.23
