@@ -167,3 +167,16 @@ actions disabled until their authority and postconditions are implemented.
   useful product progress. No production UI deployment in this step. Runtime
   control release remains 6fe3ee4; additive broker promotion and actual governed
   project execution remain next, alongside remote MCP, Graphify and archival.
+
+## Broker pre-promotion checks
+
+- Added eight real-Cypher negative scenarios for revoked grants, disabled identity
+  or scope, insufficient lease or mandate time for the full capability duration,
+  changed mandate version, removed capability permission, and policy generation
+  changes. Admission and dispatch both deny; the separate broker refunds an
+  admitted-but-never-dispatched reservation even after revocation.
+- Added six-way concurrent admission against a two-unit budget and concurrent
+  dispatch of one invocation. Exactly two reservations and one dispatch succeed.
+- Full disposable suite including the pinned isolated Docker worker: 66 passed
+  in 13.34s. Restored-data checks and immutable-release qualification follow;
+  this entry does not claim production promotion or useful product execution.

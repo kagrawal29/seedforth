@@ -292,6 +292,47 @@ def test_invocation_budget_idempotency_and_exhaustion(graph,case):
     assert budget==dict(reserved=2,spent=0)
 
 
+@pytest.mark.parametrize('change', [
+    "MATCH (g:Grant {node_id:$worker+'-grant'}) SET g.revoked=true",
+    "MATCH (p:Principal {node_id:$worker}) SET p.enabled=false",
+    "MATCH (s:ControlScope {node_id:$scope}) SET s.work_enabled=false",
+    "MATCH (w:WorkItem {node_id:$id}) SET w.lease_until=datetime()+duration('PT10S')",
+    "MATCH (m:Mandate {node_id:$scope+'-mandate'}) SET m.expires_at=datetime()+duration('PT10S')",
+    "MATCH (m:Mandate {node_id:$scope+'-mandate'}) SET m.version=m.version+1",
+    "MATCH (m:Mandate {node_id:$scope+'-mandate'}) SET m.allowed_capabilities=[]",
+    "MATCH (c:Capability {node_id:$scope+'-cap'}) SET c.policy_generation='changed'",
+])
+def test_admission_and_dispatch_recheck_authority_and_full_deadline(graph,case,change):
+    params=invocation_params(graph,case)
+    assert graph.operation('admit-invocation',case['worker'],case['scope'],**params)
+    graph.query(change,case)
+    assert graph.operation('admit-invocation',case['worker'],case['scope'],
+                           **{**params,'invocation':uuid4().hex})==[]
+    assert graph.operation('dispatch-invocation',case['worker'],case['scope'],
+        invocation=params['invocation'],params_hash=params['params_hash'])==[]
+    assert graph.query("MATCH (i:Invocation {node_id:$id}) RETURN i.status AS status",
+                       {'id':params['invocation']})==[{'status':'admitted'}]
+    # The separate broker can release a never-dispatched reservation after revoke.
+    result=graph.operation('settle-invocation',case['scope']+'-broker',case['scope'],
+        invocation=params['invocation'],outcome='cancelled',result_hash='authority-changed',
+        artifact_hash=None,artifact_ref=None,event_id=uuid4().hex)
+    assert result[0]['budget_reserved']==0 and result[0]['budget_spent']==0
+
+
+def test_concurrent_invocations_conserve_budget_and_dispatch_once(graph,case):
+    params=invocation_params(graph,case)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        results=list(pool.map(lambda _:graph.operation('admit-invocation',case['worker'],
+            case['scope'],**{**params,'invocation':uuid4().hex}),range(6)))
+    admitted=[rows[0]['id'] for rows in results if rows]
+    assert len(admitted)==2
+    assert graph.query("MATCH (b:Budget {node_id:$scope+'-budget'}) RETURN b.reserved_units AS reserved,b.spent_units AS spent",case)==[{'reserved':2,'spent':0}]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        dispatched=list(pool.map(lambda _:graph.operation('dispatch-invocation',
+            case['worker'],case['scope'],invocation=admitted[0],params_hash=params['params_hash']),range(2)))
+    assert sum(bool(rows) for rows in dispatched)==1
+
+
 def test_dispatch_rechecks_hold_and_broker_can_release_admission(graph,case):
     params=invocation_params(graph,case)
     graph.operation('admit-invocation',case['worker'],case['scope'],**params)
