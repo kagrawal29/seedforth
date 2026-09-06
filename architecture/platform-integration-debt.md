@@ -13,6 +13,8 @@ The imported Delta source contains a mixed state:
 - Several operator documents and behavior specifications still describe tmux/Claude as current.
 - The test suite currently fails during collection because `test_agent_runner.py` imports the removed `ClaudeCodeRunner`.
 
+The runner contract has now been corrected in the platform copy and 44 focused registry/runner/router/command tests pass. Full collection still stops on four legacy or undeclared dependency modules, so the platform test gate remains open.
+
 This is not a platform-repository import failure. It is evidence that the Delta migration to opencode was operationally completed before the code/test/documentation contract was fully normalized.
 
 ## Required resolution
