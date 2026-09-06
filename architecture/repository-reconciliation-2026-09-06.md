@@ -38,6 +38,16 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 | `/home/proj-flowing-indian/flowing-indian` | `main` / `54ced2f` | 9 | Active product runtime; capture before cleanup |
 | `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 436 | Active product runtime; do not reset or pull blindly |
 
+### Security exception
+
+The Seedforthing runtime contains a tracked file at
+`delta-config/.vercel-token-charlietheagent`. Its contents were not printed or
+copied. The file mode was hardened in place from `777` to `600`, preserving the
+live path and owner. Because the file is tracked in the product repository
+(and may therefore exist in repository history), the product owner must rotate
+the token and scrub the product repository history before that checkout can be
+called deployment-clean.
+
 ## Next safe actions
 
 1. Capture diffs and runtime artifacts from each dirty product checkout.
