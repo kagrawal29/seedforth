@@ -37,7 +37,14 @@ process lock; conflicting evidence denies new external actions. Recovery never
 executes an adapter. Unknown effects without durable result evidence still need
 capability-specific reconciliation; this service does not turn them into success.
 
-Current immutable adapter is Git commit/tree inspection only. It is useful as a
-provenance primitive, not a substitute for product code/research outcomes. Model/
-code capabilities, monetary limits, independent verification and production
+Current immutable adapters are Git commit/tree inspection, explicitly covered
+code snapshots, and bounded candidate code proposals. Source coverage is fixed
+in the release. Proposal edits require a unique old-string match at the exact
+base commit and produce untrusted artifacts, never repository writes or deployment.
+Workers read only their own successful invocation artifacts, after graph grant
+checks, exact location validation and content hash verification. Host paths are
+not returned. Revocation denies subsequent reads; it cannot retract prior reads.
+
+These primitives are not a substitute for product outcomes. Model capabilities,
+monetary limits, independent verification, candidate application and production
 worker launch remain required. Do not claim useful autonomy from service health.

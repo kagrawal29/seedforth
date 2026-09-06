@@ -21,3 +21,15 @@ r.source_kind='local_clean_checkout',r.expected_loops=0,r.actual_loops=1,r.simul
 r.evidence_kind='independent_baseline_reproduction',r.recorded_at=datetime(),
 r.observation='Browser reproduced one credited loop after first subdivision. Full cycle at this tempo is 3000ms. No musical performance was measured.'
 MERGE (r)-[:INFORMS]->(w);
+
+// Later read-only remote census. Local reproduction does not qualify this build.
+MATCH (w:WorkItem {node_id:'wi-cajon-partial-loop-credit',scope_id:'cajon-sensei'})
+MERGE (k:Knowledge {node_id:'cajon-remote-source-baseline-2a518d9'})
+ON CREATE SET k.scope_id='cajon-sensei',k.kind='observed_source_baseline',
+k.source_revision='2a518d957bb1fbd39b02a8dcbc3e1f2890630b93',
+k.source_path='app/index.html',k.repository='/home/proj-cajon-sensei/cajon-sensei',
+k.file_sha256='56b092507f73ff644f742f63f3bd43802f3638df85895000c37282644a1b83b0',
+k.observation='Remote source differs from local baseline and retains the suspect currentStep===0 loop-credit condition. Remote browser reproduction is still required.',
+k.verification_status='source_inspected_not_browser_tested',k.recorded_at=datetime()
+MERGE (k)-[:INFORMS]->(w)
+SET w.candidate_source_revision=k.source_revision,w.remote_baseline_status='not_browser_tested';

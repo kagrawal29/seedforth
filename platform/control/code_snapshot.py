@@ -18,8 +18,8 @@ from control.broker import InvocationDenied, digest
 class CodeSnapshot:
     cost_units = 1
     max_seconds = 30
-    max_file_bytes = 65536
-    max_total_bytes = 196608
+    max_file_bytes = 262144
+    max_total_bytes = 524288
 
     def __init__(self, repositories, allowed_paths, artifact_root):
         self.repositories = {scope: Path(path).resolve() for scope, path in repositories.items()}
@@ -62,9 +62,10 @@ class CodeSnapshot:
         return {'scope': scope, 'revision': revision, 'paths': sorted(paths)}
 
     def run(self, invocation, arguments):
-        if not re.fullmatch('[a-zA-Z0-9_-]{8,128}', invocation):
-            raise ValueError('invalid_snapshot_identity')
-        args = self.validate(arguments['scope'], {k: arguments[k] for k in ['revision', 'paths']})
+        return self.persist_report(invocation, self.read_snapshot(arguments))
+
+    def read_snapshot(self, arguments):
+        args = CodeSnapshot.validate(self, arguments['scope'], {k: arguments[k] for k in ['revision', 'paths']})
         environment = {'PATH': '/usr/bin:/bin', 'GIT_CONFIG_NOSYSTEM': '1',
             'GIT_CONFIG_GLOBAL': '/dev/null', 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_REPLACE_OBJECTS': '1',
             'GIT_LITERAL_PATHSPECS': '1'}
@@ -105,10 +106,16 @@ class CodeSnapshot:
                 raise ValueError('possible_secret_in_snapshot')
             files.append({'path': path, 'git_blob': oid,
                 'sha256': hashlib.sha256(raw).hexdigest(), 'content': content})
-        report = {'kind': 'scoped_code_snapshot', **args, 'files': files,
+        return {'kind': 'scoped_code_snapshot', **args, 'files': files,
             'adapter_generation': self.generation, 'trust': 'untrusted_source_data',
             'coverage': 'explicit_paths_only', 'bytes': total}
+
+    def persist_report(self, invocation, report):
+        if not re.fullmatch('[a-zA-Z0-9_-]{8,128}', invocation):
+            raise ValueError('invalid_snapshot_identity')
         raw = json.dumps(report, sort_keys=True).encode()
+        if len(raw) > 1_200_000:
+            raise ValueError('serialized_source_report_too_large')
         self.artifact_root.mkdir(parents=True, exist_ok=True, mode=0o700)
         target = self.artifact_root / (invocation + '.json')
         fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)

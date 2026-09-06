@@ -392,10 +392,19 @@ def test_broker_runs_real_git_inspection_once(graph,case,tmp_path,lost_after_com
     assert broker.recover_receipts()==[]
     assert broker.invoke(**args)['status']=='succeeded'
     assert len(list((tmp_path/'artifacts').glob('*.json')))==1
+    artifact=broker.read_artifact(case['worker'],case['scope'],params['invocation'])
+    assert artifact['content']['commit']==revision
+    assert artifact['trust']=='untrusted_artifact_data' and 'artifact_ref' not in artifact
+    assert graph.operation('read-invocation-artifact',case['actor'],case['scope'],invocation=params['invocation'])==[]
+    assert graph.operation('read-invocation-artifact',case['worker'],'wrong-scope',invocation=params['invocation'])==[]
     result=graph.operation('complete-invocation-work',case['worker'],case['scope'],attempt=params['attempt'],
         invocation=params['invocation'],fence=params['fence'],event_id=uuid4().hex)
     assert result[0]['status']=='review'
     assert graph.query("MATCH (p:ProgressEvent {scope_id:$scope}) RETURN count(p) AS n",case)[0]['n']==0
+    graph.query("MATCH (g:Grant {node_id:$worker+'-grant'}) SET g.revoked=true",case)
+    from control.broker import InvocationDenied
+    with pytest.raises(InvocationDenied):
+        broker.read_artifact(case['worker'],case['scope'],params['invocation'])
 
 
 def test_worker_completion_without_broker_evidence_is_denied(graph,case):
@@ -404,6 +413,37 @@ def test_worker_completion_without_broker_evidence_is_denied(graph,case):
         invocation='does-not-exist',fence=params['fence'],event_id=uuid4().hex)==[]
     assert graph.operation('read-attempt',case['worker'],case['scope'],attempt=params['attempt'])[0]['status']=='running'
     assert graph.operation('read-attempt',case['actor'],case['scope'],attempt=params['attempt'])==[]
+
+
+def test_governed_code_proposal_can_be_read_but_not_self_accepted(graph,case,tmp_path):
+    import subprocess
+    from control.broker import Broker
+    from control.code_proposal import CodeProposal
+    from control.receipt_journal import ReceiptJournal
+    repo=tmp_path/'code';repo.mkdir()
+    subprocess.run(['git','init','-q',str(repo)],check=True)
+    (repo/'counter.js').write_text('const completed = step === 0;\n')
+    subprocess.run(['git','-C',str(repo),'add','counter.js'],check=True)
+    subprocess.run(['git','-C',str(repo),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
+                    '-c','commit.gpgsign=false','commit','-qm','fixture'],check=True)
+    revision=subprocess.check_output(['git','-C',str(repo),'rev-parse','HEAD'],text=True).strip()
+    adapter=CodeProposal({case['scope']:repo},{case['scope']:['counter.js']},tmp_path/'artifacts')
+    graph.query("MATCH (c:Capability {node_id:$id}) SET c.policy_generation=$generation",
+                dict(id=case['scope']+'-cap',generation=adapter.generation))
+    params=invocation_params(graph,case)
+    broker=Broker(graph,case['scope']+'-broker',{case['scope']+'-cap':adapter},ReceiptJournal(tmp_path/'receipts'))
+    result=broker.invoke(case['worker'],case['scope'],params['attempt'],params['fence'],
+        params['invocation'],params['capability'],{'revision':revision,
+            'changes':[{'path':'counter.js','old':'step === 0','new':'previousStep === 15'}]})
+    assert result['status']=='succeeded'
+    report=broker.read_artifact(case['worker'],case['scope'],params['invocation'])['content']
+    assert report['files'][0]['content']=='const completed = previousStep === 15;\n'
+    assert not report['applied'] and report['verification_status']=='not_run'
+    assert (repo/'counter.js').read_text()=='const completed = step === 0;\n'
+    reviewed=graph.operation('complete-invocation-work',case['worker'],case['scope'],
+        attempt=params['attempt'],fence=params['fence'],invocation=params['invocation'],event_id=uuid4().hex)
+    assert reviewed[0]['status']=='review'
+    assert graph.query("MATCH (p:ProgressEvent {scope_id:$scope}) RETURN count(p) AS n",case)==[{'n':0}]
 
 
 def test_distinct_tasks_share_atomic_scope_concurrency_limit(graph,case):

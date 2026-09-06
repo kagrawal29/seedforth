@@ -53,6 +53,9 @@ fence=result['data'][0]['fence']
 status,result=call('invoke',dict(attempt=job['attempt'],fence=fence,invocation=job['invocation'],
     capability=job['capability'],arguments={'revision':job['revision']}))
 assert status==200 and result['data'][0]['status']=='succeeded'
+status,result=call('read-artifact',dict(invocation=job['invocation']))
+assert status==200 and result['data'][0]['content']['commit']==job['revision']
+assert 'artifact_ref' not in result['data'][0]
 status,result=call('complete-invocation-work',dict(attempt=job['attempt'],fence=fence,invocation=job['invocation']))
 assert status==200 and result['data'][0]['status']=='review'
 print(json.dumps(dict(isolation_checks='passed',work_state='review',independent_review='still_required')))

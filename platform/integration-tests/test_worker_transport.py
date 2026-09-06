@@ -33,6 +33,9 @@ def service():
             def invoke(self,**params):
                 assert params['actor']=='worker-fixture' and params['scope']=='fixture'
                 return dict(status='succeeded')
+            def read_artifact(self,**params):
+                assert params==dict(actor='worker-fixture',scope='fixture',invocation='fixture-invocation')
+                return dict(trust='untrusted_artifact_data',content={'source':'fixture'})
         graph=Graph()
         server=WorkerServer(root/'worker.sock',WorkerBoundary(graph,credentials,Broker()))
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
@@ -77,3 +80,11 @@ def test_worker_dispatch_reaches_broker_with_bound_actor(service):
     result=client.request('invoke',attempt='fixture-attempt',fence=1,
         invocation='fixture-invocation',capability='fixture',arguments={})
     assert result==[dict(status='succeeded')]
+
+
+def test_worker_artifact_read_binds_identity_without_host_path(service):
+    client,_,_=service
+    assert client.request('read-artifact',invocation='fixture-invocation')==[
+        dict(trust='untrusted_artifact_data',content={'source':'fixture'})]
+    with pytest.raises(RequestError):
+        client.request('read-artifact',invocation='fixture-invocation',path='/etc/passwd')

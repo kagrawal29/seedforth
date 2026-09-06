@@ -12,9 +12,17 @@ import threading
 
 from control.broker import Broker
 from control.git_inspection import GitInspection
+from control.code_snapshot import CodeSnapshot
+from control.code_proposal import CodeProposal
 from control.graph import Graph
 from control.receipt_journal import ReceiptJournal
 from control.worker_transport import WorkerBoundary, WorkerServer
+
+SOURCE_PATHS = {
+    'cajon-sensei': ['app/index.html'],
+    'flowing-indian': ['app/api/order/route.ts', 'app/api/verify/route.ts'],
+    'seedforth-platform': ['platform/control/worker_service.py', 'platform/control/broker.py'],
+}
 
 
 class RecoveringBroker:
@@ -39,6 +47,9 @@ class RecoveringBroker:
             while len(self.broker.recover_receipts()) == 100:
                 pass
             return self.broker.invoke(**params)
+
+    def read_artifact(self, **params):
+        return self.broker.read_artifact(**params)
 
 
 def activated_listener(path):
@@ -75,9 +86,15 @@ def main():
     path = '/run/seedforth-worker/broker.sock'
     state = Path(os.environ['STATE_DIRECTORY'])
     graph = Graph()
-    adapter = GitInspection(bindings(os.environ['CONTROL_BROKER_BINDINGS']), state/'artifacts')
+    repositories = bindings(os.environ['CONTROL_BROKER_BINDINGS'])
+    coverage = {scope: SOURCE_PATHS[scope] for scope in repositories}
+    adapters = {
+        'capability-git-inspection-v1': GitInspection(repositories, state/'artifacts'),
+        'capability-code-snapshot-v1': CodeSnapshot(repositories, coverage, state/'artifacts'),
+        'capability-code-proposal-v1': CodeProposal(repositories, coverage, state/'artifacts'),
+    }
     broker = RecoveringBroker(Broker(graph, 'principal-capability-broker',
-        {'capability-git-inspection-v1': adapter}, ReceiptJournal(state/'receipts')))
+        adapters, ReceiptJournal(state/'receipts')))
     listener = activated_listener(path)
     # No source promotion, grant creation, mandate admission or worker activation.
     # Recovery must succeed before this process consumes queued worker requests.

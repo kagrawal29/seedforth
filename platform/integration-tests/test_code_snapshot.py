@@ -17,7 +17,7 @@ def source(tmp_path):
     repo.mkdir()
     subprocess.run(['git', 'init', '-q', str(repo)], check=True)
     (repo/'app.js').write_text('console.log("approved revision");')
-    (repo/'large.js').write_text('x' * 65537)
+    (repo/'large.js').write_text('x' * (CodeSnapshot.max_file_bytes + 1))
     (repo/'link.js').symlink_to('app.js')
     (repo/'bad.js').write_text('const token="ghp_' + 'x'*24 + '";')
     subprocess.run(['git', '-C', str(repo), 'add', 'app.js', 'large.js', 'link.js', 'bad.js'], check=True)

@@ -8,6 +8,29 @@ from control.git_inspection import GitInspection
 from control.receipt_journal import ReceiptJournal
 
 
+@pytest.mark.parametrize('mutation',['hash','path','symlink','fifo'])
+def test_artifact_reader_rejects_corruption_and_nonregular_files(tmp_path,mutation):
+    import hashlib,os
+    artifact=tmp_path/'fixture-invocation.json'
+    artifact.write_text('{"safe":"fixture"}')
+    row=dict(capability='fixture',artifact_ref=str(artifact),artifact_hash=hashlib.sha256(artifact.read_bytes()).hexdigest())
+    class Adapter:
+        artifact_root=tmp_path
+    class Graph:
+        def operation(self,name,actor,scope,**params):
+            assert name=='read-invocation-artifact' and actor=='worker' and scope=='scope'
+            return [row]
+    if mutation=='hash': artifact.write_text('{"changed":true}')
+    if mutation=='path': row['artifact_ref']=str(tmp_path/'different.json')
+    if mutation in ['symlink','fifo']:
+        artifact.unlink()
+        if mutation=='symlink': artifact.symlink_to(tmp_path/'outside')
+        else: os.mkfifo(artifact)
+    broker=Broker(Graph(),'broker',{'fixture':Adapter()},ReceiptJournal(tmp_path/'receipts'))
+    with pytest.raises((InvocationDenied,OSError)):
+        broker.read_artifact('worker','scope','fixture-invocation')
+
+
 def test_unpromoted_capability_cannot_touch_graph(tmp_path):
     class Graph:
         def operation(self,*a,**k):

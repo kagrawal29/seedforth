@@ -262,3 +262,36 @@ actions disabled until their authority and postconditions are implemented.
   artifact delivery and bounded model/code proposal execution, then use this
   real failing case to qualify the complete product loop. Do not count the
   baseline finding or source snapshots as a fixed product or accepted outcome.
+
+## Worker artifacts and governed code proposals
+
+- Added own-invocation artifact reads through the private worker interface. Graph
+  checks enabled identity, unexpired read/execute grant, scope, ownership and
+  successful result. Broker validates exact capability-bound filename and hash,
+  rejects symlinks/nonregular files and oversized responses, and returns untrusted
+  content without host paths. Revocation denies subsequent reads.
+- Added bounded old/new code proposals against exact Git source. Unique match,
+  promoted path coverage, revision, request/output size and deadline are enforced.
+  Candidate artifact records base and proposed hashes, with applied=false and
+  verification_status=not_run. No repository mutation, execution or self-acceptance.
+- Service registry now includes code snapshot and proposal capabilities, still
+  inactive until explicit production provisioning/promotion. Bounds accommodate
+  the real newer Cajon file: 256KiB/file, 512KiB total, 1.2MB serialized artifact.
+- Full disposable Linux suite: 95 passed in 14.05s. Actual isolated Docker worker
+  read its own artifact. Real graph code-proposal fixture produced/read candidate
+  code and entered review while leaving repository unchanged and ProgressEvent
+  count zero. Source-only progress, not a useful accepted production outcome.
+- Remote census found newer product revisions: Cajon
+  2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and Flowing
+  54ced2fe429b90576d59f005e9d6ebf9d8d69a6a. Cajon app/index.html hash
+  56b092507f73ff644f742f63f3bd43802f3638df85895000c37282644a1b83b0
+  differs from the local tested app and still contains the suspect credit condition.
+  Remote working trees contain operational edits/history; preserve them.
+- Added the remote source baseline to live Mycelium after twice-applied staging
+  admission. The held Cajon task keeps its original failed local baseline and
+  separately records the newer candidate revision as not_browser_tested. Do not
+  present a local-copy fix as a verified change to the current remote product.
+- Next: qualify the current remote app, produce the candidate through the governed
+  worker path, independently test its exact artifact with Playwright CLI, review
+  and apply it safely. Model-driven work, monetary budgets, public MCP, Graphify,
+  archival, full UX and unattended qualification remain part of the active goal.

@@ -16,6 +16,7 @@ from control.server import Boundary,Handler,RequestError
 
 FIELDS={
     'read-work':{},'read-attempt':{'attempt':str},
+    'read-artifact':{'invocation':str},
     'claim-work':{'id':str,'version':int,'attempt':str},
     'renew-work':{'attempt':str,'fence':int},
     'invoke':{'attempt':str,'fence':int,'invocation':str,'capability':str,'arguments':dict},
@@ -45,9 +46,10 @@ class WorkerBoundary(Boundary):
             if expected is int and params[key]<0:
                 raise RequestError(400,'invalid_worker_version')
         bound=dict(params)
-        if name=='invoke':
+        if name in {'invoke','read-artifact'}:
             try:
-                rows=[self.broker.invoke(actor=actor,scope=scope,**bound)]
+                action=self.broker.invoke if name=='invoke' else self.broker.read_artifact
+                rows=[action(actor=actor,scope=scope,**bound)]
             except InvocationDenied:
                 raise RequestError(409,'invocation_denied_or_reconciliation_required') from None
         else:
@@ -106,7 +108,10 @@ class WorkerClient:
             connection.request('POST','/api/operation',body=json.dumps(dict(operation=operation,scope=self.scope,params=params)),
                 headers={'Content-Type':'application/json','Authorization':'Bearer '+self.token})
             response=connection.getresponse()
-            result=json.loads(response.read(65536))
+            raw=response.read(1_500_001)
+            if len(raw)>1_500_000:
+                raise RequestError(502,'worker_response_too_large')
+            result=json.loads(raw)
             if response.status!=200:
                 raise RequestError(response.status,result.get('error','worker_request_failed'))
             return result['data']

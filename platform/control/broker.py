@@ -6,6 +6,9 @@ Adapters are supplied by immutable deployment code, never graph-supplied imports
 import hashlib
 import json
 import re
+import os
+from pathlib import Path
+import stat
 from uuid import uuid4
 
 
@@ -21,6 +24,32 @@ class Broker:
     def __init__(self,graph,principal,adapters,journal):
         self.graph,self.principal,self.adapters=graph,principal,dict(adapters)
         self.journal=journal
+
+    def read_artifact(self,actor,scope,invocation):
+        if not isinstance(invocation,str) or not re.fullmatch(r'[a-zA-Z0-9_-]{8,128}',invocation):
+            raise InvocationDenied('invalid_invocation')
+        rows=self.graph.operation('read-invocation-artifact',actor,scope,invocation=invocation)
+        if len(rows)!=1:
+            raise InvocationDenied('artifact_scope_or_identity_denied')
+        row=rows[0]
+        adapter=self.adapters.get(row['capability'])
+        if adapter is None:
+            raise InvocationDenied('artifact_capability_not_promoted')
+        root=Path(adapter.artifact_root)
+        expected=root/(invocation+'.json')
+        if row['artifact_ref']!=str(expected):
+            raise InvocationDenied('artifact_location_mismatch')
+        # Never follow a substituted symlink or return arbitrary graph paths.
+        fd=os.open(expected,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+        with os.fdopen(fd,'rb') as stream:
+            info=os.fstat(stream.fileno())
+            if not stat.S_ISREG(info.st_mode) or info.st_size>1_300_000:
+                raise InvocationDenied('invalid_artifact_file')
+            raw=stream.read(1_300_001)
+        if len(raw)>1_300_000 or hashlib.sha256(raw).hexdigest()!=row['artifact_hash']:
+            raise InvocationDenied('artifact_integrity_mismatch')
+        return dict(invocation=invocation,artifact_hash=row['artifact_hash'],
+                    trust='untrusted_artifact_data',content=json.loads(raw))
 
     def invoke(self,actor,scope,attempt,fence,invocation,capability,arguments):
         if not re.fullmatch(r'[a-zA-Z0-9_-]{8,128}',invocation) or type(fence) is not int:
