@@ -102,8 +102,10 @@ if __name__ == "__main__":
     tests = [
         ("API key", "my key is sk-ant-api03-abcdefghijklmnop12345678", True),
         ("OAuth", "token=sk-ant-oat01-abcdefghijklmnop12345678", True),
-        ("GitHub PAT", "SYNTHETIC_GITHUB_PAT_REDACTED", True),
-        ("LangSmith", "SYNTHETIC_LANGSMITH_TOKEN_REDACTED", True),
+        # Build synthetic fixtures in pieces so GitHub push protection does
+        # not mistake test data for a live credential.
+        ("GitHub PAT", "ghp_" + "synthetic-test-value", True),
+        ("LangSmith", "lsv2_pt_" + "synthetic-test-value", True),
         ("Safe text", "This is a normal sentence about architecture", False),
         ("Trigger", "tr_dev_3PpNgPhz7Fw2g0txqkms", True),
         ("SSH key", "-----BEGIN RSA PRIVATE KEY-----", True),

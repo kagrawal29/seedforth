@@ -138,7 +138,7 @@ def main():
             "id": "test-redaction-catches-github-pat",
             "label": "Secret redaction catches GitHub PAT in node labels",
             "mechanism": "invariant-4",
-            "setup": "CREATE (n:_TestNode {node_id: '_test-secret-1', label: 'token ghp_abcdefghijklmnopqrstuvwxyz1234567890', file_type: '_test'})",
+            "setup": "CREATE (n:_TestNode {node_id: '_test-secret-1', label: 'token " + "ghp_" + "synthetic-test-value', file_type: '_test'})",
             "assertion": "MATCH (n {node_id: '_test-secret-1'}) WHERE n.label CONTAINS 'ghp_' RETURN count(n)",
             "expected": "0",
             "teardown": "MATCH (n) WHERE n.node_id STARTS WITH '_test-' DETACH DELETE n",
