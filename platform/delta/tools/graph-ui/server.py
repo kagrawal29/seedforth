@@ -29,7 +29,9 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 NEO4J_USER = "neo4j"
-NEO4J_PASS = os.environ.get("NEO4J_PASS", "9aac5c811e6d4f4f64a00c65666f3528")
+NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
+if not NEO4J_PASS:
+    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
 NEO4J_URL = os.environ.get("NEO4J_URL", "http://127.0.0.1:7474/db/neo4j/tx/commit")
 ENV_PATH = os.environ.get("DELTA_ENV_PATH", "/opt/delta/delta.env")
 DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"

@@ -22,7 +22,7 @@ MYCELIUM_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Environment
 BOLT="${NEO4J_BOLT:-bolt://localhost:7687}"
 NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASS="${NEO4J_PASS:-localtest12}"
+NEO4J_PASS="${NEO4J_PASS:?set NEO4J_PASS in the runtime environment}"
 BATCH_SIZE="${1:-100}"
 
 # Paths

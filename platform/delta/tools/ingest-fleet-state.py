@@ -6,7 +6,9 @@ changes (agent down/up, error spike) -- not on every timer tick.
 """
 import json, os, subprocess, time
 
-NEO4J_PASS = "9aac5c811e6d4f4f64a00c65666f3528"
+NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
+if not NEO4J_PASS:
+    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
 REGISTRY_PATH = "/opt/delta/delta-registry.json"
 STATE_FILE = "/opt/delta/delta-fleet-state.json"
 timestamp = str(int(time.time()))

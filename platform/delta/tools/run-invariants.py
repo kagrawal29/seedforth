@@ -15,13 +15,16 @@ Usage: python3 run-invariants.py [--verbose]
 """
 import base64
 import json
+import os
 import re
 import subprocess
 import sys
 import time
 import urllib.request
 
-NEO4J_PASS = "9aac5c811e6d4f4f64a00c65666f3528"
+NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
+if not NEO4J_PASS:
+    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
 NEO4J_URL = "http://127.0.0.1:7474/db/neo4j/tx/commit"
 VERBOSE = "--verbose" in sys.argv
 TS = time.strftime("%Y-%m-%d %H:%M:%S")

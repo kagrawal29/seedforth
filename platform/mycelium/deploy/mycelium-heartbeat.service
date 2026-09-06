@@ -10,7 +10,7 @@ WorkingDirectory=/opt/mycelium
 Environment=CADENCE_SECONDS=60
 Environment=NEO4J_CONTAINER=mycelium-neo4j-local
 Environment=NEO4J_USER=neo4j
-Environment=NEO4J_PASS=localtest12
+EnvironmentFile=/opt/seedforth/shared/env/seedforth.env
 ExecStart=/bin/bash /opt/mycelium/graph/runner/heartbeat-loop.sh
 Restart=always
 RestartSec=10

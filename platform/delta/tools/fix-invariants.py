@@ -11,9 +11,12 @@ Fixes:
 - Add TestCases for all 6 fleet invariants (coverage -> 100%)
 """
 import json
+import os
 import subprocess
 
-NEO4J_PASS = "9aac5c811e6d4f4f64a00c65666f3528"
+NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
+if not NEO4J_PASS:
+    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
 
 
 def run_cypher(cypher):

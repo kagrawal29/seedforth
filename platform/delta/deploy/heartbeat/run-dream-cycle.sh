@@ -1,7 +1,7 @@
 #!/bin/bash
 # Dream cycle - every 4 hours (deep cognition)
 set -euo pipefail
-PASS="9aac5c811e6d4f4f64a00c65666f3528"
+PASS="${NEO4J_PASSWORD:?set NEO4J_PASSWORD in the runtime environment}"
 DIR="/opt/delta/deploy/heartbeat"
 LOG="/var/log/mycelium-dream.log"
 echo "[$(date)] Dream cycle starting" >> $LOG

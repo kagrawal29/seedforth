@@ -29,7 +29,7 @@ QDRANT_COLLECTION="mycelium-embeddings"
 QDRANT_PORT=6333
 OLLAMA_MODEL="nomic-embed-text"
 NEO4J_USER="neo4j"
-NEO4J_PASS="localtest12"  # default; override with --password
+NEO4J_PASS=""  # supplied by --password or the runtime environment
 
 # ---------------------------------------------------------------------------
 # Logging helpers
