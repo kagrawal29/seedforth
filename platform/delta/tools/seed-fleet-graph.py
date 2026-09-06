@@ -78,6 +78,27 @@ def seed_fleet():
         if r is not None:
             print(f"  SubAgent: {name} ({run_status})")
 
+        # Stable runtime identity: a supervised process is distinct from the
+        # durable SubAgent identity it backs.
+        process_status = "ready" if status == "RUNNING" else "stopped"
+        run_cypher(
+            f'MERGE (ap:AgentProcess {{node_id:"process-{name}"}}) '
+            f'SET ap.name="{name}", ap.supervisor_program="{prog_name}", '
+            f'ap.status="{process_status}", ap.project="{name}", '
+            'ap.source="supervisor", ap.observed_at=datetime()'
+        )
+        run_cypher(
+            f'MERGE (sa:SubAgent {{node_id:"subagent-{name}"}}) '
+            f'MERGE (ap:AgentProcess {{node_id:"process-{name}"}}) '
+            'MERGE (ap)-[:BACKS]->(sa)'
+        )
+        run_cypher(
+            f'MERGE (srv:Server {{node_id:"server-delta2"}}) '
+            f'SET srv.name="delta2", srv.host="185.192.96.100" '
+            f'MERGE (ap:AgentProcess {{node_id:"process-{name}"}}) '
+            'MERGE (ap)-[:RUNS_ON]->(srv)'
+        )
+
     # Seed Hub SubAgent — name must match the fleet-ingest heartbeat name
     # ("delta-hub") so MERGE collapses into ONE node, not a duplicate.
     run_cypher(
