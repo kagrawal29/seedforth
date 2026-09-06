@@ -14,11 +14,11 @@ platform/
 
 The platform repository is the existing `kagrawal29/seedforth` repository. Product source remains in its own repositories and is referenced through `registry/repositories.json`.
 
-The initial Mycelium import is documented in [mycelium/MIGRATION.md](mycelium/MIGRATION.md). It is deliberately a migration snapshot, not yet a production deployment source.
+The initial Mycelium import is documented in [mycelium/MIGRATION.md](mycelium/MIGRATION.md). It is now the reviewed production platform source; its deployed release and remaining source-checkout drift are tracked in [the reconciliation ledger](../architecture/repository-reconciliation-2026-09-06.md).
 
 ## Migration rule
 
-The current `delta/` and `tetrahedron/projects/mycelium/` directories are source checkouts with independent Git histories. They must be imported into this directory only after:
+The historical `delta/` and `tetrahedron/projects/mycelium/` directories remain independent source/reference checkouts. The platform import was completed after:
 
 1. their working trees are snapshotted;
 2. their local and GitHub branches are recorded;
@@ -26,4 +26,4 @@ The current `delta/` and `tetrahedron/projects/mycelium/` directories are source
 4. history preservation is verified;
 5. platform integration tests pass.
 
-No runtime server path changes until the imported platform checkout is reproducible and the rollback path is tested.
+The runtime now uses immutable releases under `/opt/seedforth/current`; `/opt/delta` remains intact as the rollback target. Future changes follow the same release-and-rollback gates.

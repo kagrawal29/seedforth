@@ -8,7 +8,7 @@ Re-run `python3 operations/reconcile.py --server root@185.192.96.100
 
 | Repository | Local checkout | GitHub default branch | Relationship |
 |---|---|---|---|
-| `kagrawal29/seedforth` | `fe37d58` | `aa8cb8f` | local platform branch is 147 commits ahead; not yet pushed |
+| `kagrawal29/seedforth` | `25815b5` | `25815b5` | local platform main matches GitHub main |
 | `kagrawal29/delta` | `53d4d96` | `53d4d96` | local main matches GitHub main; local runtime files are dirty |
 | `kagrawal29/mycelium` | `e43f15f` on `fix/scope-split-and-deploy-flow-policy` | `a928955` on main | local work is not the GitHub default branch and has 14 dirty files |
 | `kagrawal29/tetrahedron` | `262aa14` | `079ac5b` | retained as reference-only; local checkout is not synchronized |
@@ -28,8 +28,9 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - `/opt/seedforth/current` points to immutable release `25815b5`; the
   consolidated Delta service is active and the legacy `/opt/delta` unit is
   disabled but retained for rollback
-- Linux/amd64 Mycelium CLI artifact staged under the release and reports
-  version `a8adca5` from `/opt/seedforth/shared/bin/mycelium`
+- Linux/amd64 Mycelium CLI artifact is installed at
+  `/opt/seedforth/shared/bin/mycelium` and managed independently from the
+  Python service release
 - The new Mycelium heartbeat service has now passed a manual invocation and
   its timer is enabled. The live graph atoms repaired during that validation
   are convergence null-key handling, relationship-safe TTL deletion, and the
@@ -42,16 +43,14 @@ protocols, 12 active graph agents, 3 pending decisions, and the latest
 protocol run at `2026-09-06T10:00:05.479Z`. Counts are dynamic and are evidence
 of liveness, not a version identifier.
 
-## Required convergence order
+## Completed convergence order
 
-1. Push or deliberately retain the reviewed platform commits with a release
-   tag/manifest.
-2. Create a server-side release checkout at `/opt/seedforth` without stopping
-   the legacy runtime.
-3. Run component and integration gates against the release checkout.
-4. Record the platform SHA, component SHAs, and graph bootstrap version.
-5. Wire the runtime secret contract and install Go-built artifacts; the server
-   currently has no Go toolchain.
-6. Switch services using a reversible systemd/environment change.
-7. Reconcile again and retire `/opt/delta` only after a stable observation
-   window.
+1. Reviewed platform commits are pushed to GitHub main.
+2. The immutable release checkout exists at `/opt/seedforth` and is clean.
+3. Component tests, graph bootstrap, and runtime smoke checks pass.
+4. Runtime secret wiring and the Linux Mycelium artifact are installed.
+5. Services were switched through reversible systemd and symlink changes.
+6. Post-cutover reconciliation confirms active Delta, successful heartbeat,
+   and preserved rollback checkout.
+
+Remaining cleanup is repository/product drift, not platform cutover.
