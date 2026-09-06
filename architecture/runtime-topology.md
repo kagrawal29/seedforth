@@ -1,6 +1,6 @@
 # SeedForth Runtime Topology
 
-**Status:** Operational baseline with proposed target changes  
+**Status:** Operational baseline after consolidated platform cutover
 **Last reviewed:** 2026-09-06
 
 ## Current new-server runtime
@@ -36,7 +36,7 @@ Execution session
 
 These must not be collapsed into one lifecycle. Stopping a process, expiring an LLM context, pausing a WorkItem, and aborting an execution are different operations.
 
-## Proposed runtime control path
+## Canonical runtime control path
 
 ```mermaid
 sequenceDiagram

@@ -20,15 +20,14 @@ an enabled protection policy for SeedForth or Delta at capture time.
 ## New-server state
 
 - Server: `185.192.96.100` (`delta2` in the registry)
-- Delta service: active and enabled from `/opt/delta`
+- Delta service: active and enabled from `/opt/seedforth/current/platform/delta`
 - Neo4j: `mycelium-neo4j` running and reachable on Bolt `:7687`
 - WAHA: running on localhost `:3000`
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
-- Immutable consolidated releases are staged at
-  `/opt/seedforth/releases/a8adca5`; the published release is clean, but
-  `/opt/seedforth/current` still points to the previously validated
-  `ff350d9` release because existing services have not been switched
+- `/opt/seedforth/current` points to immutable release `7cfe573`; the
+  consolidated Delta service is active and the legacy `/opt/delta` unit is
+  disabled but retained for rollback
 - Linux/amd64 Mycelium CLI artifact staged under the release and reports
   version `a8adca5` from `/opt/seedforth/shared/bin/mycelium`
 - The new Mycelium heartbeat service has now passed a manual invocation and

@@ -123,11 +123,19 @@ def main() -> int:
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text())
     repos = manifest.get("repositories", [])
+    live = manifest.get("live_deployment", {})
     report = {
         "manifest": str(args.manifest),
         "mode": "read-only",
         "repositories": [
-            {**entry, "local": inspect_repo(entry["local_path"])}
+            {
+                **entry,
+                **({"status": "active", "deployment_release": live["release"]}
+                   if live.get("status") == "active"
+                   and entry.get("role") == "platform"
+                   else {}),
+                "local": inspect_repo(entry["local_path"]),
+            }
             for entry in repos
         ],
     }
