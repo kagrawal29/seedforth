@@ -91,6 +91,11 @@ loopback board is an early interface, not the complete UX or remote-access promi
 No autonomous product outcome, archival, public MCP, scheduler retirement, or
 30-day soak has been demonstrated. Preserve this distinction in progress reports.
 
+Current deployment update: control release 7b433aa is live (see promotion evidence
+below). Broker Cypher and worker boundary source are deployed, but the production
+broker/isolated-worker daemon and useful model/code capabilities still need to be
+implemented and provisioned. Do not confuse source promotion with active execution.
+
 ## Broker implementation qualification
 
 - Added graph-native invocation admission, dispatch, and settlement. Admission
@@ -180,3 +185,27 @@ actions disabled until their authority and postconditions are implemented.
 - Full disposable suite including the pinned isolated Docker worker: 66 passed
   in 13.34s. Restored-data checks and immutable-release qualification follow;
   this entry does not claim production promotion or useful product execution.
+
+## Live control promotion — 2026-09-06 15:39 UTC
+
+- Immutable release 7b433aa77b3a8758d85c06e66ea3a5c48294132f passed all 66 tests
+  in 18.65s, including the pinned actual Docker worker. JUnit SHA256:
+  ad1395da1ad9ccd5e376fa118bec8db88e7e2026ff4781cbed48fccb90c0add5.
+- Migration applied twice on the earlier restored snapshot and twice on a fresh
+  restored backup, preserving all 47 projects and exposing the 22 plan packages.
+  Migration hash: c2639ed98c231a12c5b2052f4817691f8a2213936fa0eade26c3fe71d5cdcf4f.
+- Fresh consistent backup (brief authorized offline maintenance):
+  /opt/seedforth/shared/backups/upgrade-20260906.YpoVAtt0/neo4j.dump,
+  SHA256 73f48dd8d9bb3ea2795eb9eb4eaa4147d42d83eb72d637b8db001739a08d5873.
+  New isolated restore container/volume seedforth-restore-7b433aa retained, stopped
+  after successful verification. Production restarted and HTTP/graph checks passed.
+- Applied production migration and switched only control-current from 6fe3ee4 to
+  7b433aa. Main platform remains 1770e7c. Control, sensing timer and Delta active.
+  A deployment receipt records the prior target; full backup remains available.
+- Live gateway verified 22 platform items, six unverified legacy Flowing items,
+  both runtime sources fresh, all scopes held, and the linked 66-test qualification.
+  Served app.js exactly matches the Playwright-qualified release. No production
+  Invocation exists; production worker execution has not been enabled.
+- Next focus is the actual protected production executor with useful bounded
+  model/code capabilities and independent project acceptance, plus the remote
+  MCP, Graphify, portfolio/lifecycle and reliability work already in the full plan.
