@@ -195,7 +195,7 @@ def test_http_metadata_registration_resource_pkce_redirect_and_revoke(case):
         registration = dict(token_endpoint_auth_method='none', redirect_uris=['http://127.0.0.1:9912/cb'],
                             grant_types=['authorization_code', 'refresh_token'], response_types=['code'], scope='mycelium')
         assert http.post('/register', json=registration).status_code == 201
-        for uri in ['https://good.example/cb#fragment', 'https://user:pass@good.example/cb', 'http://evil.example/cb', 'javascript:alert(1)']:
+        for uri in ['https://good.example/cb#fragment', 'https://user:pass@good.example/cb', 'http://evil.example/cb', 'javascript:alert(1)', 'https://bad;host.example/cb']:
             assert http.post('/register', json={**registration, 'redirect_uris':[uri]}).status_code == 400
         assert http.post('/register', json={**registration, 'token_endpoint_auth_method':'client_secret_post'}).status_code == 400
         params = dict(client_id=client.client_id, redirect_uri=str(client.redirect_uris[0]), resource=RESOURCE,

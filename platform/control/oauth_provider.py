@@ -5,6 +5,7 @@ HTTP adapters must never fill its principal argument from a request parameter.
 """
 from functools import wraps
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -145,7 +146,13 @@ class DurableOAuthProvider:
             raise RegistrationError('invalid_client_metadata', 'Unsupported scope')
         for value in client_info.redirect_uris:
             uri = urlsplit(str(value))
+            try:
+                ipaddress.ip_address(uri.hostname or '')
+                safe_host = True
+            except ValueError:
+                safe_host = bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?\.?', uri.hostname or '', re.I))
             if ('#' in str(value) or uri.username or uri.password or not uri.hostname
+                    or not safe_host
                     or len(str(value)) > 2048 or '\\' in str(value)
                     or not (uri.scheme == 'https' or
                             (uri.scheme == 'http' and uri.hostname in {'127.0.0.1', '::1', 'localhost'}))):
