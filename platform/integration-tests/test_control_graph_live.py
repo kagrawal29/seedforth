@@ -351,3 +351,81 @@ def test_broker_runs_real_git_inspection_once(graph,case,tmp_path,lost_after_com
     assert broker.recover_receipts()==[]
     assert broker.invoke(**args)['status']=='succeeded'
     assert len(list((tmp_path/'artifacts').glob('*.json')))==1
+    result=graph.operation('complete-invocation-work',case['worker'],case['scope'],attempt=params['attempt'],
+        invocation=params['invocation'],fence=params['fence'],event_id=uuid4().hex)
+    assert result[0]['status']=='review'
+    assert graph.query("MATCH (p:ProgressEvent {scope_id:$scope}) RETURN count(p) AS n",case)[0]['n']==0
+
+
+def test_worker_completion_without_broker_evidence_is_denied(graph,case):
+    params=invocation_params(graph,case)
+    assert graph.operation('complete-invocation-work',case['worker'],case['scope'],attempt=params['attempt'],
+        invocation='does-not-exist',fence=params['fence'],event_id=uuid4().hex)==[]
+    assert graph.operation('read-attempt',case['worker'],case['scope'],attempt=params['attempt'])[0]['status']=='running'
+    assert graph.operation('read-attempt',case['actor'],case['scope'],attempt=params['attempt'])==[]
+
+
+def test_distinct_tasks_share_atomic_scope_concurrency_limit(graph,case):
+    other={**case,'id':case['id']+'-second'}
+    ready(graph,case);ready(graph,other)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        results=list(pool.map(lambda c:claim(graph,c),[case,other]))
+    assert sum(bool(r) for r in results)==1
+
+
+@pytest.mark.skipif(not os.environ.get('CONTROL_WORKER_TEST_IMAGE'),reason='explicit pinned disposable Docker image required')
+def test_networkless_worker_completes_broker_path_without_graph_credentials(graph,case,tmp_path):
+    import hashlib,json,subprocess,threading
+    from datetime import datetime,timedelta,timezone
+    from control.broker import Broker
+    from control.git_inspection import GitInspection
+    from control.receipt_journal import ReceiptJournal
+    from control.worker_transport import WorkerBoundary,WorkerServer
+    image=os.environ['CONTROL_WORKER_TEST_IMAGE']
+    if not image.startswith('python@sha256:') or len(image)!=len('python@sha256:')+64:
+        pytest.fail('a pinned official Python image digest is required')
+    repository=tmp_path/'repo';repository.mkdir()
+    subprocess.run(['git','init','-q',str(repository)],check=True)
+    (repository/'fixture.txt').write_text('isolated worker fixture\n')
+    subprocess.run(['git','-C',str(repository),'add','fixture.txt'],check=True)
+    subprocess.run(['git','-C',str(repository),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
+                    '-c','commit.gpgsign=false','commit','-qm','fixture'],check=True)
+    revision=subprocess.check_output(['git','-C',str(repository),'rev-parse','HEAD'],text=True).strip()
+    adapter=GitInspection({case['scope']:repository},tmp_path/'artifacts')
+    graph.query("MATCH (c:Capability {node_id:$id}) SET c.policy_generation=$generation",
+                dict(id=case['scope']+'-cap',generation=adapter.generation))
+    ready(graph,case)
+    token='fixture-isolation-token-'+uuid4().hex
+    credentials=tmp_path/'credentials.json'
+    credentials.write_text(json.dumps([dict(principal=case['worker'],scopes=[case['scope']],
+        sha256=hashlib.sha256(token.encode()).hexdigest(),expires_at=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat())]))
+    credentials.chmod(0o600)
+    worker_token=tmp_path/'worker-token';worker_token.write_text(token);worker_token.chmod(0o444)
+    job=tmp_path/'job.json'
+    invocation=uuid4().hex
+    job.write_text(json.dumps(dict(scope=case['scope'],work=case['id'],attempt=uuid4().hex,
+        invocation=invocation,capability=case['scope']+'-cap',revision=revision)))
+    job.chmod(0o444)
+    broker=Broker(graph,case['scope']+'-broker',{case['scope']+'-cap':adapter},ReceiptJournal(tmp_path/'receipts'))
+    socket_path=tmp_path/'worker.sock'
+    server=WorkerServer(socket_path,WorkerBoundary(graph,credentials,broker))
+    os.chown(socket_path,-1,65534)
+    thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+    probe=Path(__file__).parent/'fixtures/isolated-worker-probe.py'
+    container='sf-worker-fixture-'+uuid4().hex[:12]
+    try:
+        command=['docker','run','--rm','--name',container,'--network=none','--read-only','--cap-drop=ALL',
+            '--security-opt=no-new-privileges','--pids-limit=32','--memory=128m','--cpus=0.5','--user=65534:65534',
+            '--mount',f'type=bind,src={socket_path},dst=/run/broker.sock,readonly',
+            '--mount',f'type=bind,src={worker_token},dst=/run/worker-token,readonly',
+            '--mount',f'type=bind,src={job},dst=/run/job.json,readonly',
+            '--mount',f'type=bind,src={probe},dst=/probe.py,readonly',image,'python','-B','/probe.py']
+        result=subprocess.run(command,check=True,capture_output=True,text=True,timeout=60)
+        assert json.loads(result.stdout)['isolation_checks']=='passed'
+    finally:
+        subprocess.run(['docker','rm','-f',container],capture_output=True,check=False)
+        server.shutdown();server.server_close();thread.join(timeout=5)
+    artifact=json.loads((tmp_path/'artifacts'/(invocation+'.json')).read_text())
+    assert artifact['commit']==revision
+    assert graph.query("MATCH (w:WorkItem {node_id:$id}) RETURN w.status AS status",case)[0]['status']=='review'
+    assert graph.query("MATCH (p:ProgressEvent {scope_id:$scope}) RETURN count(p) AS n",case)[0]['n']==0

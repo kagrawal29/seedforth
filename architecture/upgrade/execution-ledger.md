@@ -123,3 +123,24 @@ as a fixture. Record exact test results and release/migration receipts here.
 Before each live migration: inventory affected writers, snapshot and verify restore,
 test idempotency and denied operations, and retain rollback. Keep new external
 actions disabled until their authority and postconditions are implemented.
+
+## Isolated worker path qualification
+
+- Added a private Unix worker interface, expiring scoped identity binding,
+  recoverable attempt reads, and atomic per-scope claim concurrency (default one).
+  Worker operation allowlist excludes owner controls, policy, grants, and review.
+- Added complete-invocation-work: worker success derives artifact identity from
+  an actual successful broker invocation and enters review without progress credit.
+- Qualified the actual path in disposable Neo4j through a non-root Docker worker:
+  no network, read-only filesystem, dropped capabilities, no-new-privileges,
+  resource caps, and only a broker socket plus fixture input/credential mounts.
+  Scope/identity forgery and policy/review/settlement calls are rejected.
+- Official test image pinned as
+  python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254.
+- Full suite including the actual Docker worker: 57 passed in 12.74s. Local
+  transport/broker tests: 14 passed. No product outcome or production worker
+  activation is claimed. Current production control release remains 6fe3ee4.
+- Next: promote the qualified schema after restored-data checks, provision the
+  protected production worker/broker service, add useful bounded model/code adapters
+  with monetary budgets and independent verification, and qualify actual product
+  work. Keep remote MCP, Graphify, archival, and wider reliability scope active.

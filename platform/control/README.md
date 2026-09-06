@@ -45,6 +45,27 @@ worker identities, grant/mandate admission, the executor, model budgets, and
 provider-specific outcome reconciliation are remaining delivery work. Do not
 repair the legacy division-worker launch independently of these boundaries.
 
+## Private worker transport
+
+`worker_transport.py` provides an authenticated Unix-socket surface for scoped
+workers: read work/own attempt, claim, renew, invoke, and complete from a successful
+broker invocation. It exposes no policy promotion, grant editing, verification,
+arbitrary graph queries, or direct receipt settlement. Caller identity is bound
+to the credential, never accepted in model parameters. Claims enforce the scope's
+concurrency limit (default one). Worker completion enters review, never done.
+
+Qualification runs a non-root worker in a read-only, capability-dropped Docker
+container with no network and only its job, scoped token, and broker socket mounted.
+It confirms absent host/database credentials, no host-network access, immutable
+inputs, denied scope escalation and review, and the actual claim-to-Git-artifact-
+to-review path through Neo4j. This is a fixture qualification, not production agent
+activation or demonstrated product usefulness. The production launcher and useful
+model-driven executor remain to be delivered.
+
+Run the complete disposable suite with CONTROL_WORKER_TEST_IMAGE set to the
+qualified official Python image digest recorded in the execution ledger. Without
+that explicit setting, the Docker test is skipped and cannot qualify isolation.
+
 `python3 -m control.migrate --endpoint URL --revision SHA` explicitly applies the
 authored additive schema, verified pilot identities, and operation generation.
 First validate on a restored snapshot. It does not switch any scheduler or enable
