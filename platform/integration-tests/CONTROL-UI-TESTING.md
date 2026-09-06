@@ -17,6 +17,7 @@ npx --yes @playwright/cli@0.1.19 -s=seedforth-upgrade run-code --filename platfo
 ```
 
 This covers login, credential storage, untrusted graph text, stale observations,
+selected-file drift and explicit partial-coverage warnings,
 legacy work, hold/version conflict, outage recovery, desktop/mobile layout,
 out-of-order inspectors, in-flight logout and revocation. Screenshots go to the
 ignored `.playwright-cli/` directory. API failures intentionally exercised by the

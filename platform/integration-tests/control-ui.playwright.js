@@ -21,7 +21,11 @@ async (page) => {
     let data = [];
     if (body.operation === 'read-scope') data = [{name:'Flowing Indian fixture',portfolio_state:'active',work_enabled:false}];
     if (body.operation === 'read-work') data = JSON.parse(JSON.stringify(items));
-    if (body.operation === 'read-sources') data = [{adapter:'fixture',process_status:'unknown',evidence_status:'stale',last_success_at:null}];
+    if (body.operation === 'read-sources') data = [
+      {adapter:'fixture',process_status:'unknown',evidence_status:'stale',last_success_at:null},
+      {adapter:'local-git-file-hash-v1',path:'app/index.html',code_status:'diverged_from_commit',evidence_status:'fresh',last_success_at:'fixture'},
+      {adapter:'local-git-file-hash-v1',path:'untrusted <img src=x onerror=alert(1)>',code_status:'unknown',evidence_status:'degraded',last_success_at:null}
+    ];
     if (body.operation === 'read-legacy-work') data = [{id:'legacy',title:'Legacy <img src=x onerror=alert(1)>',legacy:true,status:'legacy_needs_triage',legacy_status:'done'}];
     if (body.operation === 'read-timeline' && body.params.id === 'a' && delayA) {
       pendingA();
@@ -50,8 +54,11 @@ async (page) => {
   check(await page.locator('#token').inputValue() === '', 'Credential input retained');
   check(await page.evaluate(() => localStorage.length === 0 && sessionStorage.length === 0), 'Credential persisted in browser storage');
   check((await page.locator('#freshness').innerText()).includes('stale'), 'Stale sensing hidden');
+  check((await page.locator('#freshness').innerText()).includes('app/index.html: diverged_from_commit'), 'File drift hidden');
+  check((await page.locator('#freshness').innerText()).includes('not repository or hosting health'), 'Partial source coverage hidden');
+  check(await page.locator('#freshness img').count() === 0, 'Source path interpreted as HTML');
   check(await page.locator('#board img').count() === 0, 'Graph text interpreted as HTML');
-  checks.push('login, memory-only credential, stale sensing, graph-text escaping');
+  checks.push('login, memory-only credential, stale sensing, file drift, partial coverage, graph-text escaping');
   await page.getByRole('button',{name:/^Legacy/}).click();
   check(await page.locator('#actions button').count() === 0, 'Legacy work exposes controls');
   check((await page.locator('#verification').innerText()).includes('not independently verified'), 'Legacy done credited as verified');

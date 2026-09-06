@@ -41,14 +41,17 @@ def deploy(revision):
     fd=os.open(env,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
     with os.fdopen(fd,'w') as stream:
         stream.write('SEEDFORTH_RELEASE_SHA='+revision+'\n')
-    units=['seedforth-control.service','seedforth-runtime-sensor.service','seedforth-runtime-sensor.timer']
+    units=['seedforth-control.service','seedforth-runtime-sensor.service','seedforth-runtime-sensor.timer',
+           'seedforth-code-sensor.service','seedforth-code-sensor.timer']
     for name in units:
         shutil.copyfile(release/'platform/deployment/systemd'/name,Path('/etc/systemd/system')/name)
     subprocess.run(['systemd-analyze','verify',*[str(Path('/etc/systemd/system')/n) for n in units]],check=True)
     subprocess.run(['systemctl','daemon-reload'],check=True)
-    subprocess.run(['systemctl','enable','--now','seedforth-control.service','seedforth-runtime-sensor.timer'],check=True)
+    subprocess.run(['systemctl','enable','--now','seedforth-control.service','seedforth-runtime-sensor.timer',
+                    'seedforth-code-sensor.timer'],check=True)
     subprocess.run(['systemctl','restart','seedforth-control.service'],check=True)
     subprocess.run(['systemctl','start','seedforth-runtime-sensor.service'],check=True)
+    subprocess.run(['systemctl','start','seedforth-code-sensor.service'],check=True)
     receipt=dict(revision=revision,previous_control_target=previous,
         deployed_at=datetime.now(timezone.utc).isoformat(),status='services_started',
         main_platform_target=str((root/'current').resolve()))

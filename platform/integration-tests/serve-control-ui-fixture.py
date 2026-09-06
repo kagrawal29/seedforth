@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 from control.graph import Graph
@@ -23,6 +24,18 @@ if __name__ == '__main__':
     # Re-promote only to the dedicated test graph so source hash enforcement
     # covers the exact local checkout used by this browser qualification.
     graph.promote()
+    graph.query("MERGE (p:Principal {node_id:'principal-ui-fixture-sensor'}) SET p.enabled=true "
+                "MERGE (g:Grant {node_id:'grant-ui-fixture-sensor'}) "
+                "SET g.scope='seedforth-platform',g.revoked=false,g.permissions=['source.observe'] "
+                "MERGE (p)-[:HAS_GRANT]->(g) "
+                "MERGE (s:SourceStream {node_id:'source-ui-fixture-code'}) "
+                "SET s.scope_id='seedforth-platform',s.path='fixture/app.html',s.enabled=true,"
+                "s.adapter='local-git-file-hash-v1',s.freshness_seconds=900")
+    event = uuid4().hex
+    assert graph.operation('record-code-observation', 'principal-ui-fixture-sensor', 'seedforth-platform',
+        source='source-ui-fixture-code', path='fixture/app.html', observed_at=datetime.now(timezone.utc).isoformat(),
+        status='collected', revision='a'*40, committed_hash='b'*64, working_hash='c'*64,
+        adapter_revision='synthetic-browser-fixture', event_id=event, payload_hash=event)
     with TemporaryDirectory(prefix='seedforth-ui-fixture-') as directory:
         credentials = Path(directory) / 'access.json'
         credentials.touch(mode=0o600)

@@ -9,6 +9,7 @@ async (page) => {
   await page.getByRole('button',{name:'Connect',exact:true}).click();
   await page.waitForFunction(() => document.querySelector('#connection').textContent === 'Connected');
   if (await page.locator('#board .card').count() !== 22) throw new Error('Expected exact graph plan');
+  if (!(await page.locator('#freshness').innerText()).includes('fixture/app.html: diverged_from_commit')) throw new Error('Graph-backed code drift missing');
   await page.getByRole('button',{name:/^Verify current baseline and writer census/}).click();
   await page.waitForFunction(() => !document.querySelector('#timeline').textContent.includes('Loading'));
   const initiallyHeld = await page.getByRole('button',{name:'Release hold',exact:true}).count() === 1;
@@ -36,5 +37,5 @@ async (page) => {
   await page.getByRole('button',{name:'Connect',exact:true}).click();
   await page.waitForFunction(() => document.querySelector('#error').textContent.includes('scope_denied'));
   if (await page.locator('#workspace').isVisible()) throw new Error('Scope denial exposed workspace');
-  return {status:'passed',checks:['22 graph-backed work packages','versioned hold applied and survived logout/reload','initial hold disposition restored','scoped gateway denial'],coverage:'real HTTP and Cypher on disposable Neo4j; no production mutation'};
+  return {status:'passed',checks:['22 graph-backed work packages','graph-reduced code drift visible','versioned hold applied and survived logout/reload','initial hold disposition restored','scoped gateway denial'],coverage:'real HTTP and Cypher on disposable Neo4j; no production mutation'};
 }

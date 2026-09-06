@@ -1,0 +1,29 @@
+[Unit]
+Description=SeedForth selected source-file metadata observations
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/seedforth/control-current
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
+Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+EnvironmentFile=/opt/seedforth/shared/env/control-release.env
+ExecStart=/usr/bin/python3 -m control.sense_code
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_READ_SEARCH
+MemoryMax=192M
+TasksMax=32
+TimeoutStartSec=90
+
+[Install]
+WantedBy=multi-user.target

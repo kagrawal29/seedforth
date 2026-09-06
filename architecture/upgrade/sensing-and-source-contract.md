@@ -101,3 +101,27 @@ Fresh sensing does not authorize a change of goal or permission.
 Acceptance: every pilot state can name source, time, transformation and consumer;
 failed reads remain different from zero data; partial source coverage is visible;
 lost/late events reconcile safely; no adapter can write outside its contracted scope.
+
+## Selected-file sensor implementation (2026-09-06)
+
+`local-git-file-hash-v1` observes only three explicitly approved server paths:
+Cajon's app/index.html and Flowing Indian's order/verify API route files. It records
+Git HEAD, committed-blob SHA-256, working-file SHA-256, source/adapter revision,
+observation/ingestion times and exact path coverage. It does not inspect arbitrary
+files, run repository code, fetch remotes, infer hosting health or attest repository
+cleanliness. Git HEAD and applied file hashes intentionally remain separate facts.
+
+The credential-bearing collector launches bounded metadata probes as the respective
+project account, with no inherited environment, extra groups or file descriptors.
+Probes reject symlinks, devices, oversized files, changing reads and changing HEAD.
+Only typed hashes/revision metadata return; raw contents and commands do not enter
+Mycelium. This is OS/account isolation, not protection from the server administrator
+or legacy graph writers. Shared Neo4j credential fencing remains separate work.
+
+The graph reducer classifies matches/divergence, absent committed/working files and
+collection failures. Append-only observations retain late events without regressing
+the current projection. Five-minute cadence and fifteen-minute freshness apply to
+these streams only. Failures preserve last successful evidence with degraded/stale
+status. No observation enables work or changes the portfolio. Automated source
+repair, incident escalation, full repository/provider coverage, history retention
+policy and Graphify extraction remain incomplete.
