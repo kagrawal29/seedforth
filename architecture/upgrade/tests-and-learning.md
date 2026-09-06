@@ -1,9 +1,27 @@
 # Behavior verification, useful autonomy, and learning
 
-Status: proposed verification specification. No new tests or protocols executed.
+Status: verification contract under implementation. Exact executed coverage and
+remaining gates are recorded in execution-ledger.md; this document is not itself
+evidence that every scenario passed.
 Covers A01–A17, S01–S10, C01; product experience coverage U01–U16.
 
 ## Test architecture
+
+Owner direction: every human-facing interface built or changed in this upgrade
+must be exercised end to end using Playwright CLI. The implementing agent may
+imitate the human operator under the owner's delegated testing authority. Mark
+such reviews as simulated/delegated, never as personal owner acceptance. Target
+full operational readiness by the owner's next-day return, without weakening the
+requirements or claiming an unelapsed unattended observation period.
+
+Test the actual browser interactions, not only DOM existence or API responses:
+desktop/mobile, scoped login/logout/reconnect, inspection, controls, exact evidence,
+error/stale/loading states, concurrent responses, revocation, and failed operations.
+Synthetic-response browser regression and browser-to-real-gateway/graph staging
+acceptance are distinct evidence levels. Public remote authentication, conversation,
+team administration, review and any new interface need their own runnable journeys.
+Retain CLI version, source revision, scenario results and non-sensitive screenshots.
+Never use owner production credentials in recorded traces, snapshots, or CLI args.
 
 Layer 1 tests contracts against minimal disposable fixtures: identity, scope,
 state transitions, permissions, ordering, and replay. Layer 2 tests adapters with

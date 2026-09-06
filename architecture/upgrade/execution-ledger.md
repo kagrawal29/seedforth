@@ -144,3 +144,26 @@ actions disabled until their authority and postconditions are implemented.
   protected production worker/broker service, add useful bounded model/code adapters
   with monetary budgets and independent verification, and qualify actual product
   work. Keep remote MCP, Graphify, archival, and wider reliability scope active.
+
+## Human-interface browser qualification
+
+- Owner requires Playwright CLI for every human interface and delegates imitating
+  the human operator in testing. Full-plan readiness by the next-day return is the
+  target; no acceptance gate or honest soak requirement is removed.
+- Added pinned Playwright CLI 0.1.19 journeys for the shipped UI. Synthetic-response
+  regression passed login/storage, stale source visibility, HTML escaping, legacy
+  non-actionability, versioned hold/conflict, outage recovery, mobile/desktop,
+  concurrent inspectors, in-flight logout and revocation scenarios.
+- Fixed response ordering so stale inspector/refresh results cannot replace the
+  current selection; logout invalidates in-flight work and clears scoped content.
+  Access denial remains visible without restoring an invalid session.
+- Real browser -> HTTP gateway -> authored Cypher -> disposable Neo4j passed:
+  22 work packages, persisted hold across logout/reload, restoration of initial
+  hold disposition, and cross-scope denial. Independent graph read confirmed W00
+  hold=false, state_version=2, two accepted dispatch_hold_changed signals.
+- Desktop and 390px mobile screenshots captured locally; mobile visually inspected.
+  Local boundary/worker/broker/runner/sensor suite: 35 passed in 5.13s.
+- These tests simulate the owner in staging, not personal owner sign-off or
+  useful product progress. No production UI deployment in this step. Runtime
+  control release remains 6fe3ee4; additive broker promotion and actual governed
+  project execution remain next, alongside remote MCP, Graphify and archival.
