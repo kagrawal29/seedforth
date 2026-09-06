@@ -69,7 +69,8 @@ class CodeSnapshot:
         environment = {'PATH': '/usr/bin:/bin', 'GIT_CONFIG_NOSYSTEM': '1',
             'GIT_CONFIG_GLOBAL': '/dev/null', 'GIT_TERMINAL_PROMPT': '0', 'GIT_NO_REPLACE_OBJECTS': '1',
             'GIT_LITERAL_PATHSPECS': '1'}
-        command = ['git', '-c', 'core.hooksPath=/dev/null', '-C', str(self.repositories[args['scope']])]
+        repository = str(self.repositories[args['scope']])
+        command = ['git', '-c', 'core.hooksPath=/dev/null', '-c', 'safe.directory='+repository, '-C', repository]
         deadline = time.monotonic() + 25
         def git(*parts):
             remaining = deadline - time.monotonic()

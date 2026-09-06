@@ -295,3 +295,35 @@ actions disabled until their authority and postconditions are implemented.
   worker path, independently test its exact artifact with Playwright CLI, review
   and apply it safely. Model-driven work, monetary budgets, public MCP, Graphify,
   archival, full UX and unattended qualification remain part of the active goal.
+
+## Current Cajon candidate browser qualification
+
+- Rechecked remote HEAD 2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and copied only
+  app/index.html for isolated browser qualification. Its hash matches the recorded
+  remote baseline. Updated browser entry to choose Basic Rock in the current UX.
+  The first-beat regression fails on this current build too (expected 0, actual 1).
+- Playwright additionally exposed a real pause-rendering ReferenceError:
+  resonanceMult is read before its block-scoped declaration in drawDojoCanvas.
+- The agent-authored explicit edit proposal was executed through the real broker
+  on disposable Mycelium using the current remote Git source, not a hand-edited
+  product checkout. It fixes cycle-boundary accounting, initial beat/count-in,
+  partial cycles on tempo changes, and resonance declaration ordering.
+  Fixture scope fixture-5b07211a3ce448fe9181c9a6bc65fcd0,
+  invocation ac75c27effee49d6b05318bbb782c277. This was a trusted staging harness,
+  not an isolated production worker or generalized model-driven autonomy.
+- Candidate app SHA256:
+  dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  All 12 actual Playwright CLI acceptance scenarios passed: initial beat, full
+  cycle, pause, restart, keyboard tempo change, count-in, and error-free rendering
+  through desktop/mobile resize. Mobile screenshot visually inspected; broader
+  responsive/accessibility and musical-accuracy claims are not made.
+- Qualification metadata is versioned in evidence/cajon-candidate-20260906.json.
+  Exact candidate, metadata and test source retained root-private at
+  /opt/seedforth/shared/backups/cajon-candidate-dad62bbc229a. Content hashes and the
+  successful staging Invocation artifact hash were checked before archival.
+- Added staged-candidate TestRun evidence to the actual Cajon task in live graph.
+  Work remains proposed/held and candidate explicitly not applied. Product checkout
+  and runtime unchanged. Full platform suite remains 95 passed (12.70s latest).
+- Next land this verified candidate through the production governed attempt,
+  separate exact-artifact verification/review and safe source/deployment promotion.
+  Then expand useful work to Flowing Indian and continue the full upgrade scope.

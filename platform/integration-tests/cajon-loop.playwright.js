@@ -1,9 +1,14 @@
 async page => {
+  page.setDefaultTimeout(5000);
   // Start the approved Cajon checkout on localhost:18800. Uses simulated browser
   // time to test the counter, not to claim elapsed human practice or musical skill.
   await page.clock.install();
   await page.goto('http://127.0.0.1:18800/');
-  await page.locator('#play-btn').click();
+  if (!await page.locator('#play-btn').isVisible()) {
+    await page.getByRole('button', {name:'Basic Rock the heartbeat',exact:true}).click();
+  } else {
+    await page.locator('#play-btn').click();
+  }
   await page.clock.runFor(200);
   const loops = Number(await page.locator('#session-loops').innerText());
   await page.locator('#play-btn').click();
