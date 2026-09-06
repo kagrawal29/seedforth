@@ -4,22 +4,20 @@ Writes two mutable nodes (FleetState, SystemHealth) instead of append-only
 FleetSnapshots. A FleetEvent is only created when the fleet state actually
 changes (agent down/up, error spike) -- not on every timer tick.
 """
-import json, os, subprocess, time
+import json, os, subprocess, sys, time
 
-NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
-if not NEO4J_PASS:
-    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from neo4j_helper import q_strict
+
 REGISTRY_PATH = "/opt/delta/delta-registry.json"
 STATE_FILE = "/opt/delta/delta-fleet-state.json"
 timestamp = str(int(time.time()))
 
 def run_cypher(cypher):
-    subprocess.run(
-        ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-         "-u", "neo4j", "-p", NEO4J_PASS,
-         "--format", "plain", cypher],
-        capture_output=True, text=True, timeout=15
-    )
+    try:
+        q_strict(cypher)
+    except Exception as exc:
+        print(f"  cypher error: {str(exc)[:200]}")
 
 def read_cpu_pct():
     """Sample /proc/stat twice to compute overall CPU usage percent."""
@@ -110,6 +108,19 @@ for line in sup_lines:
     prog = line.split()[0]
     agent_name = prog.replace("proj-", "", 1)
     agent_id = f"subagent-{agent_name}"
+    process_status = "ready" if "RUNNING" in line else "stopped"
+    run_cypher(
+        f'MERGE (ap:AgentProcess {{node_id:"process-{agent_name}"}}) '
+        f'SET ap.name = "{agent_name}", ap.supervisor_program = "{prog}", '
+        f'ap.status = "{process_status}", ap.project = "system", '
+        'ap.source = "supervisor", ap.observed_at = datetime() '
+        f'MERGE (sa:SubAgent {{node_id:"{agent_id}"}}) '
+        'MERGE (ap)-[:BACKS]->(sa) '
+        'WITH ap '
+        'MERGE (srv:Server {node_id:"server-delta2"}) '
+        'SET srv.name = "delta2", srv.host = "185.192.96.100" '
+        'MERGE (ap)-[:RUNS_ON]->(srv)'
+    )
     if "RUNNING" in line:
         run_cypher(
             f"MERGE (sa:SubAgent {{node_id:\"{agent_id}\"}}) "

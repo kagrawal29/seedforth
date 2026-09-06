@@ -8,24 +8,20 @@ import subprocess
 import sys
 import time
 
-NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
-if not NEO4J_PASS:
-    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from neo4j_helper import q_strict
+
 REGISTRY_PATH = os.environ.get("DELTA_REGISTRY_PATH", "/opt/delta/delta-registry.json")
 
 
 def run_cypher(cypher):
-    """Run a Cypher statement via docker exec."""
-    cmd = [
-        "docker", "exec", "mycelium-neo4j",
-        "cypher-shell", "-u", "neo4j", "-p", NEO4J_PASS,
-        "--format", "plain", cypher,
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    if result.returncode != 0:
-        print(f"  cypher error: {result.stderr.strip()[:200]}")
+    """Run Cypher through the shared HTTP helper; credentials stay out of ps."""
+    try:
+        q_strict(cypher)
+        return True
+    except Exception as exc:
+        print(f"  cypher error: {str(exc)[:200]}")
         return None
-    return result.stdout.strip()
 
 
 def seed_fleet():
@@ -108,6 +104,26 @@ def seed_fleet():
         'sa.project="system"'
     )
     print("  SubAgent: delta-hub")
+
+    # The hub is also a supervised process and must be represented in the
+    # same runtime model as project agents.
+    run_cypher(
+        'MERGE (ap:AgentProcess {node_id:"process-delta-hub"}) '
+        'SET ap.name="delta-hub", ap.supervisor_program="proj-delta-hub", '
+        f'ap.status="{"ready" if sup_status.get("proj-delta-hub") == "RUNNING" else "stopped"}", '
+        'ap.project="system", ap.source="supervisor", ap.observed_at=datetime()'
+    )
+    run_cypher(
+        'MERGE (sa:SubAgent {node_id:"subagent-delta-hub"}) '
+        'MERGE (ap:AgentProcess {node_id:"process-delta-hub"}) '
+        'MERGE (ap)-[:BACKS]->(sa)'
+    )
+    run_cypher(
+        'MERGE (srv:Server {node_id:"server-delta2"}) '
+        'SET srv.name="delta2", srv.host="185.192.96.100" '
+        'MERGE (ap:AgentProcess {node_id:"process-delta-hub"}) '
+        'MERGE (ap)-[:RUNS_ON]->(srv)'
+    )
 
     # Link Hub → Project (OVERSEES)
     run_cypher(
