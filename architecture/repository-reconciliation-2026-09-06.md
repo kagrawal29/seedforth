@@ -19,7 +19,7 @@ this reconciliation until separately classified.
 | Mycelium | `fix/scope-split-and-deploy-flow-policy` / `e43f15f` | `main` / `a928955` | 14 | Working source is not canonical; consolidated platform copy is deployed |
 | Delta | `main` / `53d4d96` | `main` / `53d4d96` | 3 | Canonical standalone source matches remote; platform copy is deployed |
 | Flowing Indian | feature branch / `c84e0fa` | `main` / unavailable from checkout | 10 | Local feature work; do not overwrite |
-| Seedforthing | `master` / `163db3d` | `master` / `0102ad8` | 0 | Diverged from long automated remote history; preserve both until an explicit merge decision |
+| Seedforthing | `master` / `163db3d` | `master` / `49a2b72` | 0 | Diverged from long automated remote history; current branch no longer tracks token; preserve both until an explicit merge decision |
 | SolveOS | `master` / `b4af595` | `master` / `36d8738` | 1 | Local checkout differs from remote |
 | Ember | `main` / `1fc3dde` | `main` / `1fc3dde` | 0 | Synchronized |
 | Audioworld | `main` / `460902a` | `main` / `460902a` | 0 | Fast-forward synchronized during this reconciliation |
