@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "platform_commit": "0402f84231c9e5fbbb3ebe1d09a96800e8c9b31f",
+  "components": {
+    "mycelium": {
+      "source_repository": "kagraw29/mycelium",
+      "source_commit": "e43f15f1186e6bbc117d0daadbf1e5126123b5ec",
+      "import": "sanitized-working-tree"
+    },
+    "delta": {
+      "source_repository": "kagraw29/delta",
+      "source_commit": "53d4d96464bc549bfe8ba5de58563dcaecbb9311",
+      "import": "history-preserving-subtree"
+    }
+  },
+  "graph": {
+    "endpoint": "bolt://185.192.96.100:7687",
+    "control_schema": "seedforth-control-v1",
+    "control_schema_version": "1.0.0",
+    "protocols_enabled_at_capture": 32,
+    "heartbeat_protocols_verified": 16,
+    "verified_at": "2026-09-06"
+  },
+  "server": {
+    "host": "185.192.96.100",
+    "release_path": "/opt/seedforth/releases/0402f84",
+    "previous_release": "/opt/seedforth/releases/23cc373",
+    "rollback_unit": "delta.service",
+    "created_at": "2026-09-06"
+  },
+  "verification": {
+    "mycelium_go_tests": true,
+    "delta_active_tests": {"passed": 240, "failed": 0},
+    "graph_health": true,
+    "heartbeat_service": true,
+    "reconciliation": true,
+    "release_checkout_clean": true
+  },
+  "runtime": {
+    "delta_unit": "seedforth-delta.service",
+    "heartbeat_timer": "seedforth-mycelium-heartbeat.timer",
+    "legacy_delta_unit": "delta.service",
+    "status": "active"
+  }
+}

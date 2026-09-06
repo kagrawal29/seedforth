@@ -32,6 +32,11 @@ Each release must record:
 The manifest is written only after the release checkout is complete and tests
 pass. A service must never run from a mutable Git working tree.
 
+The first completed manifest is
+[`release-manifest-0402f84.json`](release-manifest-0402f84.json). Subsequent
+releases should carry the same evidence fields with their own immutable
+platform commit.
+
 ## Cutover sequence
 
 1. Fetch the reviewed SeedForth commit into a new immutable release directory.
