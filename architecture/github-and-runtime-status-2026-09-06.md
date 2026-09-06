@@ -8,7 +8,7 @@ Re-run `python3 operations/reconcile.py --server root@185.192.96.100
 
 | Repository | Local checkout | GitHub default branch | Relationship |
 |---|---|---|---|
-| `kagraw29/seedforth` | `cb6d687` | `cb6d687` | local platform main matches GitHub main; live runtime is pinned to tested `bed326a` |
+| `kagraw29/seedforth` | `b08ca18` | `b08ca18` | local platform main matches GitHub main; live runtime is pinned to tested `bed326a` |
 | `kagrawal29/delta` | `53d4d96` | `53d4d96` | local main matches GitHub main; local runtime files are dirty |
 | `kagrawal29/mycelium` | `e43f15f` on `fix/scope-split-and-deploy-flow-policy` | `a928955` on main | local work is not the GitHub default branch and has 14 dirty files |
 | `kagrawal29/tetrahedron` | `262aa14` | `079ac5b` | retained as reference-only; local checkout is not synchronized |
@@ -38,9 +38,9 @@ an enabled protection policy for SeedForth or Delta at capture time.
 
 ## Live graph snapshot
 
-At capture: approximately 30,420 nodes, 25,565 relationships, 32 enabled
-protocols, 12 active graph agents, 3 pending decisions, and the latest
-protocol run at `2026-09-06T10:00:05.479Z`. Counts are dynamic and are evidence
+At refresh: approximately 31,136 nodes, 25,714 relationships, 32 enabled
+protocols, 11 active graph agents, 3 pending decisions, and the latest
+protocol run at `2026-09-06T11:36:32.845Z`. Counts are dynamic and are evidence
 of liveness, not a version identifier.
 
 ## Completed convergence order

@@ -19,10 +19,10 @@ this reconciliation until separately classified.
 | Mycelium | `fix/scope-split-and-deploy-flow-policy` / `e43f15f` | `main` / `a928955` | 14 | Working source is not canonical; consolidated platform copy is deployed |
 | Delta | `main` / `53d4d96` | `main` / `53d4d96` | 3 | Canonical standalone source matches remote; platform copy is deployed |
 | Flowing Indian | feature branch / `c84e0fa` | `main` / unavailable from checkout | 10 | Local feature work; do not overwrite |
-| Seedforthing | `master` / `9123434` | `master` / `0102ad8` | 0 | Local checkout behind automated remote; boundary rule added on current remote tip |
+| Seedforthing | `master` / `163db3d` | `master` / `0102ad8` | 0 | Diverged from long automated remote history; preserve both until an explicit merge decision |
 | SolveOS | `master` / `b4af595` | `master` / `36d8738` | 1 | Local checkout differs from remote |
 | Ember | `main` / `1fc3dde` | `main` / `1fc3dde` | 0 | Synchronized |
-| Audioworld | `main` / `c7796f6` | `main` / `460902a` | 0 | Local checkout differs from remote |
+| Audioworld | `main` / `460902a` | `main` / `460902a` | 0 | Fast-forward synchronized during this reconciliation |
 | Website | `main` / `1924519` | `main` / `1924519` | 0 | Synchronized |
 | Tetrahedron | `main` / `262aa14` | `main` / `079ac5b` | 11 | Reference-only; preserve, do not merge into platform |
 
@@ -36,7 +36,7 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 | `/opt/seedforth/current` | detached / `bed326a` | 0 | Active immutable platform release |
 | `/opt/delta` | `main` / `53d4d96` | 10 | Disabled legacy rollback checkout; retain intact |
 | `/home/proj-flowing-indian/flowing-indian` | `main` / `54ced2f` | 9 | Active product runtime; capture before cleanup |
-| `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 436 | Active product runtime; behind automated remote; do not reset or pull blindly |
+| `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 435 | Active product runtime; behind automated remote; do not reset or pull blindly |
 
 ### Security exception
 
