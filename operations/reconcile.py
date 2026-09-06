@@ -84,10 +84,42 @@ def inspect_server(host: str, paths: list[str]) -> dict[str, object]:
     return {"host": host, "repositories": records}
 
 
+def inspect_graph(host: str) -> dict[str, object]:
+    """Collect non-secret graph health facts through the server Docker runtime."""
+    remote = (
+        "PASS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' "
+        "mycelium-neo4j 2>/dev/null | sed -n 's/^NEO4J_AUTH=neo4j\\///p'); "
+        "if [ -z \"$PASS\" ]; then echo graph-auth-unavailable; exit 2; fi; "
+        "runq(){ docker exec mycelium-neo4j cypher-shell -u neo4j -p \"$PASS\" "
+        "--format plain \"$1\" | tail -n 1; }; "
+        "printf 'nodes\\t'; runq 'MATCH (n) RETURN count(n)'; "
+        "printf 'relationships\\t'; runq 'MATCH ()-[r]->() RETURN count(r)'; "
+        "printf 'protocols_enabled\\t'; runq 'MATCH (p:Protocol {enabled:true}) RETURN count(p)'; "
+        "printf 'active_agents\\t'; runq \"MATCH (s:SubAgent {status:'active'}) RETURN count(s)\"; "
+        "printf 'pending_decisions\\t'; runq \"MATCH (d:DecisionRequest {status:'pending'}) RETURN count(d)\"; "
+        "printf 'latest_protocol_run\\t'; runq 'MATCH (r:ProtocolRun) RETURN max(r.timestamp)';"
+    )
+    command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", host, remote]
+    try:
+        proc = subprocess.run(command, text=True, capture_output=True,
+                              timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"error": str(exc)}
+    if proc.returncode != 0:
+        return {"error": (proc.stderr or proc.stdout).strip()}
+    facts = {}
+    for line in proc.stdout.splitlines():
+        if "\t" in line:
+            key, value = line.split("\t", 1)
+            facts[key] = value.strip()
+    return {"host": host, "facts": facts}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--server", help="also inspect declared server paths via SSH")
+    parser.add_argument("--graph", help="also inspect live Neo4j facts through a server")
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text())
     repos = manifest.get("repositories", [])
@@ -103,6 +135,8 @@ def main() -> int:
         paths = [entry["observed_server_path"] for entry in repos
                  if entry.get("observed_server_path")]
         report["server"] = inspect_server(args.server, paths)
+    if args.graph:
+        report["graph"] = inspect_graph(args.graph)
     print(json.dumps(report, indent=2))
     return 0
 
