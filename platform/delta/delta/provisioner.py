@@ -20,10 +20,14 @@ logger = logging.getLogger(__name__)
 _TEMPLATE_DIR = os.getenv("DELTA_TEMPLATE_DIR", "project-template")
 _TEMPLATE_PATH = Path(__file__).parent.parent / _TEMPLATE_DIR / "CLAUDE.md"
 _GITIGNORE_CONTENT = """\
+# Delta runtime state (external evidence, not repository source)
+delta-config/logs/
 delta-config/inbox/
 delta-config/outbox/
 delta-config/followups/
 delta-config/progress/
+delta-config/.*
+delta-config/*.log
 """
 
 def _register_rube_mcp(project_dir: str, linux_user: str = "") -> bool:
@@ -886,11 +890,9 @@ def git_save(project_dir: str, linux_user: str = "") -> bool:
             return run_as_user(linux_user, " ".join(shlex.quote(c) for c in cmd))
         return subprocess.run(cmd, capture_output=True, text=True)
 
-    # Stage everything including logs (force-add past gitignore)
+    # Stage source and durable project intent. Runtime evidence stays outside
+    # Git; it is consumed by the bridge and/or graph ingestion paths.
     _git("add", "-A")
-    logs_dir = project_path / "delta-config" / "logs"
-    if logs_dir.exists():
-        _git("add", "-f", "delta-config/logs/")
 
     # Commit (may be empty if nothing changed)
     result = _git("commit", "-m", msg, "--allow-empty")

@@ -782,7 +782,11 @@ generates response, not just acknowledgment.
 
 **Push after every commit.** The repo is your brain's backup. If you get hibernated, the git history is how you come back with full context. Push failures are fine (no remote, auth issues). The commit is what matters.
 
-**What gets committed:** everything in the project directory. CLAUDE.md, memory/, skills/, delta-config/schedule.json, delta-config/logs/, and whatever you're building. The repo IS the project's brain. Logs are conversation history and must survive hibernation.
+**What gets committed:** source, CLAUDE.md, memory/, skills/, and durable
+project intent. `delta-config/inbox/`, `outbox/`, `followups/`, `progress/`,
+logs, and dotfiles are runtime evidence and stay outside Git. The graph and
+external runtime storage preserve operational history; hibernation must not
+turn generated logs or credentials into repository state.
 
 **Never commit:** delta-config/inbox/, delta-config/outbox/, delta-config/followups/. These are transient.
 
