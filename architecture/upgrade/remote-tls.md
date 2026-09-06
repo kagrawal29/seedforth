@@ -21,7 +21,10 @@ public certificate evidence, not secret material.
 Deployment order: staging standalone challenge on otherwise unused port80,
 production issuance, install source-controlled nginx ingress, nginx syntax check,
 reload (not restart), narrow TCP443 firewall allowance, external trust/path tests,
-webroot renewal dry run including reload hook, enable the six-hour renewal timer.
+webroot renewal dry run including mandatory validation/reload, enable the six-hour
+renewal timer. Systemd tracks nginx validation and reload as ExecStartPost steps:
+Certbot itself can exit zero despite a failed deploy hook. Validation requires
+write access to the existing /run/nginx.pid, not the whole runtime directory.
 Keep the internal-service network guard and all existing services intact.
 
 The webroot exposes only exact ACME challenge paths, never directory listings.
