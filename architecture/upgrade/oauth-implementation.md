@@ -40,3 +40,25 @@ CSRF/origin enforcement, explicit consent/deny, account recovery, session and cl
 revocation, responsive UI and Playwright flows. The internal consent method must
 never become a route accepting a caller-supplied principal. Qualify official SDK
 client discovery through actual HTTP in addition to provider unit tests.
+
+## Qualification at source c38bb80
+
+The provider and protocol routes now exist, with root-private SQLite credential
+state bound immutably to the canonical issuer/resource. Blocking database and graph
+calls run off the ASGI event loop. A new authored read-identity-scopes atom supplies
+current read grants without exposing arbitrary graph access.
+
+Actual testing found additional SDK integration issues: public-client revocation
+required an optional secret field to be present, metadata advertised only secret
+methods, and frozen SDK errors broke generator-context-manager rollback handling.
+The adapter supplies public-client revocation, accurate none-method metadata and
+class-based transactions. Revocation remains usable when graph access is down.
+Canonical issuer formatting is consistent across metadata and token claims.
+
+Ten provider/HTTP tests plus one real TCP OAuth-to-official-MCP-to-Neo4j journey
+passed within the134-test release qualification. The journey used synthetic
+internal human consent, not a real login UI. It covered scoped work/conversation,
+refresh, reconnect, old-token denial, foreign-scope denial and graph revocation.
+No human identity database, login/consent route, public OAuth service or application
+ingress was deployed by this slice. Those are the immediate next implementation
+steps, together with enrollment/recovery, abuse limits and Playwright verification.

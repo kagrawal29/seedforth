@@ -572,3 +572,39 @@ actions disabled until their authority and postconditions are implemented.
 - Next: build durable scoped identity/login/consent and real authorization-server
   behavior, qualify all human paths with Playwright, then enable narrow ingress
   routes. Continue the governed Delta processor and full remaining upgrade scope.
+
+## Durable OAuth provider and actual transport qualification
+
+- Source c38bb809fde4f207246f20b5f748e168ba677928 implements the OAuth provider,
+  protocol routes and graph-native current identity-scope read. The credential
+  store is private SQLite external I/O, containing digests of opaque codes/tokens,
+  not a competing task/permission graph. Issuer/resource binding persists across
+  restart. Grant authority remains Mycelium and is rechecked at token use.
+- Single-use authorization codes, transactional refresh rotation, absolute family
+  expiry, replay-triggered family revocation, explicit resource checks, S256 PKCE,
+  callback validation, client-bound revocation, narrowed project selection and
+  bounded registration/body sizes are implemented. Public PKCE clients only are
+  advertised; no unsupported confidential-client or metadata-fetch claims.
+- Tests exposed and corrected SDK resource enforcement omissions, public-client
+  revocation validation, inaccurate supported-auth-method metadata, canonical root
+  issuer formatting and frozen-error rollback handling. External calls are moved
+  off the event loop. Graph outage fails closed; revocation can still reduce access.
+- Ten provider/HTTP tests and one actual TCP HTTP OAuth→official MCP SDK→disposable
+  graph journey passed. The latter issued credentials, read scoped work, queued
+  direction without inventing execution, refreshed/reconnected, rejected the old
+  token and foreign scope, then denied requests after actual graph-grant revocation.
+  Internal synthetic human consent was explicitly used; no public bypass exists.
+- Immutable release qualification:134passed in24.02s, no skipped tests, one SDK
+  deprecation warning. JUnit hash28f5746cd337e01f48d564ba48c7dcb440f3d643c8adaefa7c4949c06cde0b19
+  admitted in live Mycelium as a ReleaseQualification informingW21. Temporary
+  transport server and namespace fixtures cleaned up. Live read confirmed only
+  existing owner/sensor read identities and retained service/timer health.
+- This release is tested source, not a production OAuth deployment. Current live
+  control2aed97e, worker3d8feef, securityafcc87b and main1770e7c unchanged. Public
+  application ingress remains503. No human interface was added by this provider
+  slice, so its tests do not count as Playwright login/consent acceptance.
+- Immediate next work: real enrollment/login/session/consent/recovery surface and
+  abuse boundaries, tested with Playwright, then scoped public routing and client
+  trials. Continue originator-bound Delta processing, legacy credential isolation,
+  Graphify/full sensing, richer board/Charlie, Flowing useful autonomy, archival,
+  recovery and unattended qualification. Entire goal remains incomplete.
