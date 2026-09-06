@@ -20,5 +20,6 @@ superseded by the reconciliation ledger when values differ.
 3. [runtime-topology.md](runtime-topology.md)
 4. [state-and-sync.md](state-and-sync.md)
 5. [baseline-2026-09-06.md](baseline-2026-09-06.md)
+6. [product-repository-sync-runbook.md](product-repository-sync-runbook.md)
 
 No document in this directory contains credentials. Runtime secrets belong in the server secret store and documented operational runbooks, never in Git.
