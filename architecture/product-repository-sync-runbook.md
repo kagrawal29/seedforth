@@ -70,6 +70,23 @@ current GitHub branch. Because it may exist in history and remains in the old
 server checkout, the remaining required action is provider rotation followed
 by repository history scrubbing and a secret scan.
 
+The cutover utility is `operations/rotate-seedforthing-vercel-token.sh`. Run it
+on the server as root (or as the token-file owner), passing the replacement on
+stdin. It validates the replacement against Vercel before installing it with
+mode `0600`; it does not print the token or revoke the old one. After a
+successful deployment smoke test, revoke the old token from Vercel's account
+token settings, then perform the history rewrite and enable secret scanning.
+
+Example; obtain the value through a secure input mechanism, never chat or a
+shell argument:
+
+```bash
+read -r -s VERCEL_REPLACEMENT
+printf '%s\n' "$VERCEL_REPLACEMENT" | \
+  ./operations/rotate-seedforthing-vercel-token.sh --stdin
+unset VERCEL_REPLACEMENT
+```
+
 ## Completion condition
 
 A product repository is synchronized only when its canonical branch, local
