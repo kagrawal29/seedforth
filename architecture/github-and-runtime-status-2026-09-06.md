@@ -25,7 +25,7 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - WAHA: running on localhost `:3000`
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
-- `/opt/seedforth/current` points to immutable release `1493ee2`; the
+- `/opt/seedforth/current` points to immutable release `1770e7c`; the
   consolidated Delta service is active and the legacy `/opt/delta` unit is
   disabled but retained for rollback
 - Linux/amd64 Mycelium CLI artifact is installed at

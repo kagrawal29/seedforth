@@ -9,12 +9,12 @@
 | Disposable Neo4j bootstrap | `run-disposable.sh` on `delta2` with `neo4j:5-community` | Passed twice/idempotent |
 | Progress replay | Same disposable run, same `message_id` submitted twice | One durable `Signal` |
 | Reconciler mismatch policy | `operations/reconcile.py` unit fixtures | `drifted`, `conflicting`, and `healthy` classifications verified |
-| Production safety check | Delta service, heartbeat timer, restart count, current symlink | Active, active, 0 restarts, `1493ee2` |
+| Production safety check | Delta service, heartbeat timer, restart count, current symlink | Active, active, 0 restarts, `1770e7c` |
 
 The disposable run used a temporary container on port `17474`, never the
 production Neo4j endpoint. Its container was removed by the harness trap. The
-production runtime was promoted from immutable release `3dff1e6` to
-`1493ee2` after the graph-authority boundary gates passed.
+production runtime was promoted from immutable release `3dff1e6` through
+`1493ee2` to `1770e7c` after the graph-authority boundary gates passed.
 
 ## Interpretation
 
