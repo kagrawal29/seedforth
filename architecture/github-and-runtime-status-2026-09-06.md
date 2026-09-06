@@ -25,8 +25,11 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - WAHA: running on localhost `:3000`
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
-- Consolidated paths `/opt/seedforth/platform/mycelium` and
-  `/opt/seedforth/platform/delta`: not created yet
+- Immutable consolidated release staged at
+  `/opt/seedforth/releases/7f51937`, with `/opt/seedforth/current` pointing to
+  it; existing services have not been switched
+- Linux/amd64 Mycelium CLI artifact staged under the release and reports
+  version `7f51937`
 
 ## Live graph snapshot
 
@@ -43,6 +46,8 @@ of liveness, not a version identifier.
    the legacy runtime.
 3. Run component and integration gates against the release checkout.
 4. Record the platform SHA, component SHAs, and graph bootstrap version.
-5. Switch services using a reversible systemd/environment change.
-6. Reconcile again and retire `/opt/delta` only after a stable observation
+5. Wire the runtime secret contract and install Go-built artifacts; the server
+   currently has no Go toolchain.
+6. Switch services using a reversible systemd/environment change.
+7. Reconcile again and retire `/opt/delta` only after a stable observation
    window.
