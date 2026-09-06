@@ -19,6 +19,24 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "registry" / "repositories.json"
 
 
+def classify_runtime(declared_sha: str, observed_sha: str,
+                     process_status: str | None = None,
+                     graph_status: str | None = None) -> str:
+    """Classify an observed deployment without mutating any authority."""
+    if not declared_sha or not observed_sha:
+        return "unknown"
+    if not (observed_sha == declared_sha
+            or observed_sha.startswith(declared_sha)
+            or declared_sha.startswith(observed_sha)):
+        return "drifted"
+    if process_status is not None and graph_status is not None:
+        process_running = process_status in {"running", "ready", "active"}
+        graph_active = graph_status in {"running", "ready", "active"}
+        if process_running != graph_active:
+            return "conflicting"
+    return "healthy"
+
+
 def run(command: list[str], cwd: Path | None = None) -> tuple[int, str]:
     try:
         proc = subprocess.run(command, cwd=cwd, text=True, capture_output=True,
@@ -167,6 +185,10 @@ def main() -> int:
                      if entry.get("legacy_server_path"))
         paths = list(dict.fromkeys(paths))
         report["server"] = inspect_server(args.server, paths)
+        declared_release = live.get("release", "")
+        for record in report["server"].get("repositories", []):
+            if record.get("path") == live.get("server_path", "/opt/seedforth/current"):
+                record["state"] = classify_runtime(declared_release, record.get("sha", ""))
     if args.graph:
         report["graph"] = inspect_graph(args.graph)
     print(json.dumps(report, indent=2))

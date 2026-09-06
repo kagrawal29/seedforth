@@ -17,8 +17,10 @@ from jsonschema import Draft202012Validator
 
 DELTA_ROOT = Path(__file__).parents[1] / "delta"
 sys.path.insert(0, str(DELTA_ROOT))
+sys.path.insert(0, str(Path(__file__).parents[2] / "operations"))
 
 from delta.control_envelope import dedupe_key, make_envelope  # noqa: E402
+from reconcile import classify_runtime  # noqa: E402
 
 SCHEMA_PATH = Path(__file__).parents[1] / "contracts" / "control-envelope.schema.json"
 MODEL_PATH = (
@@ -89,16 +91,6 @@ def test_control_model_is_bootstrap_idempotent_by_construction():
     assert "IF NOT EXISTS" in cypher
     assert "MERGE (s:SchemaContract" in cypher
     assert "MERGE (t:ControlType" in cypher
-
-
-def classify_runtime(declared_sha: str, observed_sha: str,
-                     process_status: str, graph_status: str) -> str:
-    """Pure form of the reconciliation policy used by the operational docs."""
-    if declared_sha != observed_sha:
-        return "drifted"
-    if (process_status == "running") != (graph_status == "active"):
-        return "conflicting"
-    return "healthy"
 
 
 def test_deliberate_sha_mismatch_is_drifted():
