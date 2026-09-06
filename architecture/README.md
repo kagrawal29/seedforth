@@ -9,7 +9,9 @@ Documents in this directory are classified as:
 - **Historical:** retained for context, not active design.
 - **Proposed:** planned behavior not yet deployed.
 
-Current status: the target architecture is proposed; the baseline inventory is observational and was collected on 2026-09-06.
+Current status: the platform architecture is deployed on `delta2`; the baseline
+inventory remains observational evidence captured on 2026-09-06 and is
+superseded by the reconciliation ledger when values differ.
 
 ## Reading order
 

@@ -1,6 +1,6 @@
 # SeedForth Platform
 
-This directory is the future home of the unified SeedForth platform source.
+This directory is the unified SeedForth platform source.
 
 ```text
 platform/
@@ -12,7 +12,10 @@ platform/
 └── integration-tests/    cross-component verification
 ```
 
-The platform repository is the existing `kagrawal29/seedforth` repository. Product source remains in its own repositories and is referenced through `registry/repositories.json`.
+The platform repository is the existing `kagraw29/seedforth` repository. Its
+tested runtime release is pinned independently from GitHub `main` until a new
+release passes the deployment gates. Product source remains in its own
+repositories and is referenced through `registry/repositories.json`.
 
 The initial Mycelium import is documented in [mycelium/MIGRATION.md](mycelium/MIGRATION.md). It is now the reviewed production platform source; its deployed release and remaining source-checkout drift are tracked in [the reconciliation ledger](../architecture/repository-reconciliation-2026-09-06.md).
 
