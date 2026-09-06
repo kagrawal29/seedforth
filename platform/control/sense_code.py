@@ -124,6 +124,17 @@ def isolated_probe(scope, path):
     return data
 
 
+def check_probe_identity(account):
+    if os.getuid() == 0 or os.getuid() != pwd.getpwnam(account).pw_uid or os.getgroups():
+        raise ValueError('probe_identity_denied')
+    # Parent needs identity-switch capabilities; no such capability may survive
+    # the drop into the untrusted project filesystem reader.
+    capabilities = {line.split(':', 1)[0]: line.split(':', 1)[1].strip()
+                    for line in Path('/proc/self/status').read_text().splitlines() if line.startswith('Cap')}
+    if any(int(capabilities.get(key, '1'), 16) != 0 for key in ('CapEff', 'CapAmb')):
+        raise ValueError('privileged_probe_denied')
+
+
 def collect(graph, adapter_revision):
     sources = graph.query("MATCH (s:SourceStream {adapter:'local-git-file-hash-v1',enabled:true}) "
                           "RETURN s.node_id AS id,s.scope_id AS scope,s.path AS path")
@@ -156,9 +167,10 @@ if __name__ == '__main__':
     if len(sys.argv) == 4 and sys.argv[1] == '--probe':
         scope, path = sys.argv[2:]
         account, repo, paths = BINDINGS[scope]
-        if os.getuid() == 0 or os.getuid() != pwd.getpwnam(account).pw_uid or path not in paths:
+        if path not in paths:
             raise SystemExit('probe_identity_or_path_denied')
         try:
+            check_probe_identity(account)
             print(json.dumps(probe(repo, path)))
         except (OSError, ValueError, subprocess.SubprocessError):
             raise SystemExit('probe_collection_failed') from None

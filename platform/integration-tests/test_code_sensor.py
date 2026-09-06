@@ -91,6 +91,21 @@ def test_probe_drops_identity_environment_and_descriptors(monkeypatch):
     assert sense_code.isolated_probe('cajon-sensei', 'app/index.html')['revision'] == 'a'*40
 
 
+def test_project_probe_refuses_retained_capabilities(monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(sense_code.pwd, 'getpwnam', lambda _: SimpleNamespace(pw_uid=1234))
+    monkeypatch.setattr(os, 'getuid', lambda: 1234)
+    monkeypatch.setattr(os, 'getgroups', lambda: [])
+    monkeypatch.setattr(Path, 'read_text', lambda _: 'CapEff:\t0000000000000080\nCapAmb:\t0000000000000000\n')
+    with pytest.raises(ValueError, match='privileged_probe_denied'):
+        sense_code.check_probe_identity('fixture')
+    monkeypatch.setattr(Path, 'read_text', lambda _: 'CapEff:\t0000000000000000\nCapAmb:\t0000000000000000\n')
+    sense_code.check_probe_identity('fixture')
+    monkeypatch.setattr(os, 'getgroups', lambda: [1234])
+    with pytest.raises(ValueError, match='probe_identity_denied'):
+        sense_code.check_probe_identity('fixture')
+
+
 def test_graph_reducer_order_replay_freshness_and_scope():
     url = os.environ.get('CONTROL_TEST_URL')
     if not url:

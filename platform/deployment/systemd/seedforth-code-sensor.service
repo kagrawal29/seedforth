@@ -21,6 +21,7 @@ RestrictAddressFamilies=AF_UNIX AF_INET
 IPAddressDeny=any
 IPAddressAllow=localhost
 CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_READ_SEARCH
+AmbientCapabilities=CAP_SETUID CAP_SETGID
 MemoryMax=192M
 TasksMax=32
 TimeoutStartSec=90
