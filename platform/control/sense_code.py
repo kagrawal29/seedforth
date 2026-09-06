@@ -45,7 +45,10 @@ def working_hash(repo, path):
     fd = os.open('/', os.O_RDONLY | os.O_DIRECTORY)
     try:
         for part in parts[1:-1]:
-            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            try:
+                next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            except FileNotFoundError:
+                return None
             os.close(fd)
             fd = next_fd
         try:

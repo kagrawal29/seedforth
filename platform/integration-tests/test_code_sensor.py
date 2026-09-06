@@ -54,6 +54,12 @@ def test_probe_rejects_directory_symlink_and_traversal(repo):
         sense_code.probe(str(repo), '../secret')
 
 
+def test_missing_parent_is_absent_not_collection_failure(repo):
+    result = sense_code.probe(str(repo), 'app/missing/route.ts')
+    assert result['committed_hash'] is None and result['working_hash'] is None
+    assert len(result['revision']) == 40
+
+
 def test_collector_preserves_failure_and_rejects_unapproved_binding(monkeypatch):
     def failed(*args):
         raise subprocess.TimeoutExpired('probe', 22)
