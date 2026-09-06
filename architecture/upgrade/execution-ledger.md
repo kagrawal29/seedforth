@@ -395,3 +395,52 @@ actions disabled until their authority and postconditions are implemented.
 - This establishes a real bounded code-fix loop. It does not establish generalized
   model planning, continuous useful autonomy, other product outcomes, secure public
   MCP, full human UX, Graphify, safe portfolio archival or unattended soak success.
+
+## Selected source-file sensing deployed
+
+- Control component 5bda38cd2a95693e84ac22a1f9a70af875a803e6 is live as of
+  2026-09-06T16:38:58Z. Main Delta remains 1770e7c; worker remains 3d8feef.
+  Immutable-release suite passed 107 tests in 14.60s, including the real isolated
+  Docker executor and graph reducers. JUnit SHA-256
+  eaf32534a6ff780f6ee013ce6e841b240de0b07d53c73404897b7490fa5020e0
+  is admitted as a ReleaseQualification linked to W21; no product progress credit.
+- New graph-authored record-code-observation reducer and three registered streams
+  retain event time, ingestion time, exact committed/working hashes, repository and
+  adapter revisions, coverage and latest successful evidence. Late events, duplicate
+  IDs, conflicts, revocation, stale/degraded reads and absent paths are tested.
+- Sensor parent retains graph credentials, while file/Git probes run as project
+  users without inherited environment, extra groups or descriptors. Probes refuse
+  symlinks, unsupported files, oversized content and unstable reads. Effective and
+  ambient capabilities are checked to be zero in the child. No source contents or
+  environment values are stored in observations. This does not fence legacy writers.
+- Initial service deployment reported collection_failed (no invented fresh state).
+  Hardened transient-service diagnosis established that the parent lacked effective
+  CAP_SETUID. Explicit ambient identity-switch capabilities fixed the parent; child
+  privilege checks and an actual hardened service probe passed. Failed observations
+  remain in history; successful observations now supersede them in the projection.
+- Actual gateway readback confirms Cajon app/index.html is diverged_from_commit:
+  HEAD 2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and applied file hash
+  dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  Flowing server HEAD is 54ced2fe429b90576d59f005e9d6ebf9d8d69a6a; both
+  app/api/order/route.ts and app/api/verify/route.ts are missing there, although
+  present in the previously inspected local source. Public Vercel state is not
+  established by these server-file observations; no hosting failure is inferred.
+- Timer runs every five minutes; freshness limit is fifteen minutes. Only these
+  selected paths are covered, not full repository cleanliness or public hosting.
+  Automatic repair, source incidents/escalation, retention policy and Graphify
+  extraction remain incomplete. No portfolio or work permission changes occur.
+- Updated board explicitly displays code drift, freshness and partial coverage.
+  Playwright CLI 0.1.19 passed both synthetic-response regression (including mobile,
+  escaping and race/denial cases) and real HTTP/Cypher disposable-graph journey with
+  graph-reduced drift displayed. One early navigation failed because the fixture
+  gateway was not ready; after readiness the full journey passed. No production
+  credentials entered browser CLI traces. Test browser, gateway and tunnel stopped.
+- Migration applied twice to restored production data; all 47 projects and scope
+  holds preserved. Restored container stopped again, volume retained. Production
+  checks confirm all 47 projects, all holds, completed Cajon work and existing
+  Delta/control/broker/runtime-sensor services are intact.
+- Continue the complete upgrade: reconcile source/hosting provenance, inventory and
+  fence legacy writers/schedulers, close source failures through scoped incidents,
+  qualify Graphify, deliver scoped remote MCP and the richer human experience,
+  then broader bounded useful work, safe archival and unattended recovery tests.
+  Do not keep expanding metadata-only fixtures as a substitute for these outcomes.
