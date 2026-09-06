@@ -106,7 +106,7 @@ class ProjectInfo:
             ttyd_port=d.get("ttyd_port", 0),
             project_type=d.get("project_type", "standard"),
             unipile_account_id=d.get("unipile_account_id", ""),
-            runtime=d.get("runtime", "claude"),
+            runtime=d.get("runtime", "opencode"),
             serve_port=d.get("serve_port", 0),
             web_port=d.get("web_port", 0),
             supervisor_program=d.get("supervisor_program", ""),
