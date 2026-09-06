@@ -32,7 +32,7 @@ def clean_remote(value: str) -> str:
     return re.sub(r"//[^/@]+@", "//", value)
 
 
-def inspect_repo(path_text: str) -> dict[str, object]:
+def inspect_repo(path_text: str, canonical_branch: str | None = None) -> dict[str, object]:
     path = ROOT / path_text
     result: dict[str, object] = {"path": path_text, "exists": path.exists()}
     if not path.exists():
@@ -53,6 +53,19 @@ def inspect_repo(path_text: str) -> dict[str, object]:
             result[key] = clean_remote(output) if code == 0 else None
         else:
             result[key] = output if code == 0 else None
+    if canonical_branch:
+        code, output = run(
+            ["git", "ls-remote", "origin", f"refs/heads/{canonical_branch}"],
+            cwd=path,
+        )
+        if code == 0 and output:
+            result["github_sha"] = output.split()[0]
+            result["github_branch"] = canonical_branch
+            result["local_matches_github"] = result.get("sha") == result["github_sha"]
+        else:
+            result["github_sha"] = None
+            result["github_branch"] = canonical_branch
+            result["local_matches_github"] = None
     return result
 
 
@@ -134,7 +147,7 @@ def main() -> int:
                    if live.get("status") == "active"
                    and entry.get("role") == "platform"
                    else {}),
-                "local": inspect_repo(entry["local_path"]),
+                "local": inspect_repo(entry["local_path"], entry.get("canonical_branch")),
             }
             for entry in repos
         ],
