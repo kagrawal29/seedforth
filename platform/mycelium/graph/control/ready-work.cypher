@@ -5,6 +5,7 @@ MATCH (s:ControlScope {node_id:scope,work_enabled:true})
 MATCH (w:WorkItem {node_id:$id,scope_id:scope})
 SET w._lock=coalesce(w._lock,0)+1
 WITH w WHERE w.state_version=$version AND w.status='proposed' AND w.hold=false
+AND NOT EXISTS { MATCH (w)-[:DEPENDS_ON]->(d) WHERE coalesce(d.status,'unknown')<>'done' OR coalesce(d.hold,false)=true }
 SET w.status='ready',w.state_version=w.state_version+1,w.updated_at=datetime()
 CREATE (t:StateTransition {node_id:$event_id,scope_id:$scope,actor:$actor,from_state:'proposed',to_state:'ready',created_at:datetime()})
 CREATE (t)-[:CHANGED]->(w)

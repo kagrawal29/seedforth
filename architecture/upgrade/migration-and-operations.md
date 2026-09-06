@@ -1,12 +1,12 @@
 # Upgrade delivery backlog, migration, and operations
 
-Status: proposed. No implementation, archival, deployment, or live test authorized.
+Status: active delivery plan under delegated implementation/deployment authority.
+See execution-ledger.md for tested and deployed scope; unimplemented contracts remain targets.
 Parent: [program phases](../seedforth-upgrade-plan.md).
 
 ## Delivery work packages
 
-Each package becomes reviewed graph WorkItems after the design gate; these rows
-are authored planning specifications now. Component owners are responsibilities,
+Each package becomes governed graph WorkItems. Component owners are responsibilities,
 not assignments to already authorized autonomous agents.
 
 | ID / phase | Package and owner | Dependencies | Exit evidence |
@@ -98,7 +98,7 @@ and external alert delivery. Use bounded logs and redact secrets before persiste
 - Inspect current backups, restoration, platform deployment and network exposure.
 - Identify any external customer obligations or services behind archive candidates.
 
-These are targeted baseline tasks with deliverables, not permission to run repairs.
+These are targeted baseline tasks with deliverables, performed alongside implementation.
 Unknowns do not prevent review of the proposed architecture, but gate affected
 implementation and live promotion.
 

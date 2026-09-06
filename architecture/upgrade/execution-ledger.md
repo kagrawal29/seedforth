@@ -7,6 +7,9 @@ specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
 Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
+Separate control component: 9c209df30f690a2ef774014f1384d8e868474ddb,
+deployed via /opt/seedforth/control-current. Active end-to-end goal registered
+at the owner's explicit request. No token budget was requested.
 
 ## Progress
 
@@ -50,10 +53,23 @@ Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
 - Sensing/gateway/runner suite: 32 passed in the disposable graph. Updated schema,
   sources, and owner bootstrap grants applied twice to the restored snapshot;
   source hash edc37dbc8d3ed87d7de4c814a71fb98f08d7d591d79f85b61aa1a1bcf622b54f.
-  Restore container stopped again. Separate hardened loopback services prepared;
-  source polling is not autonomous project execution.
+  Restore container stopped again. Separate hardened loopback services deployed
+  and verified. Both pilots report fresh process observations, unauthorized scope
+  returns 403, the board serves HTTP 200 with CSP, and port 8787 binds only loopback.
+  Automatic second sensor cadence succeeded. Source polling is not useful project
+  execution. Bootstrap access expires seven days after provisioning and is not OAuth.
 - Full runtime cutover, public remote interface, and autonomy trials remain
   incomplete. Do not describe this ledger as completion of the upgrade.
+- Goal tracking is now active at the owner's request. The authored graph backlog
+  contains W00–W21 with phase milestones, goal links, dependencies, and acceptance.
+  Plan admission leaves all packages proposed until qualifying execution/review.
+- Pending release adds legacy-work triage, evidence inspection, platform scope,
+  and real JUnit qualification admission. 35 tests pass on the disposable graph.
+  The old Graphify experiment remains unrecovered: a different desktop graphify-out
+  was inspected by counts only (107/116 through 418/667), not the audit's 973/1980
+  code slice. No legacy Maverick graph or CLI was used. Original historical
+  handoff docs contain plaintext credentials: keep them out of release material
+  and include dependent-service rotation/redaction in security remediation.
 
 ## Execution rules
 

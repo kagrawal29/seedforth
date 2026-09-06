@@ -1,6 +1,7 @@
 # SeedForth upgrade review package
 
-Status: proposed design, 2026-09-06. Prepared for review, not deployed.
+Status: design adopted for implementation under the owner's delegated authority,
+2026-09-06. Deployment and qualification status live in [execution ledger](execution-ledger.md).
 
 ## Review objective
 
@@ -46,15 +47,18 @@ before affected migration batches, without pretending all runtime paths are know
 | D14 | Archival is staged after inventory and history mapping | Preserve retained services and obligations |
 | D15 | Release blocking tests include authority, replay, and combined failures | Passing node-presence checks cannot qualify autonomy |
 
-These are recommendations, not recorded human approvals. No financial limits,
-external communication authority, or production deployment permission is inferred.
+These architectural defaults are adopted under delegated upgrade authority.
+Implementation and deployment are authorized; passing tests and observed runtime
+results, not this decision table, establish whether a feature is delivered.
+Business actions still need bounded recorded mandates, not invented unlimited budgets.
 
-## Decisions genuinely needed from humans
+## Delegated decisions and business context
 
 Business goal targets and budgets; who belongs to each project and may approve
 actions; retained services for archived projects; notification recipients; preferred
 remote clients. Proposals and fixtures can be prepared independently. These choices
-gate actual grants and deployment, not completion of the architecture review.
+inform bounded grants. The owner has delegated upgrade decisions; missing business
+context is recorded explicitly and does not require routine approval pauses.
 
 ## Definition of prepared
 

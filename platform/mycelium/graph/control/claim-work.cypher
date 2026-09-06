@@ -6,6 +6,7 @@ MATCH (principal)-[:REPRESENTS]->(agent:SubAgent)
 MATCH (w:WorkItem {node_id:$id,scope_id:scope})
 SET w._lock=coalesce(w._lock,0)+1
 WITH w,agent WHERE w.status='ready' AND w.hold=false AND w.state_version=$version
+AND NOT EXISTS { MATCH (w)-[:DEPENDS_ON]->(d) WHERE coalesce(d.status,'unknown')<>'done' OR coalesce(d.hold,false)=true }
 SET w.status='in_progress',w.state_version=w.state_version+1,w.updated_at=datetime(),
 w.fence=coalesce(w.fence,0)+1,w.lease_until=datetime()+duration({seconds:90})
 CREATE (e:ExecutionSession {node_id:$attempt,scope_id:$scope,project:$scope,actor:$actor,

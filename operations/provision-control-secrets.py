@@ -26,7 +26,7 @@ def provision():
     values={
         'control-neo4j.json':json.dumps(dict(endpoint='http://127.0.0.1:7474',user='neo4j',password=password)),
         'control-access.json':json.dumps([dict(principal='principal-seedforth-owner',
-            scopes=['flowing-indian','cajon-sensei'],sha256=hashlib.sha256(token.encode()).hexdigest(),
+            scopes=['flowing-indian','cajon-sensei','seedforth-platform'],sha256=hashlib.sha256(token.encode()).hexdigest(),
             expires_at=(datetime.now(timezone.utc)+timedelta(days=7)).isoformat())]),
         'control-owner-bootstrap-token':token,
     }

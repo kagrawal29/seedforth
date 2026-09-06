@@ -8,14 +8,14 @@
 <section id="login" class="panel"><h1>Your work, with the evidence.</h1>
 <p>Connect to inspect project state and steer governed work. Access stays scoped to your identity.</p>
 <form id="connect"><label>Access credential<input id="token" type="password" autocomplete="off" required minlength="32"></label>
-<label>Project<select id="scope"><option value="flowing-indian">Flowing Indian</option><option value="cajon-sensei">Cajon Sensei</option></select></label>
+<label>Project<select id="scope"><option value="flowing-indian">Flowing Indian</option><option value="cajon-sensei">Cajon Sensei</option><option value="seedforth-platform">SeedForth Platform</option></select></label>
 <button>Connect</button></form><p class="muted">The credential stays in this tab's memory. It is never saved in browser storage.</p></section>
 <section id="workspace" hidden>
 <div class="heading"><div><p class="eyebrow">PROJECT CONTROL</p><h1 id="project-name"></h1></div><div><button id="refresh">Refresh</button><button id="disconnect" class="secondary">Disconnect</button></div></div>
 <p id="freshness" class="muted"></p><div id="authority" class="panel"></div>
 <section aria-labelledby="attention-title"><h2 id="attention-title">Needs attention</h2><div id="attention" class="panel"></div></section>
 <section aria-labelledby="board-title"><h2 id="board-title">Work</h2><p class="muted">Only governed work appears here. An empty board does not mean legacy work or problems are absent.</p><div id="board" class="board"></div></section>
-<section id="inspector" class="panel" hidden aria-labelledby="inspect-title"><h2 id="inspect-title"></h2><p id="criteria"></p><p id="verification"></p><div id="actions"></div><h3>State history</h3><ol id="timeline"></ol></section>
+<section id="inspector" class="panel" hidden aria-labelledby="inspect-title"><h2 id="inspect-title"></h2><p id="criteria"></p><p id="verification"></p><div id="actions"></div><h3>Evidence</h3><ul id="evidence"></ul><h3>State history</h3><ol id="timeline"></ol></section>
 </section><p id="error" role="alert"></p>
 </main><footer>Mycelium is the record. Process activity is not proof of progress.</footer>
 </body></html>

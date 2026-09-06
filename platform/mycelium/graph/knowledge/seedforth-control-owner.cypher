@@ -3,7 +3,7 @@
 MERGE (p:Principal {node_id:'principal-seedforth-owner'})
 ON CREATE SET p.enabled=true,p.kind='human',p.identity_binding='owner-admin-bootstrap',p.created_at=datetime()
 WITH p
-UNWIND ['flowing-indian','cajon-sensei'] AS scope
+UNWIND ['flowing-indian','cajon-sensei','seedforth-platform'] AS scope
 MATCH (:ControlScope {node_id:scope})
 MERGE (g:Grant {node_id:'grant-control-owner-'+scope})
 ON CREATE SET g.scope=scope,g.revoked=false,g.created_at=datetime(),

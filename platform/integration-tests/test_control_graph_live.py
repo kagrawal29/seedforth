@@ -164,6 +164,9 @@ def test_success_requires_independent_verification_and_review(graph, case):
     assert graph.operation('review-work',case['actor'],case['scope'],**params)[0]['status'] == 'done'
     assert graph.operation('review-work',case['actor'],case['scope'],**params) == []
     assert graph.query("MATCH (p:ProgressEvent {scope_id:$scope}) RETURN count(p) AS n",case)[0]['n'] == 1
+    evidence=graph.operation('read-evidence',case['actor'],case['scope'],id=case['id'])
+    assert evidence[0]['id']==receipt and evidence[0]['kind']=='execution_receipt'
+    assert graph.operation('read-evidence',case['actor'],'another-scope',id=case['id'])==[]
 
 
 def test_reject_without_passing_test_does_not_award_progress(graph, case):
@@ -228,3 +231,35 @@ def test_runtime_observations_replay_late_failure_and_staleness(graph, case):
     graph.query("MATCH (s:SourceStream {node_id:$source}) SET s.last_success_at=datetime()-duration('PT4M')",params)
     row=graph.operation('read-sources',case['actor'],case['scope'])[0]
     assert row['evidence_status']=='stale' and row['process_status']=='unknown'
+
+
+def test_dependency_is_checked_at_schedule_and_claim(graph, case):
+    create(graph,case)
+    graph.query("MATCH (w:WorkItem {node_id:$id}) CREATE (w)-[:DEPENDS_ON]->(:WorkItem {node_id:$id+'-dependency',scope_id:$scope,status:'proposed'})",case)
+    assert graph.operation('ready-work',case['actor'],case['scope'],id=case['id'],version=0,event_id=uuid4().hex)==[]
+    graph.query("MATCH (d:WorkItem {node_id:$id+'-dependency'}) SET d.status='done'",case)
+    assert graph.operation('ready-work',case['actor'],case['scope'],id=case['id'],version=0,event_id=uuid4().hex)
+    graph.query("MATCH (d:WorkItem {node_id:$id+'-dependency'}) SET d.status='blocked'",case)
+    assert claim(graph,case)==[]
+
+
+def test_legacy_done_is_not_governed_verified_work(graph, case):
+    graph.query("CREATE (:WorkItem {node_id:$id+'-legacy',project:$scope,status:'done',title:'Historical output'})",case)
+    row=graph.operation('read-legacy-work',case['actor'],case['scope'])[0]
+    assert row['legacy_status']=='done' and row['status']=='legacy_needs_triage'
+    assert graph.operation('read-work',case['actor'],case['scope'])==[]
+    assert graph.operation('read-legacy-work',case['actor'],'another-scope')==[]
+    graph.query("CREATE (:Project {node_id:$scope+'-ambiguous',name:$scope})",case)
+    assert graph.operation('read-legacy-work',case['actor'],case['scope'])==[]
+
+
+def test_full_migration_and_upgrade_plan_are_idempotent(graph):
+    from control.migrate import migrate
+    for node_id,name in [('proj-mycelium','mycelium'),('project-cajon-sensei','cajon-sensei'),('project-flowing-indian','flowing-indian')]:
+        graph.query("MERGE (p:Project {node_id:$id}) SET p.name=$name",{'id':node_id,'name':name})
+    first=migrate(graph,'fixture-release')
+    second=migrate(graph,'fixture-release')
+    assert first==second
+    assert graph.query("MATCH (w:WorkItem {scope_id:'seedforth-platform'}) RETURN count(w) AS n")[0]['n']==22
+    assert graph.query("MATCH (:ControlScope {node_id:'seedforth-platform'})-[:MAPS_PROJECT]->(p:Project) RETURN p.node_id AS id")==[{'id':'proj-mycelium'}]
+    assert graph.query("MATCH (w:WorkItem {scope_id:'seedforth-platform'}) WHERE w.status<>'proposed' RETURN count(w) AS n")[0]['n']==0

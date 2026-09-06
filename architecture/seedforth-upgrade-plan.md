@@ -1,10 +1,10 @@
 # SeedForth operating system upgrade: integrated specification and phased plan
 
-Status: proposed v0.3, 2026-09-06. Planning and read-only investigation only.
+Status: adopted v0.3, 2026-09-06. Autonomous implementation and deployment authorized.
 This is the consolidated upgrade program derived from the full design discussion.
 It specifies the work to design, verify, migrate, and deliver the system. Open
-decisions and unverified runtime claims are explicit; implementation is not approved
-by the existence of this document.
+decisions and unverified runtime claims are explicit. Actual completion is tracked
+in architecture/upgrade/execution-ledger.md, not inferred from this specification.
 
 The [complete review package](upgrade/README.md) now contains supporting proposed
 contracts, wireframes, delivery packages, and specific decisions D01–D15. These

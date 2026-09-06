@@ -24,7 +24,8 @@ function fail(error) {
 }
 async function refresh() {
   try {
-    const [project, work, sources] = await Promise.all([operation('read-scope'),operation('read-work'),operation('read-sources')]);
+    const [project, work, sources, legacy] = await Promise.all([operation('read-scope'),operation('read-work'),operation('read-sources'),operation('read-legacy-work')]);
+    work.data.push(...legacy.data);
     if (project.data.length !== 1) throw new Error('Project identity unavailable or ambiguous');
     online = true; $('error').textContent = ''; $('connection').textContent = 'Connected';
     $('login').hidden = true; $('workspace').hidden = false;
@@ -33,7 +34,7 @@ async function refresh() {
     $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · ${sourceSummary}`;
     const p = project.data[0];
     $('authority').textContent = `Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`;
-    const attention = work.data.filter(w => w.hold || ['blocked','review'].includes(w.status));
+    const attention = work.data.filter(w => w.legacy || w.hold || ['blocked','review'].includes(w.status));
     $('attention').textContent = attention.length ? `${attention.length} items need inspection: ${attention.map(w => w.title).join(', ')}` : 'No attention items in the governed work projection. Legacy incidents are not yet included.';
     $('board').replaceChildren();
     for (const [label, states] of [['Backlog',['proposed']],['Ready',['ready']],['Working',['in_progress']],['Review',['review']],['Done',['done']]]) {
@@ -62,9 +63,9 @@ function card(work) {
 async function inspect(work) {
   selected=work; $('inspector').hidden=false; $('inspect-title').textContent=work.title;
   $('criteria').textContent=`Acceptance: ${work.acceptance || 'Not recorded'}`;
-  $('verification').textContent=`${work.status} · version ${work.version} · ${work.verification_status || 'unverified'}`;
+    $('verification').textContent=work.legacy ? `Legacy status: ${work.legacy_status} · not independently verified` : `${work.status} · version ${work.version} · ${work.verification_status || 'unverified'}`;
   $('actions').replaceChildren();
-  if (online) {
+  if (online && !work.legacy) {
     const hold=text('button',work.hold?'Release hold':'Hold work');
     hold.addEventListener('click',async()=>{
       hold.disabled=true;
@@ -73,7 +74,11 @@ async function inspect(work) {
     });
     $('actions').append(hold,text('p','A hold blocks new governed actions; it does not assert that a legacy process has stopped.','muted'));
   }
-  const events=await operation('read-timeline',{id:work.id});
+  const events=work.legacy ? {data:[]} : await operation('read-timeline',{id:work.id});
+  const evidence=work.legacy ? {data:[]} : await operation('read-evidence',{id:work.id});
+  $('evidence').replaceChildren();
+  for (const item of evidence.data) $('evidence').append(text('li',`${item.kind}: ${item.status}${item.tests_passed ? ` · ${item.tests_passed} tests` : ''} · ${item.recorded_at} · ${item.revision || item.artifact_hash || item.id}`));
+  if (!evidence.data.length) $('evidence').append(text('li','No qualifying evidence linked to this work.'));
   $('timeline').replaceChildren();
   for (const event of events.data.filter(e=>e.id)) $('timeline').append(text('li',`${event.created_at}: ${event.from_state} → ${event.to_state} · ${event.actor}`));
   if (!$('timeline').children.length) $('timeline').append(text('li','No recorded state transitions.'));
@@ -82,7 +87,7 @@ function disconnect() {
   generation++;
   credential='';scope='';selected=null;online=false;
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
-  $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();
+  $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();$('evidence').replaceChildren();
   for (const id of ['project-name','freshness','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
   $('inspector').hidden=true;
   $('connection').textContent='Disconnected';

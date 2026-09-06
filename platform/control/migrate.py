@@ -9,15 +9,15 @@ from control.graph import Graph, GraphError, operation_sources
 ROOT = Path(__file__).resolve().parents[1] / 'mycelium/graph/knowledge'
 SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cypher',
            'seedforth-upgrade-pilot-scopes.cypher','seedforth-pilot-runtime-sources.cypher',
-           'seedforth-control-owner.cypher']
+           'seedforth-upgrade-work-plan.cypher','seedforth-control-owner.cypher']
 
 
 def migrate(graph, revision):
     # Fail before touching schema if this is not the inspected product identity set.
     rows = graph.query("MATCH (p:Project) WHERE p.node_id IN $ids "
                        "RETURN p.node_id AS id,count(p) AS n ORDER BY id",
-                       {'ids':['project-cajon-sensei','project-flowing-indian']})
-    if rows != [{'id':'project-cajon-sensei','n':1},{'id':'project-flowing-indian','n':1}]:
+                       {'ids':['proj-mycelium','project-cajon-sensei','project-flowing-indian']})
+    if rows != [{'id':'proj-mycelium','n':1},{'id':'project-cajon-sensei','n':1},{'id':'project-flowing-indian','n':1}]:
         raise GraphError('pilot_identity_preflight_failed')
     digest = hashlib.sha256()
     for name in SOURCES:
