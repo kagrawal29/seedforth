@@ -15,6 +15,9 @@ superseded by the reconciliation ledger when values differ.
 
 ## Reading order
 
+Proposed next upgrade: [Integrated specification and phased plan](seedforth-upgrade-plan.md).
+This is planning-only and does not replace deployed contracts until reviewed and migrated.
+
 1. [system-overview.md](system-overview.md)
 2. [repository-topology.md](repository-topology.md)
 3. [runtime-topology.md](runtime-topology.md)
