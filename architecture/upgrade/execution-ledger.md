@@ -7,7 +7,7 @@ specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
 Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
-Separate control component: 9c209df30f690a2ef774014f1384d8e868474ddb,
+Separate control component: 6fe3ee4b65e855901d9d5011690a07241c7ed88b,
 deployed via /opt/seedforth/control-current. Active end-to-end goal registered
 at the owner's explicit request. No token budget was requested.
 
@@ -63,13 +63,33 @@ at the owner's explicit request. No token budget was requested.
 - Goal tracking is now active at the owner's request. The authored graph backlog
   contains W00–W21 with phase milestones, goal links, dependencies, and acceptance.
   Plan admission leaves all packages proposed until qualifying execution/review.
-- Pending release adds legacy-work triage, evidence inspection, platform scope,
-  and real JUnit qualification admission. 35 tests pass on the disposable graph.
+- Release 6fe3ee4 adds legacy-work triage, evidence inspection, platform scope,
+  and real JUnit qualification admission. 35 tests passed from the immutable
+  release on the disposable graph. Migration hash
+  006b3bdbedb5fa29aa5cdb2cb10c59924b8c1ceb1d3c901f4bb1650dbe352185
+  passed twice on the restored production graph, then was deployed live.
+  Gateway smoke checks verified 22 platform work packages, the actual 35-test
+  qualification, six unverified legacy Flowing Indian work items, and fresh sensing.
+  Owner bootstrap scope now includes the platform, without changing token/expiry.
+  Qualification artifact SHA256:
+  a764860a246716c3fa36eaef428eaad0f939bebd8a5d1b2432ee0ee079c5510d.
+  It is linked to W21 as release evidence, not credited as product progress.
   The old Graphify experiment remains unrecovered: a different desktop graphify-out
   was inspected by counts only (107/116 through 418/667), not the audit's 973/1980
   code slice. No legacy Maverick graph or CLI was used. Original historical
   handoff docs contain plaintext credentials: keep them out of release material
   and include dependent-service rotation/redaction in security remediation.
+
+## Immediate continuation
+
+Continue the active end-to-end goal, not another planning-only pass. Next priority:
+protected capability broker and useful governed executor (W12/W13), including
+isolated workers, budgets, durable invocation/outcome reconciliation, and strict
+promotion controls before replacing the unsafe legacy division path. Continue
+Graphify/source census and remote TLS/OAuth/MCP alongside that boundary. The
+loopback board is an early interface, not the complete UX or remote-access promise.
+No autonomous product outcome, archival, public MCP, scheduler retirement, or
+30-day soak has been demonstrated. Preserve this distinction in progress reports.
 
 ## Execution rules
 
