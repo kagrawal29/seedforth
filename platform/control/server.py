@@ -17,9 +17,13 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from control.graph import Graph, GraphError
+from control.conversations import identifiers
 
 WEB = Path(__file__).parent / 'web'
 FIELDS = {
+    'read-scoped-graph': {'cursor':str},
+    'send-conversation-message': {'conversation_key':str,'request_id':str,'text':str},
+    'read-conversation': {'conversation_key':str,'cursor':int},
     'read-scope': {}, 'read-work': {}, 'read-sources': {}, 'read-legacy-work': {}, 'read-timeline': {'id':str}, 'read-evidence': {'id':str},
     'create-work': {'id':str,'milestone':str,'title':str,'acceptance':str},
     'ready-work': {'id':str,'version':int},
@@ -62,6 +66,11 @@ class Boundary:
 
     def dispatch(self, header, body):
         actor,scopes=self.authenticate(header)
+        return self.dispatch_identity(actor,scopes,body)
+
+    def dispatch_identity(self,actor,scopes,body):
+        # Internal entrypoint for independently verified OAuth/resource identities.
+        # Never accept actor/scopes from an HTTP/MCP request body.
         if not isinstance(body,dict) or set(body)!={'operation','scope','params'}:
             raise RequestError(400,'invalid_envelope')
         name,scope,params=body['operation'],body['scope'],body['params']
@@ -85,6 +94,19 @@ class Boundary:
         if not permitted or not permitted[0]['permitted']:
             raise RequestError(403,'scope_denied')
         bound=dict(params)
+        if name in {'send-conversation-message','read-conversation'}:
+            try:
+                bound=identifiers(actor,scope,params['conversation_key'],params.get('request_id'))
+            except ValueError:
+                raise RequestError(400,'invalid_conversation_identity') from None
+            if name=='send-conversation-message':
+                bound['text']=params['text']
+                bound['request_hash']=hashlib.sha256(json.dumps(body,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+            else:
+                if params['cursor']<0:raise RequestError(400,'invalid_cursor')
+                bound['cursor']=params['cursor']
+        if name=='read-scoped-graph' and len(params['cursor'])>256:
+            raise RequestError(400,'invalid_cursor')
         if name=='create-work':
             bound['request_hash']=hashlib.sha256(json.dumps(body,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         if name in {'ready-work','hold-work','review-work'}:

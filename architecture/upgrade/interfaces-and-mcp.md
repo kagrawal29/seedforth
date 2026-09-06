@@ -88,3 +88,38 @@ Acceptance: same task read through board and MCP has consistent version/evidence
 project member cannot escalate through conversation; disconnected client does not
 lose accepted work; expired access cannot retrieve cached artifacts; stream loss
 and explicit task abort remain distinct.
+
+## Implemented boundary slice (2026-09-06)
+
+Official Python SDK 2.1.1 is pinned with a qualified dependency constraint set in
+platform/control. Streamable HTTP uses stateless transport sessions and durable
+graph conversations. Read_mycelium exposes a 30-node scoped metadata page and up
+to 20 authorized one-hop edges per node. It excludes unscoped legacy data,
+principals/grants, executable graph code and private conversations. Read_work uses
+the exact board projection. This is bounded exploration, not a complete graph UI
+or fully migrated legacy dataset.
+
+Send_to_delta binds conversation/request keys to authenticated originator and scope.
+The graph serializes admission, sequences messages, deduplicates exact retries and
+rejects changed intent under a reused request ID. Read_conversation returns only
+that originator's scoped stream with sequence-based reconnect. Intake reports
+queued/not_started and explicitly states that the governed Delta processor is not
+yet qualified. It creates no WorkItem, grant, spend, invocation or progress.
+
+The MCP adapter and board share Boundary.dispatch_identity after independent
+authentication. HTTP/MCP bodies cannot supply trusted actor/scopes. The included
+digest-file verifier binds issuer, resource, expiry and principal for private
+qualification/enrollment only. It is not an OAuth authorization server and must
+not be mistaken for the public remote access deliverable.
+
+Tests use the actual official SDK client over loopback TCP HTTP to a disposable
+graph: metadata challenge, resource/tool discovery, scoped read, origin rejection,
+durable reconnect, graph-grant revocation and credential removal. Separate graph
+tests cover concurrency, cross-person privacy, request collision and injected text
+that cannot grant authority. No real provider credentials enter these fixtures.
+
+Still required before public launch: an actual authorization server and trusted
+human login/consent UI, production TLS/hostname, client registration and PKCE,
+token refresh/revocation and narrowed consent scopes, rate/abuse limits, Delta
+processor with originator-bound broker authority, actual agent-client/mobile trials,
+legacy writer isolation and the broader UX/control requirements above.
