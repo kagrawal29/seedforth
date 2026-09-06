@@ -105,6 +105,19 @@ def seed_fleet():
             f'MERGE (p)-[:HAS_AGENT]->(sa)'
         )
 
+    # Tetrahedron is retained as historical reference and must never appear
+    # as an active SeedForth project during fleet reconciliation.
+    run_cypher(
+        'MATCH (p:Project {name:"tetrahedron"}) '
+        'SET p.status="reference-only", p.architecture_role="reference", '
+        'p.active=false, p.updated_at=datetime()'
+    )
+    run_cypher(
+        'MATCH (sa:SubAgent {name:"tetrahedron"}) '
+        'SET sa.status="reference-only", sa.architecture_role="reference", '
+        'sa.updated_at=datetime()'
+    )
+
     # Create a FleetSnapshot
     active_count = sum(1 for p in sup_status.values() if p == "RUNNING")
     run_cypher(

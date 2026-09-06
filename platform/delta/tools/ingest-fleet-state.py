@@ -109,15 +109,18 @@ for line in sup_lines:
         continue
     prog = line.split()[0]
     agent_name = prog.replace("proj-", "", 1)
+    agent_id = f"subagent-{agent_name}"
     if "RUNNING" in line:
         run_cypher(
-            f"MERGE (sa:SubAgent {{name:\"{agent_name}\"}}) "
-            f"SET sa.status = 'active', sa.updated_at = datetime(), sa.project = 'system'"
+            f"MERGE (sa:SubAgent {{node_id:\"{agent_id}\"}}) "
+            f"SET sa.name = \"{agent_name}\", sa.status = 'active', "
+            f"sa.updated_at = datetime(), sa.project = 'system'"
         )
     elif "STOPPED" in line or "EXITED" in line or "FATAL" in line:
         run_cypher(
-            f"MERGE (sa:SubAgent {{name:\"{agent_name}\"}}) "
-            f"SET sa.status = 'stopped', sa.updated_at = datetime(), sa.project = 'system'"
+            f"MERGE (sa:SubAgent {{node_id:\"{agent_id}\"}}) "
+            f"SET sa.name = \"{agent_name}\", sa.status = 'stopped', "
+            f"sa.updated_at = datetime(), sa.project = 'system'"
         )
 
 # Emit FleetEvent only when state changes
