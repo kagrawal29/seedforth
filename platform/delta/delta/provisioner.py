@@ -76,7 +76,7 @@ def _write_project_event(project_name: str, event_type: str):
         )
         subprocess.run(
             ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-             "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
+             "-u", "neo4j", "-p", os.environ.get("NEO4J_PASSWORD", ""),
              "--format", "plain", cypher],
             capture_output=True, text=True, timeout=10
         )
@@ -274,7 +274,7 @@ def _write_opencode_jsonc(info) -> None:
         import urllib.request
         import base64
         _auth = base64.b64encode(
-            f"neo4j:9aac5c811e6d4f4f64a00c65666f3528".encode()).decode()
+            f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()).decode()
         _body = json.dumps({"statements": [{"statement":
             "MERGE (sa:SubAgent {name:$nm}) SET sa.role=$role, sa.model=$model, "
             "sa.project='system', sa.updated_at=datetime()",
@@ -1078,7 +1078,7 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
     try:
         import urllib.request, base64, json as _json
         _auth = base64.b64encode(
-            f"neo4j:9aac5c811e6d4f4f64a00c65666f3528".encode()).decode()
+            f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()).decode()
         _body = _json.dumps({"statements": [{"statement":
             "MATCH (p:Project {node_id:$pid}) SET p.hibernated_at=datetime(), "
             "p.status='hibernated', p.updated_at=datetime()",

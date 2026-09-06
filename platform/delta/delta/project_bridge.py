@@ -5,6 +5,7 @@ Sole runtime after Phase 5 migration. No tmux/Claude Code paths remain.
 """
 
 import json
+import os
 import string
 import subprocess
 import threading
@@ -171,7 +172,9 @@ class ProjectBridge:
                                 "parameters": {"nid": node_id, "ag": self.name,
                                                "pr": self.name, "usr": user_name,
                                                "txt": safe_text}}]}).encode()
-                            auth = _b64.b64encode(b"neo4j:9aac5c811e6d4f4f64a00c65666f3528").decode()
+                            auth = _b64.b64encode(
+                                f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()
+                            ).decode()
                             req = _ur.Request(
                                 "http://127.0.0.1:7474/db/neo4j/tx/commit",
                                 data=body, headers={"Content-Type": "application/json",
@@ -580,7 +583,7 @@ class ProjectBridge:
             )
             subprocess.run(
                 ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-                 "-u", "neo4j", "-p", "9aac5c811e6d4f4f64a00c65666f3528",
+                 "-u", "neo4j", "-p", os.environ.get("NEO4J_PASSWORD", ""),
                  "--format", "plain", cypher],
                 capture_output=True, text=True, timeout=10
             )
