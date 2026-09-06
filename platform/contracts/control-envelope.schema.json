@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seedforth.local/contracts/control-envelope.v1.json",
+  "title": "SeedForth control envelope v1",
+  "type": "object",
+  "required": ["schema", "message_id", "kind", "project", "source", "occurred_at", "correlation_id", "payload"],
+  "properties": {
+    "schema": {"const": "seedforth.control.v1"},
+    "message_id": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["signal", "decision_request", "progress", "execution_result"]},
+    "project": {"type": "string", "minLength": 1},
+    "source": {"enum": ["delta", "mycelium", "agent", "provider"]},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "correlation_id": {"type": "string", "minLength": 1},
+    "payload": {"type": "object"}
+  },
+  "additionalProperties": false
+}
