@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "target_repository": "kagrawal29/seedforth",
+  "target_root": "platform",
+  "imports": [
+    {
+      "source": "tetrahedron/projects/mycelium",
+      "target": "platform/mycelium",
+      "github": "kagrawal29/mycelium",
+      "history": "preserve",
+      "working_tree": "snapshot-before-import",
+      "runtime": "neo4j-on-new-server"
+    },
+    {
+      "source": "delta",
+      "target": "platform/delta",
+      "github": "kagrawal29/delta",
+      "history": "preserve",
+      "working_tree": "snapshot-before-import",
+      "runtime": "delta-on-new-server"
+    }
+  ],
+  "reference_only": [
+    {
+      "source": "tetrahedron",
+      "github": "kagrawal29/tetrahedron",
+      "reason": "retired from active architecture; preserve for historical reference"
+    }
+  ],
+  "products_remain_independent": true
+}
