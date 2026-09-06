@@ -33,7 +33,7 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 
 | Path | Branch / SHA | Dirty | Policy |
 |---|---|---:|---|
-| `/opt/seedforth/current` | detached / `bed326a` | 0 | Active immutable platform release |
+| `/opt/seedforth/current` | detached / `3dff1e6` | 0 | Active immutable platform release |
 | `/opt/delta` | `main` / `53d4d96` | 10 | Disabled legacy rollback checkout; retain intact |
 | `/home/proj-flowing-indian/flowing-indian` | `main` / `54ced2f` | 9 | Active product runtime; capture before cleanup |
 | `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 435 | Active product runtime; behind automated remote; do not reset or pull blindly |
