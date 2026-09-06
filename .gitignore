@@ -66,8 +66,8 @@ seedforthing/
 platform/**/.memsearch/
 platform/**/.heartbeat.pid
 platform/**/.mycelium/
+platform/**/.mcp.json
 platform/**/team-credentials.env
-platform/mycelium/cmd/maverick/
 platform/mycelium/deploy/bolt-proxy/
 platform/mycelium/deploy/pulse/
 platform/mycelium/deploy/maverick-*
