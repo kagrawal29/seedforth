@@ -8,7 +8,7 @@ Re-run `python3 operations/reconcile.py --server root@185.192.96.100
 
 | Repository | Local checkout | GitHub default branch | Relationship |
 |---|---|---|---|
-| `kagraw29/seedforth` | `30c6a0d` | `30c6a0d` | local platform main matches GitHub main; live runtime is pinned to tested `bed326a` |
+| `kagraw29/seedforth` | `6bf7111` | `6bf7111` | local platform main matches GitHub main; live runtime is pinned to tested `3dff1e6` |
 | `kagrawal29/delta` | `53d4d96` | `53d4d96` | local main matches GitHub main; local runtime files are dirty |
 | `kagrawal29/mycelium` | `e43f15f` on `fix/scope-split-and-deploy-flow-policy` | `a928955` on main | local work is not the GitHub default branch and has 14 dirty files |
 | `kagrawal29/tetrahedron` | `262aa14` | `079ac5b` | retained as reference-only; local checkout is not synchronized |
