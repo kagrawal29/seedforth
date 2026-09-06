@@ -1,0 +1,21 @@
+[Unit]
+Description=SeedForth Mycelium heartbeat
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=delta
+Group=delta
+WorkingDirectory=/opt/seedforth/current/platform/mycelium
+EnvironmentFile=/opt/seedforth/shared/env/seedforth.env
+Environment=CADENCE_SECONDS=60
+Environment=NEO4J_CONTAINER=mycelium-neo4j
+ExecStart=/bin/bash /opt/seedforth/current/platform/mycelium/graph/runner/heartbeat-loop.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

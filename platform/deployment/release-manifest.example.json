@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "platform_commit": "",
+  "components": {
+    "mycelium": "",
+    "delta": ""
+  },
+  "graph": {
+    "endpoint": "bolt://185.192.96.100:7687",
+    "bootstrap_version": "",
+    "verified_at": ""
+  },
+  "server": {
+    "host": "185.192.96.100",
+    "release_path": "",
+    "previous_release": "",
+    "created_at": ""
+  },
+  "verification": {
+    "mycelium_go_tests": false,
+    "delta_focused_tests": false,
+    "graph_health": false,
+    "reconciliation": false
+  }
+}
