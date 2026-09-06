@@ -14,6 +14,8 @@ platform/
 
 The platform repository is the existing `kagrawal29/seedforth` repository. Product source remains in its own repositories and is referenced through `registry/repositories.json`.
 
+The initial Mycelium import is documented in [mycelium/MIGRATION.md](mycelium/MIGRATION.md). It is deliberately a migration snapshot, not yet a production deployment source.
+
 ## Migration rule
 
 The current `delta/` and `tetrahedron/projects/mycelium/` directories are source checkouts with independent Git histories. They must be imported into this directory only after:
