@@ -468,3 +468,30 @@ actions disabled until their authority and postconditions are implemented.
   loops and legacy credential distribution remain unfenced. Wildcard Neo4j/VNC/
   webhook listener bindings require exposure checks and hardening. This is concrete
   risk reduction, not complete writer isolation or useful autonomous readiness.
+
+## Internal graph/browser ingress guard deployed
+
+- External IPv4 probes confirmed public reachability of Neo4j 7474/7687 and
+  noVNC6083 before the change. All now explicitly refuse connections; SSH22 still
+  connects and SSH-tunneled Neo4j HTTP returns200. Local graph/port access, all47
+  projects, scope holds and existing service liveness are preserved.
+- Security component afcc87be9b899b66b874d6410899401aaa429dc1 is deployed via
+  security-current. Approved graph NetworkPolicy has a root-private offline kernel
+  projection. IPv4/IPv6 INPUT and DOCKER-USER rules target only eth0 and three ports.
+  Docker now requires the guard before startup. No Docker/service restart or shared
+  firewall flush occurred. Root-private before-rule snapshots are retained.
+- Immutable-release suite:116passed in18.65s, including real dual-stack namespace
+  forwarding/denial/private-access tests. Hardened isolated systemd test also passed.
+  JUnit8f85bd70062354fe9a7750eb944cd265da11211bfdd35ee7c36f1b09e85ec33f
+  admitted as ReleaseQualification informing W21. Reapplication leaves exactly8
+  guard rules across both families. Temporary namespaces/listeners cleaned up.
+- Detailed evidence, recovery cautions and SSH access: network-guard-20260906.md.
+  External IPv6 probe, full reboot/Docker restart/UFW reload drills and loopback
+  Docker port bindings remain open. This does not isolate legacy local writers.
+- Retained noVNC HTTP fails locally and through SSH; configured web root is absent.
+  Prior application working state was not established, and noVNC was not modified.
+  Do not confuse TCP/service liveness with a usable browser interface.
+- Continue toward scoped remote MCP and full human UX, while completing legacy
+  dispatch/credential migration, governed cadence replacement, Graphify, second
+  useful product pilot, archival and unattended qualification. The entire goal
+  remains incomplete; this security milestone is not a substitute for that scope.
