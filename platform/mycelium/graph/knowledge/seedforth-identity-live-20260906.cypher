@@ -13,14 +13,15 @@ o.coverage='One-time deployment and process recovery checks. Not off-host disast
 MERGE (o)-[:OBSERVES_POLICY]->(p)
 SET p.deployed_revision=o.source_revision,p.deployment_verified_at=o.observed_at
 WITH o
-MERGE (f:Finding {node_id:'finding-current-graph-credential-project-readable-20260906'})
+MERGE (f:Finding:Knowledge {node_id:'finding-current-graph-credential-project-readable-20260906'})
 ON CREATE SET f.scope_id='seedforth-platform',f.status='open',f.severity='critical',f.observed_at=o.observed_at,
 f.title='Current graph credential remains readable by active project agent Unix accounts',
+f.trust='delegated_operator_verified_live_checks',
 f.literal_file_count=12,f.read_checked_uids=[1003,1005],
 f.read_checked_path='/opt/delta/tools/neo4j_helper.py',f.credential_value_recorded=false,
 f.coverage='Exact current credential match in selected legacy tools and actual project-UID readability. Not a complete credential census.',
 f.required_action='Fence legacy model writers, migrate retained consumers and rotate credentials before public scoped launch.'
-MERGE (f)-[:GATES]->(o)
+MERGE (o)-[:IDENTIFIES]->(f)
 WITH o,f
 MATCH (w:WorkItem {node_id:'wi-upgrade-W15',scope_id:'seedforth-platform'})
 MERGE (o)-[:INFORMS]->(w)
