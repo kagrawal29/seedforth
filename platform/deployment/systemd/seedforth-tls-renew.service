@@ -6,7 +6,7 @@ After=network-online.target nginx.service
 [Service]
 Type=oneshot
 UMask=0077
-ExecStart=/opt/seedforth/shared/certbot-venv/bin/certbot renew --non-interactive --config-dir /opt/seedforth/shared/acme-production/config --work-dir /opt/seedforth/shared/acme-production/work --logs-dir /opt/seedforth/shared/acme-production/logs --webroot --webroot-path /var/lib/seedforth-acme --deploy-hook "/usr/sbin/nginx -t && /usr/bin/systemctl reload nginx.service"
+ExecStart=/opt/seedforth/shared/certbot-venv/bin/certbot renew --non-interactive --no-random-sleep-on-renew --config-dir /opt/seedforth/shared/acme-production/config --work-dir /opt/seedforth/shared/acme-production/work --logs-dir /opt/seedforth/shared/acme-production/logs --webroot --webroot-path /var/lib/seedforth-acme --deploy-hook "/usr/sbin/nginx -t && /usr/bin/systemctl reload nginx.service"
 TimeoutStartSec=300
 NoNewPrivileges=yes
 ProtectSystem=strict
