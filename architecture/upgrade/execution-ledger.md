@@ -537,3 +537,38 @@ actions disabled until their authority and postconditions are implemented.
   processor, then integrating the richer board/Charlie experience with useful
   autonomous work. Legacy credential/writer isolation, Graphify, Flowing pilot,
   portfolio archival, recovery and unattended qualification remain in the full goal.
+
+## Public TLS with closed application ingress
+
+- Public https://185.192.96.100 now has a trusted Let's Encrypt IP certificate.
+  Certificate expiry2026-09-13T08:21:27Z, SHA256
+  100602d53854e1c4687981e6136cec6e378b12b8d8d01b5cb8f504ae391717d5.
+  Application routes deliberately return503. HTTP serves only ACME challenges,
+  foreign Host headers return421, and internal graph/browser ports remain refused.
+  This is not a working public MCP or human control interface yet.
+- Isolated Certbot5.4 installation with exact dependency lock avoids the broken
+  system Certbot2.9/OpenSSL environment. Staging and production issuance passed.
+  Certificates/account keys remain root-private under shared/acme-* and are not
+  stored in the graph/repo. The existing system certbot.timer is unrelated and
+  cannot be relied on to renew this custom certificate directory.
+- Source release2fb1a5fc023a4edb4ca9aa0014ffd59259ac5843 supplies ingress and renewal
+  service. No Delta/control/worker/security component source pointer changed.
+  Nginx reloaded, not restarted. Only labeled443 firewall allowance added.
+  seedforth-tls-renew.timer enabled, checks every six hours with systemd jitter.
+- Qualification exposed and fixed two failures: Certbot's extra random sleep
+  could exceed the service timeout, and nginx validation needed narrowly writable
+  /run/nginx.pid. More importantly, Certbot returnedzero despite a failed deploy
+  hook. Validation and reload now use mandatory ExecStartPost steps so systemd
+  observes failure. First sleeping dry run was cancelled, second issued staging
+  successfully but failed its hook, third passed full sandboxed webroot issuance
+  and reload in11.085s. No production renewal has yet elapsed or been forced.
+- External read-only suite14passed in5.24s, JUnit SHA256
+  4cb15978c9143bbd63543e19cc703b5fd5ce100834a248fdae825054ff2444f1.
+  Playwright CLI Chromium verified TLS without ignoring certificate errors, the
+  closed response, no cookie and390px layout. Browser closed. This only tests
+  transport/closed ingress, not a completed application UX. Existing services
+  and sensor timers remain active. Reboot/publicIPv6/recurring expiry sensing are
+  not qualified. Public authenticated access still requires real OAuth and consent.
+- Next: build durable scoped identity/login/consent and real authorization-server
+  behavior, qualify all human paths with Playwright, then enable narrow ingress
+  routes. Continue the governed Delta processor and full remaining upgrade scope.
