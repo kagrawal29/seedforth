@@ -8,7 +8,7 @@ Re-run `python3 operations/reconcile.py --server root@185.192.96.100
 
 | Repository | Local checkout | GitHub default branch | Relationship |
 |---|---|---|---|
-| `kagraw29/seedforth` | `1addd37` | `1addd37` | local platform main matches GitHub main |
+| `kagraw29/seedforth` | `bed326a` | `bed326a` | local platform main matches GitHub main |
 | `kagrawal29/delta` | `53d4d96` | `53d4d96` | local main matches GitHub main; local runtime files are dirty |
 | `kagrawal29/mycelium` | `e43f15f` on `fix/scope-split-and-deploy-flow-policy` | `a928955` on main | local work is not the GitHub default branch and has 14 dirty files |
 | `kagrawal29/tetrahedron` | `262aa14` | `079ac5b` | retained as reference-only; local checkout is not synchronized |
@@ -25,7 +25,7 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - WAHA: running on localhost `:3000`
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
-- `/opt/seedforth/current` points to immutable release `1addd37`; the
+- `/opt/seedforth/current` points to immutable release `bed326a`; the
   consolidated Delta service is active and the legacy `/opt/delta` unit is
   disabled but retained for rollback
 - Linux/amd64 Mycelium CLI artifact is installed at
