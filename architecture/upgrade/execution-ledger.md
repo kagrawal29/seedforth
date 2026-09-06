@@ -444,3 +444,27 @@ actions disabled until their authority and postconditions are implemented.
   qualify Graphify, deliver scoped remote MCP and the richer human experience,
   then broader bounded useful work, safe archival and unattended recovery tests.
   Do not keep expanding metadata-only fixtures as a substitute for these outcomes.
+
+## Legacy scheduler census and exact fence
+
+- Live inspection found six root cron jobs, including a duplicate heartbeat and
+  the deep/long scripts explicitly forbidden by the platform legacy boundary.
+  `/opt/delta` is not the canonical release symlink. Long-cycle source retains
+  password command-line handling. All eight old opencode agents also have broad
+  provider credential keys in their environments; values were never printed.
+- Qualified release f81e8498dd1162917a9b086c1368b1ff359e9d6f: 111 tests passed
+  in 16.34s. Graph Decision authorizes four exact hashes; external I/O adapter
+  preserves the complete configuration, refuses changed state and comments only
+  duplicate root heartbeat plus ungoverned root dream/deep/long execution.
+- Applied and independently read back; graph observation verifies four fenced
+  LegacySchedule records. Root-private before/after backup retained. Both source
+  ingestion jobs, supported heartbeat, Delta, WhatsApp, control and broker remain.
+  No services, projects, users, scripts, logs or customer data were deleted.
+- Detailed evidence and backup hashes: writer-census-20260906.md. Release TestRun
+  qualification:f81e8498dd1162917a9b086c1368b1ff359e9d6f:f5de57f5df56cb22e939e15cd42c96d92684accca1552e9c7c8b9f7accdedd8e
+  informs W21. Runtime release pointers unchanged (control5bda38c, worker3d8feef,
+  main1770e7c); only the reviewed cron configuration and additive graph records changed.
+- Held cadences still require governed replacements. Application schedule/nudge
+  loops and legacy credential distribution remain unfenced. Wildcard Neo4j/VNC/
+  webhook listener bindings require exposure checks and hardening. This is concrete
+  risk reduction, not complete writer isolation or useful autonomous readiness.
