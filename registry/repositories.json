@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "workspace": "SeedForth",
+  "platform_target": "seedforth",
+  "repositories": [
+    {"name":"mycelium","role":"platform","local_path":"tetrahedron/projects/mycelium","github":"kagrawal29/mycelium","canonical_branch":"main","observed_server_path":null,"target_server_path":"/opt/seedforth/platform/mycelium","status":"consolidation-pending"},
+    {"name":"delta","role":"platform","local_path":"delta","github":"kagrawal29/delta","canonical_branch":"main","observed_server_path":"/opt/delta","target_server_path":"/opt/seedforth/platform/delta","status":"consolidation-pending"},
+    {"name":"flowing-indian","role":"product","local_path":"flowing-indian","github":"kartiksahu/flowing-indian-website","canonical_branch":"main","observed_server_path":"/home/proj-flowing-indian/flowing-indian","target_server_path":"/home/proj-flowing-indian/flowing-indian","status":"active"},
+    {"name":"seedforthing","role":"product","local_path":"seedforthing","github":"Seedforth/seedforthing","canonical_branch":"master","observed_server_path":"/home/proj-seedforthing/seedforthing","target_server_path":"/home/proj-seedforthing/seedforthing","status":"active"},
+    {"name":"solveOS","role":"product","local_path":"solveOS","github":"kagrawal29/solve-os","canonical_branch":"master","observed_server_path":null,"target_server_path":null,"status":"inactive"},
+    {"name":"ember","role":"product","local_path":"ember","github":"kagrawal29/ember","canonical_branch":"main","observed_server_path":null,"target_server_path":null,"status":"inactive"},
+    {"name":"audioworld","role":"product","local_path":"audioworld","github":"kagrawal29/audioworld","canonical_branch":"main","observed_server_path":null,"target_server_path":null,"status":"active"},
+    {"name":"website","role":"product","local_path":"website","github":"kagrawal29/seedforth-website","canonical_branch":"main","observed_server_path":null,"target_server_path":null,"status":"active"},
+    {"name":"tetrahedron","role":"reference","local_path":"tetrahedron","github":"kagrawal29/tetrahedron","canonical_branch":"main","observed_server_path":null,"target_server_path":null,"status":"reference-only"}
+  ],
+  "servers": [
+    {"name":"delta2","host":"185.192.96.100","role":"primary-runtime","platform_root_target":"/opt/seedforth","legacy_root":"/opt/delta"},
+    {"name":"delta-server","host":"143.110.226.214","role":"legacy-rollback","platform_root_target":null,"legacy_root":"/opt/delta"}
+  ]
+}
