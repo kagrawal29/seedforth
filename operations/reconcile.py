@@ -134,6 +134,10 @@ def main() -> int:
     if args.server:
         paths = [entry["observed_server_path"] for entry in repos
                  if entry.get("observed_server_path")]
+        # Legacy paths are observations too, but remain separate from the
+        # canonical release path so each is inspected as its own checkout.
+        paths.extend(entry["legacy_server_path"] for entry in repos
+                     if entry.get("legacy_server_path"))
         report["server"] = inspect_server(args.server, paths)
     if args.graph:
         report["graph"] = inspect_graph(args.graph)
