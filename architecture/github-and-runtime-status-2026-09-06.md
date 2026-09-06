@@ -31,6 +31,10 @@ an enabled protection policy for SeedForth or Delta at capture time.
   `ff350d9` release because existing services have not been switched
 - Linux/amd64 Mycelium CLI artifact staged under the release and reports
   version `a8adca5` from `/opt/seedforth/shared/bin/mycelium`
+- The new Mycelium heartbeat service has now passed a manual invocation and
+  its timer is enabled. The live graph atoms repaired during that validation
+  are convergence null-key handling, relationship-safe TTL deletion, and the
+  single-statement Charlie Focus atom.
 
 ## Live graph snapshot
 

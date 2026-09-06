@@ -11,7 +11,7 @@ versioned here.
 /opt/seedforth/
   current -> releases/<platform-sha>/
   releases/<platform-sha>/platform/{mycelium,delta}/
-  shared/env/                 # root-owned, mode 0600, not in Git
+  shared/env/                 # root-owned, mode 0640, group-readable by delta
   shared/backups/
 ```
 
@@ -64,5 +64,6 @@ MYCELIUM_PROD_USER
 MYCELIUM_PROD_PASSWORD
 ```
 
-Use a root-owned file or a secret manager. Do not put tokens in systemd unit
-files, Git remotes, release artifacts, or CLI binaries.
+Use a root-owned file readable only by the service account group (currently
+mode 0640, `root:delta`) or a secret manager. Do not put tokens in systemd
+unit files, Git remotes, release artifacts, or CLI binaries.
