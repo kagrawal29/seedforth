@@ -82,17 +82,21 @@ def bindings(path):
     return value['repositories']
 
 
-def main():
-    path = '/run/seedforth-worker/broker.sock'
-    state = Path(os.environ['STATE_DIRECTORY'])
-    graph = Graph()
-    repositories = bindings(os.environ['CONTROL_BROKER_BINDINGS'])
+def build_adapters(repositories, state):
+    state = Path(state)
     coverage = {scope: SOURCE_PATHS[scope] for scope in repositories}
-    adapters = {
+    return {
         'capability-git-inspection-v1': GitInspection(repositories, state/'artifacts'),
         'capability-code-snapshot-v1': CodeSnapshot(repositories, coverage, state/'artifacts'),
         'capability-code-proposal-v1': CodeProposal(repositories, coverage, state/'artifacts'),
     }
+
+
+def main():
+    path = '/run/seedforth-worker/broker.sock'
+    state = Path(os.environ['STATE_DIRECTORY'])
+    graph = Graph()
+    adapters = build_adapters(bindings(os.environ['CONTROL_BROKER_BINDINGS']), state)
     broker = RecoveringBroker(Broker(graph, 'principal-capability-broker',
         adapters, ReceiptJournal(state/'receipts')))
     listener = activated_listener(path)

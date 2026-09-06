@@ -5,8 +5,10 @@ After=seedforth-worker.socket docker.service
 
 [Service]
 Type=simple
-DynamicUser=yes
-WorkingDirectory=/opt/seedforth/control-current
+User=seedforth-broker
+Group=seedforth-broker
+SupplementaryGroups=seedforth-source-read
+WorkingDirectory=/opt/seedforth/worker-current
 StateDirectory=seedforth-worker
 StateDirectoryMode=0700
 LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
@@ -15,7 +17,7 @@ LoadCredential=bindings.json:/opt/seedforth/shared/env/worker-bindings.json
 Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=CONTROL_WORKER_CREDENTIALS=%d/workers.json
 Environment=CONTROL_BROKER_BINDINGS=%d/bindings.json
-Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+Environment=PYTHONPATH=/opt/seedforth/worker-current/platform
 ExecStart=/usr/bin/python3 -m control.worker_service
 Restart=on-failure
 RestartSec=5s

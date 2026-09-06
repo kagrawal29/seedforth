@@ -32,7 +32,7 @@ class GitInspection:
         if not re.fullmatch(r'[a-zA-Z0-9_-]{8,128}',invocation):
             raise ValueError('invalid_artifact_identity')
         repository=self.repositories[arguments['scope']]
-        command=['git','-c','core.hooksPath=/dev/null','-C',str(repository),'rev-parse','--verify']
+        command=['git','-c','core.hooksPath=/dev/null','-c','safe.directory='+str(repository),'-C',str(repository),'rev-parse','--verify']
         # No inherited provider credentials or executable Git config from HOME.
         env={'PATH':'/usr/bin:/bin','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':'/dev/null','GIT_TERMINAL_PROMPT':'0'}
         commit=subprocess.run(command+[arguments['revision']+'^{commit}'],env=env,check=True,
