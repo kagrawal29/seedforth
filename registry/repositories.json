@@ -4,7 +4,7 @@
   "platform_target": "seedforth",
   "live_deployment": {"server":"delta2","release":"1770e7c","delta_unit":"seedforth-delta.service","heartbeat_timer":"seedforth-mycelium-heartbeat.timer","legacy_delta_unit":"delta.service","status":"active"},
   "security_exceptions": [
-    {"repository":"Seedforth/seedforthing","path":"delta-config/.vercel-token-charlietheagent","server_mode":"600","tracked_in_current_branch":false,"tracked_in_history":true,"tracked_in_server_checkout":true,"provider_token_status":"valid_at_2026-09-06","secret_scanning":"disabled","state":"remediation-required","actions":["rotate provider token","scrub Git history","enable secret scanning","reconcile server checkout"]}
+    {"repository":"Seedforth/seedforthing","path":"delta-config/.vercel-token-charlietheagent","server_mode":"600","tracked_in_current_branch":false,"tracked_in_history":false,"tracked_in_server_checkout":false,"provider_token_status":"replacement_valid_project_scoped_90d_at_2026-09-06; old_token_revocation_required","secret_scanning":"unavailable_for_repository","state":"remediation-required","actions":["revoke legacy provider token from Vercel account settings","enable GitHub secret scanning if repository plan permits"]}
   ],
   "repositories": [
     {"name":"mycelium","role":"platform","local_path":"tetrahedron/projects/mycelium","github":"kagrawal29/mycelium","canonical_branch":"main","observed_server_path":"/opt/seedforth/current","target_server_path":"/opt/seedforth/current/platform/mycelium","status":"active"},

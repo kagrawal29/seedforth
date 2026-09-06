@@ -19,7 +19,7 @@ this reconciliation until separately classified.
 | Mycelium | `fix/scope-split-and-deploy-flow-policy` / `e43f15f` | `main` / `a928955` | 14 | Working source is not canonical; consolidated platform copy is deployed |
 | Delta | `main` / `53d4d96` | `main` / `53d4d96` | 3 | Canonical standalone source matches remote; platform copy is deployed |
 | Flowing Indian | feature branch / `c84e0fa` | `main` / unavailable from checkout | 10 | Local feature work; do not overwrite |
-| Seedforthing | `master` / `163db3d` | `master` / `49a2b72` | 0 | Diverged from long automated remote history; current branch no longer tracks token; preserve both until an explicit merge decision |
+| Seedforthing | `master` / `163db3d` | `master` / rewritten `0c81de5` | 0 | Local branch remains preserved and diverged; GitHub history scrubbed on all three branches; server checkout remains an older generated runtime checkout |
 | SolveOS | `master` / `b4af595` | `master` / `36d8738` | 1 | Local checkout differs from remote |
 | Ember | `main` / `1fc3dde` | `main` / `1fc3dde` | 0 | Synchronized |
 | Audioworld | `main` / `460902a` | `main` / `460902a` | 0 | Fast-forward synchronized during this reconciliation |
@@ -42,12 +42,12 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 
 The Seedforthing server checkout contains a token file at
 `delta-config/.vercel-token-charlietheagent`. Its contents were not printed or
-copied. The file mode was hardened in place from `777` to `600`, preserving the
-live path and owner. The current GitHub branch no longer tracks the file after
-`49a2b72`, but the token may remain in repository history and the old server
-checkout still tracks it. The product owner must rotate the token and scrub
-history before that checkout can be called deployment-clean. GitHub secret
-scanning is currently disabled; this is recorded as a structured exception in
+copied. The replacement Vercel token is project-scoped, valid for 90 days, and
+installed on delta2 with mode `600`. The server checkout no longer tracks the
+token and the GitHub history rewrite removed the token path from all three
+branches. The legacy provider token still requires revocation from Vercel
+account settings; GitHub secret scanning is unavailable for this private
+repository's current plan. This remains a structured exception in
 `registry/repositories.json`.
 
 ## Next safe actions
