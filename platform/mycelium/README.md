@@ -10,9 +10,26 @@ holds decisions, code structure, project state, protocols, and relationships.
 The live graph runs in `mycelium-neo4j` on `185.192.96.100`; source-controlled
 Cypher and protocols define reviewed behavior.
 
-This directory is an initial sanitized import. See [`MIGRATION.md`](MIGRATION.md)
-for its provenance, exclusions, and cutover gates. Legacy Maverick/Pulse
-material is reference-only.
+This directory is the deployed, sanitized platform import. See
+[`MIGRATION.md`](MIGRATION.md) for provenance and
+[`LEGACY-BOUNDARY.md`](LEGACY-BOUNDARY.md) for the files that are not active
+runtime entrypoints. Legacy Maverick/Pulse material is reference-only.
+
+## Current SeedForth operation
+
+The canonical platform repository is `kagrawal29/seedforth`; use the parent
+platform docs for architecture and deployment. The live graph is Neo4j on the
+SeedForth runtime server (`185.192.96.100`), and graph behavior is executed by
+Delta's graph runner under systemd. Do not use the historical installer and
+target model below to deploy SeedForth services.
+
+The standalone Mycelium repository is retained for provenance. New changes
+land in `platform/mycelium`, are tested from the platform root, and are
+deployed only through an immutable SeedForth release.
+
+> The remaining sections are retained as historical contributor/reference
+> material from the imported Mycelium project. Their Maverick, Pulse-server,
+> and old target names do not describe the active SeedForth topology.
 
 This repo is the team distribution. Clone it, run one script, and you're in.
 
