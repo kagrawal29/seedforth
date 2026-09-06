@@ -15,7 +15,6 @@ from control.broker import Broker
 from control.code_proposal import CodeProposal
 from control.graph import Graph
 from control.receipt_journal import ReceiptJournal
-from test_control_graph_live import case, invocation_params
 
 REVISION = '2a518d957bb1fbd39b02a8dcbc3e1f2890630b93'
 REPOSITORY = '/home/proj-cajon-sensei/cajon-sensei'
@@ -48,6 +47,7 @@ CHANGES = [
 
 
 def main():
+    from test_control_graph_live import case, invocation_params
     graph = Graph('http://127.0.0.1:27474', user='', password='')
     graph.promote()
     c = case.__wrapped__(graph)

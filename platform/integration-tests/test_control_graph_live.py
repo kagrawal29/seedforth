@@ -455,7 +455,8 @@ def test_distinct_tasks_share_atomic_scope_concurrency_limit(graph,case):
 
 
 @pytest.mark.skipif(not os.environ.get('CONTROL_WORKER_TEST_IMAGE'),reason='explicit pinned disposable Docker image required')
-def test_networkless_worker_completes_broker_path_without_graph_credentials(graph,case,tmp_path):
+@pytest.mark.parametrize('program',['adversarial_probe','graph_executor'])
+def test_networkless_worker_completes_broker_path_without_graph_credentials(graph,case,tmp_path,program):
     import hashlib,json,subprocess,threading
     from datetime import datetime,timedelta,timezone
     from control.broker import Broker
@@ -484,8 +485,12 @@ def test_networkless_worker_completes_broker_path_without_graph_credentials(grap
     worker_token=tmp_path/'worker-token';worker_token.write_text(token);worker_token.chmod(0o444)
     job=tmp_path/'job.json'
     invocation=uuid4().hex
-    job.write_text(json.dumps(dict(scope=case['scope'],work=case['id'],attempt=uuid4().hex,
-        invocation=invocation,capability=case['scope']+'-cap',revision=revision)))
+    job_data=dict(scope=case['scope'],work=case['id'],attempt=uuid4().hex,invocation=invocation)
+    if program=='adversarial_probe':
+        job_data.update(capability=case['scope']+'-cap',revision=revision)
+    graph.query("MATCH (w:WorkItem {node_id:$id}) SET w.execution_capability=$capability,w.execution_arguments=$arguments",
+        dict(id=case['id'],capability=case['scope']+'-cap',arguments=json.dumps({'revision':revision})))
+    job.write_text(json.dumps(job_data))
     job.chmod(0o444)
     broker=Broker(graph,case['scope']+'-broker',{case['scope']+'-cap':adapter},ReceiptJournal(tmp_path/'receipts'))
     socket_path=tmp_path/'worker.sock'
@@ -493,6 +498,7 @@ def test_networkless_worker_completes_broker_path_without_graph_credentials(grap
     os.chown(socket_path,-1,65534)
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     probe=Path(__file__).parent/'fixtures/isolated-worker-probe.py'
+    if program=='graph_executor': probe=Path(__file__).parents[1]/'control/isolated_worker.py'
     container='sf-worker-fixture-'+uuid4().hex[:12]
     try:
         command=['docker','run','--rm','--name',container,'--network=none','--read-only','--cap-drop=ALL',
@@ -502,7 +508,9 @@ def test_networkless_worker_completes_broker_path_without_graph_credentials(grap
             '--mount',f'type=bind,src={job},dst=/run/job.json,readonly',
             '--mount',f'type=bind,src={probe},dst=/probe.py,readonly',image,'python','-B','/probe.py']
         result=subprocess.run(command,check=True,capture_output=True,text=True,timeout=60)
-        assert json.loads(result.stdout)['isolation_checks']=='passed'
+        outcome=json.loads(result.stdout)
+        if program=='adversarial_probe': assert outcome['isolation_checks']=='passed'
+        else: assert outcome['status']=='review' and outcome['accepted'] is False
     finally:
         subprocess.run(['docker','rm','-f',container],capture_output=True,check=False)
         server.shutdown();server.server_close();thread.join(timeout=5)

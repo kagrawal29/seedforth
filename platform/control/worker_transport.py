@@ -17,6 +17,7 @@ from control.server import Boundary,Handler,RequestError
 FIELDS={
     'read-work':{},'read-attempt':{'attempt':str},
     'read-artifact':{'invocation':str},
+    'read-execution-spec':{'attempt':str},
     'claim-work':{'id':str,'version':int,'attempt':str},
     'renew-work':{'attempt':str,'fence':int},
     'invoke':{'attempt':str,'fence':int,'invocation':str,'capability':str,'arguments':dict},
