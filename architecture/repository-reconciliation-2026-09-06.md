@@ -19,7 +19,7 @@ this reconciliation until separately classified.
 | Mycelium | `fix/scope-split-and-deploy-flow-policy` / `e43f15f` | `main` / `a928955` | 14 | Working source is not canonical; consolidated platform copy is deployed |
 | Delta | `main` / `53d4d96` | `main` / `53d4d96` | 3 | Canonical standalone source matches remote; platform copy is deployed |
 | Flowing Indian | feature branch / `c84e0fa` | `main` / unavailable from checkout | 10 | Local feature work; do not overwrite |
-| Seedforthing | `master` / `9123434` | `master` / `20f1a45` | 0 | Local checkout behind/diverged from remote |
+| Seedforthing | `master` / `9123434` | `master` / `0102ad8` | 0 | Local checkout behind automated remote; boundary rule added on current remote tip |
 | SolveOS | `master` / `b4af595` | `master` / `36d8738` | 1 | Local checkout differs from remote |
 | Ember | `main` / `1fc3dde` | `main` / `1fc3dde` | 0 | Synchronized |
 | Audioworld | `main` / `c7796f6` | `main` / `460902a` | 0 | Local checkout differs from remote |
@@ -36,7 +36,7 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 | `/opt/seedforth/current` | detached / `1addd37` | 0 | Active immutable platform release |
 | `/opt/delta` | `main` / `53d4d96` | 10 | Disabled legacy rollback checkout; retain intact |
 | `/home/proj-flowing-indian/flowing-indian` | `main` / `54ced2f` | 9 | Active product runtime; capture before cleanup |
-| `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 436 | Active product runtime; do not reset or pull blindly |
+| `/home/proj-seedforthing/seedforthing` | `master` / `5e8e5de` | 436 | Active product runtime; behind automated remote; do not reset or pull blindly |
 
 ### Security exception
 
