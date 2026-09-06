@@ -18,14 +18,16 @@ MERGE (p:Project {name: 'mycelium'})
       p.created_at          = datetime()
   RETURN p.name AS result;
 
-// ATOM 2: Maverick (canonical species mint)
+// ATOM 2: Maverick (deprecated Qubit Capital provenance)
 MERGE (p:Project {name: 'maverick'})
   SET p.description         = 'Team distribution of mycelium — canonical species minted for Qubit Capital residency',
       p.repo_url            = 'https://github.com/Qubit-Capital/maverick',
       p.owner_alias         = 'Mycelium',
       p.visibility          = 'private',
       p.ingestion_scope     = 'full',
-      p.status              = 'active',
+      p.status              = 'reference-only',
+      p.active              = false,
+      p.architecture_role   = 'reference',
       p.created_at          = datetime()
   RETURN p.name AS result;
 
@@ -36,7 +38,9 @@ MERGE (p:Project {name: 'maverick-meta'})
       p.owner_alias         = 'Mycelium',
       p.visibility          = 'private',
       p.ingestion_scope     = 'full',
-      p.status              = 'pending-scope-confirmation',
+      p.status              = 'reference-only',
+      p.active              = false,
+      p.architecture_role   = 'reference',
       p.created_at          = datetime()
   RETURN p.name AS result;
 
