@@ -1,7 +1,7 @@
 #!/bin/bash
 # Seed the SuperAgent graph: organizations, agents, project connections
 set -euo pipefail
-NEO4J_PASS="9aac5c811e6d4f4f64a00c65666f3528"
+NEO4J_PASS="${NEO4J_PASSWORD:?set NEO4J_PASSWORD in the runtime environment}"
 
 CS="docker exec mycelium-neo4j cypher-shell -u neo4j -p $NEO4J_PASS"
 

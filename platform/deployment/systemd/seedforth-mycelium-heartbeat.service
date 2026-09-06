@@ -4,16 +4,12 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-Type=simple
+Type=oneshot
 User=delta
 Group=delta
-WorkingDirectory=/opt/seedforth/current/platform/mycelium
+WorkingDirectory=/opt/seedforth/current/platform/delta
 EnvironmentFile=/opt/seedforth/shared/env/seedforth.env
-Environment=CADENCE_SECONDS=60
-Environment=NEO4J_CONTAINER=mycelium-neo4j
-ExecStart=/bin/bash /opt/seedforth/current/platform/mycelium/graph/runner/heartbeat-loop.sh
-Restart=always
-RestartSec=10
+ExecStart=/usr/bin/python3 /opt/seedforth/current/platform/delta/tools/graph-runner.py --cadence heartbeat
 StandardOutput=journal
 StandardError=journal
 

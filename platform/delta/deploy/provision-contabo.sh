@@ -132,7 +132,7 @@ pip3 install --break-system-packages discord.py==2.4.0 python-dotenv composio-co
 # 6. Neo4j via Docker
 # ---------------------------------------------------------------------------
 log "Setting up Neo4j..."
-NEO4J_PASS="9aac5c811e6d4f4f64a00c65666f3528"
+NEO4J_PASS="${NEO4J_PASSWORD:?set NEO4J_PASSWORD in the runtime environment}"
 NEO4J_DATA="/opt/neo4j-data"
 
 mkdir -p "$NEO4J_DATA"/{data,logs,plugins,import}

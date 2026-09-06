@@ -16,10 +16,13 @@ import subprocess
 import urllib.request
 import urllib.error
 
-NEO4J_HOST = "127.0.0.1"
-NEO4J_HTTP_PORT = "7474"
-NEO4J_USER = "neo4j"
-NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "9aac5c811e6d4f4f64a00c65666f3528")
+NEO4J_HOST = os.environ.get("NEO4J_HOST", "127.0.0.1")
+NEO4J_HTTP_PORT = os.environ.get("NEO4J_HTTP_PORT", "7474")
+NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
+NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "")
+
+if not NEO4J_PASS:
+    raise RuntimeError("NEO4J_PASSWORD must be provided at runtime")
 
 _AUTH = base64.b64encode(f"{NEO4J_USER}:{NEO4J_PASS}".encode()).decode()
 
