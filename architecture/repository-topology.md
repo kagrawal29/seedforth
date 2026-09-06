@@ -6,15 +6,16 @@
 ## Target structure
 
 ```text
-SeedForth workspace
-├── seedforth/                      one platform repository
-│   ├── architecture/
+SeedForth workspace / seedforth repository
+├── architecture/                  platform architecture and diagrams
+├── platform/                      consolidated platform source
 │   ├── mycelium/
 │   ├── delta/
 │   ├── deployment/
 │   ├── operations/
-│   ├── registry/
+│   ├── contracts/
 │   └── integration-tests/
+├── registry/                       repository and deployment inventory
 ├── flowing-indian/                 independent product repository
 ├── seedforthing/                   independent product repository
 ├── solveOS/                        independent product repository
@@ -27,7 +28,7 @@ SeedForth workspace
 
 | Repository | Role | Target state |
 |---|---|---|
-| `seedforth` | Mycelium, Delta, deployment, operations, contracts | Canonical platform source |
+| `seedforth` | Architecture, platform source, deployment, operations, registry | Canonical platform source |
 | Product repositories | Application/product source | Remain independent |
 | `seedforth` workspace | Local registry and coordination | Temporary migration workspace or lightweight registry |
 | `tetrahedron` | Former orchestration/infrastructure system | Reference-only |
