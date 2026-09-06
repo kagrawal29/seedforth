@@ -46,3 +46,30 @@ Acceptance includes Playwright enrollment, authenticator confirmation, code repl
 login/logout/reconnect, project consent/deny, expired requests, CSRF, hostile client
 metadata, mobile rendering, recovery login and revocation. Use synthetic identities
 and a loopback-only fixture clock, never production credentials or owner approval.
+
+## Qualified implementation, source58040af
+
+The invitation/MFA/session layer and server-rendered human pages are implemented.
+Exact-revision Playwright CLI acceptance passed on2026-09-06, using real disposable
+Neo4j grants and scoped work. It covered browser enrollment, authenticator setup,
+single-use recovery display, secure cookies/no browser credential storage, replay
+rejection, login/reconnect, untrusted client metadata, explicit selection, forged
+project/principal denial, cross-origin CSRF denial, a real separate-origin OAuth
+callback, token exchange and an MCP scoped graph read. It also covered used-request
+denial, explicit decline, recovery login, all-client/session revocation, recovery
+replay and revocation during an injected graph-read outage.
+
+Playwright found actual defects in the initial no-referrer/form-Origin combination
+and fieldset sizing with long identifiers at390px. Both were fixed and the complete
+journey rerun successfully. The final mobile screenshot was visually inspected.
+All140 server-side qualification tests passed, with no skips and one SDK deprecation
+warning. New authentication dependencies were installed only in isolated test envs.
+
+This is not yet a production identity deployment. No real owner passphrase, TOTP
+secret or recovery code was created. Bootstrap delivery and operator recovery CLI,
+service deployment/private datastore backup, trusted reverse-proxy peer handling,
+public abuse-boundary qualification, legacy graph/provider credential isolation,
+identity audit sensing and actual remote-client trials remain release work. The
+current access page supplies all-client revocation; finer per-client administration
+and the integrated work board remain UX work. Do not equate this tested identity
+surface with the full autonomous system or an elapsed unattended soak.

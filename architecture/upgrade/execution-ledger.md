@@ -608,3 +608,44 @@ actions disabled until their authority and postconditions are implemented.
   trials. Continue originator-bound Delta processing, legacy credential isolation,
   Graphify/full sensing, richer board/Charlie, Flowing useful autonomy, archival,
   recovery and unattended qualification. Entire goal remains incomplete.
+
+## Human identity, consent and recovery browser qualification
+
+- Source58040afe7325d98b63f8208a529bf9c6d1f2ae68 implements invitation-bound human
+  enrollment, Argon2id passphrases, TOTP with transactional replay prevention,
+  one-use recovery codes, durable eight-hour sessions, explicit project consent,
+  account connection visibility, logout and all-session/client revocation. Existing
+  graph grants determine eligible identities/projects; login cannot create grants.
+- Credentials and pending enrollment live in the private external OAuth database.
+  Session/recovery/invitation values are digested. TOTP shared secrets and password
+  hashes remain private credential data, never graph properties. Browser cookies
+  are Secure/HttpOnly/__Host- scoped; no browser storage or URL bearer credentials.
+  Bound request bodies, durable peer/account limits, two concurrent hash slots,
+  exact Origin/CSRF checks, metadata escaping, host validation and CSP are enforced.
+- Actual Playwright CLI on the exact revision passed the complete human journey
+  into OAuth and an MCP scoped read against disposable Neo4j. It rejected TOTP and
+  recovery replay, forged project/principal fields, cross-origin consent, stale
+  consent reuse and refreshed credentials after all-client revocation. It verified
+  the separate-origin callback/state, explicit deny, reconnect and390px rendering.
+  Synthetic identity/clock only, not personal owner approval or elapsed MFA soak.
+- Browser testing found no-referrer causing rejected form Origin and long-ID
+  fieldset overflow, both fixed. The browser also verified an injected graph-read
+  outage fails closed while allowing credential/session revocation independent
+  of graph reads. That is targeted fault injection, not an actual Neo4j shutdown
+  or full combined-failure drill. Final screenshot visually inspected.
+- Playwright source SHA256a42d366d8b06da922afee5ee0b72619a78786f7d1a4afb7db5efbe59bb88d502.
+  Final mobile screenshot SHA2561654eb8283734d80448e7d3560f3175a6ffc817bff62ec7888364fe51fa2a21f.
+  All140 server-side tests passed in28.87s on immutable server release58040af.
+  JUnit SHA2562ff204266a6596893c3ed5837577e96d396c83641be7437adce7c041b81e1de6
+  admitted to live Mycelium as ReleaseQualification informingW21. One SDK
+  deprecation warning, no skips. Temporary browsers, HTTP/callback servers and
+  SSH fixture tunnel closed; private synthetic credential directories cleaned up.
+- This is qualified source, not public deployment. Live control2aed97e, worker3d8feef,
+  securityafcc87b and main1770e7c unchanged. New public HTTP application routes stay
+  503. No actual owner's login credentials or provider credentials were created.
+- Next: package/deploy the identity service and protected bootstrap/recovery path,
+  close legacy credential/writer isolation before public scoped launch, integrate
+  the board's session-backed controls, and qualify real remote clients. Continue
+  governed Delta processing/useful execution, Graphify/full graph sensing, Flowing
+  pilot, safe archival, source/release recovery and unattended qualification. The
+  full objective remains active and incomplete.
