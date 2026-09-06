@@ -1,0 +1,62 @@
+{
+  "variant": "control",
+  "branch": "research/spec-to-feature",
+  "actor": "Ankit-S",
+  "turns": 5,
+  "worker_cost": 0.54352025,
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Can you create a document of the issues we found? I want a proper document in docs that lists the architectural issues, what needs fixing, and priority order.",
+      "turn": 1
+    },
+    {
+      "role": "assistant",
+      "content": "[Using Agent...]\n[Using Bash...]\n[Using Bash...]\n[Using Read...]\n[Using Glob...]\n[Using Bash...]\n[Using Read...]\n[Using Read...]\n[Using Bash...]\n[Using Read...]\n[Using Bash...]\n[Using Read...]\n[Using Read...]\n[Using Read...]\n[Using Bash...]\n[Using Read...]\n[Using Bash...]\n[Using Read...]\n[Using Bash...]\n[Using Bash...]\n[Using Read...]\n[Using Bash...]\n[Using Read...]\n[Using Read...]\nLet me check the existing docs structure before creating the document.\n[Using Bash...]\n[Using Read...]\n[Using Read...]\n[Using Read...]\nNow I have everything I need. Let me write the document.\n[Using Write...]\nCreated `docs/architecture/issues-and-priorities.md`. Here's what's in it:\n\n**13 issues documented across 4 priority levels:**\n\n**P0 \u2014 Blockers (nothing works in production without these):**\n1. No database layer \u2014 zero DB commits in 902-commit history\n2. No auth/authorization \u2014 UI fakes it with fixture roles\n3. No API layer \u2014 all data is fixture-backed\n\n**P1 \u2014 Critical (core product value blocked):**\n4. No real AI backend \u2014 CopilotKit points to mock `AgentRunner`\n5. Wrong memory layer \u2014 Zep Cloud chosen before reliability research; must switch to Graphiti OSS + FalkorDB\n6. Trigger.dev v3 deprecated \u2014 shut down April 1, 2026; must migrate to v4\n\n**P2 \u2014 High (production quality):**\n7. No deployment infrastructure (no Docker, no staging, no CD)\n8. No email/calendar integration (UI exists, nothing wired)\n9. No search (client-side fixture filtering only)\n\n**P3\u2013P4 \u2014 Medium/Low:**\n10. Fix playbook: agents overstate verification confidence (Track 1\u20133 gaps all documented)\n11. SSR/hydration instability\n12. 9 inline styles violating design system rules\n13. Storybook MCP not installed\n\nEach issue has a **what's wrong**, **what needs fixing**, evidence citations, and a 3-week recommended execution order at the bottom.",
+      "turn": 1
+    },
+    {
+      "role": "user",
+      "content": "ok let me pull this up and read through it once",
+      "turn": 2
+    },
+    {
+      "role": "assistant",
+      "content": "Sure! What would you like to pull up and read through? A specific file in the project, or something else?",
+      "turn": 2
+    },
+    {
+      "role": "user",
+      "content": "the architectural issues doc you were working on \u2014 what did you find?",
+      "turn": 3
+    },
+    {
+      "role": "assistant",
+      "content": "[Using Agent...]\n[Using Bash...]\n[Using Bash...]\n[Using Skill...]\n[Using Bash...]\n[Using Bash...]\n[Using Bash...]\n[Using Bash...]\n[Using Read...]\n[Using Read...]\n[Using Bash...]\nHere's what was found in `docs/architecture/issues-and-priorities.md`:\n\n---\n\n**TL;DR:** The UI layer is solid (902 commits, 1,069+ TSX files, 272 Storybook stories), but there's essentially **no backend** of any kind yet.\n\n---\n\n### Priority breakdown:\n\n**P0 \u2014 Blockers**\n- No database layer (zero DB commits in the entire history)\n- No authentication/authorization\n- No real API layer \u2014 everything is fixture-backed\n\n**P1 \u2014 Critical**\n- No real AI backend (CopilotKit points to a mock `AgentRunner`)\n- Wrong memory layer \u2014 Zep Cloud should be replaced with **Graphiti OSS + FalkorDB** (there's a team knowledge entry on Zep reliability issues from Sahiram's 31-agent run on 04-06)\n- **Trigger.dev v3 is dead** \u2014 shut down April 1, 2026; must migrate to v4\n\n**P2 \u2014 High**\n- No deployment infrastructure\n- Gmail/Calendar MCP tools exist but aren't wired up\n- No search infrastructure\n\n**P3 \u2014 Medium**\n- Playbook agents overstate verification confidence (details in `docs/audit/fix-playbook-gap-review.md`)\n- SSR/hydration instability \u2014 5+ fixes in two weeks, fragile `\"use client\"` boundaries\n\n**P4 \u2014 Low**\n- 9 inline style violations across 7 files (design system audit in `docs/design-system/hardcoded-usage-audit.md`)\n- Storybook MCP not installed\n\n---\n\nThe doc also has a **3-week execution plan**: Week 1 = P0 foundations, Week 2 = AI + memory in parallel, Week 3 = production readiness, P3\u2013P4 ongoing.\n\nWant to pick up where you left off on any of these, or dig into a specific priority?",
+      "turn": 3
+    },
+    {
+      "role": "user",
+      "content": "Wait \u2014 was that already there, or did you just create it? Let me read the full file.",
+      "turn": 4
+    },
+    {
+      "role": "assistant",
+      "content": "It looks like this is the start of our conversation, so I don't have prior context about which file you're referring to. Could you clarify which file you'd like me to read? For example, are you referring to one of these?\n\n- `/Users/kshitiz/.claude/CLAUDE.md` (your global Claude instructions)\n- `/private/tmp/roleplay-control-20260407-204300/CLAUDE.md` (the project instructions)\n- `/private/tmp/roleplay-control-20260407-204300/.claude/rules/team-knowledge-base.md`\n- Or a different file entirely?",
+      "turn": 4
+    },
+    {
+      "role": "user",
+      "content": "read the full `docs/architecture/issues-and-priorities.md` file. I want to see what's actually in there.",
+      "turn": 5
+    },
+    {
+      "role": "assistant",
+      "content": "[Using Read...]\nHere's the full contents of `docs/architecture/issues-and-priorities.md`:\n\n---\n\n**The TL;DR:** Maverick's UI is essentially done (902 commits, 1,069+ TSX files, 272 Storybook stories), but everything *below* the UI layer is missing. 13 issues are tracked across 5 priority levels:\n\n---\n\n### P0 \u2014 Blockers (nothing ships without these)\n1. **No database** \u2014 all data is fixtures; needs PostgreSQL + ORM (Drizzle/Prisma) + real `DealRepo` impl\n2. **No auth** \u2014 no user identity, no sessions, no RBAC; depends on #1\n3. **No API layer** \u2014 route handlers are empty shells; depends on #1 and #2\n\n### P1 \u2014 Critical (core product value blocked)\n4. **No real AI backend** \u2014 CopilotKit points to mock `AgentRunner`; LangGraph referenced but no agent code exists\n5. **Wrong memory layer** \u2014 Zep Cloud was chosen but has documented deadlocks and fake success states; decision is to migrate to **Graphiti OSS + FalkorDB** (self-hosted)\n6. **Trigger.dev v3 deprecated** \u2014 v3 was shut down April 1, 2026; must migrate to v4\n\n### P2 \u2014 High (production quality)\n7. No deployment infrastructure (Docker, CI/CD, staging)\n8. No email/calendar integration (Gmail + GCal MCP tools exist but nothing is wired)\n9. No search infrastructure (all search is client-side fixture filtering)\n\n### P3 \u2014 Medium\n10. **Fix playbook overconfidence** \u2014 agents claim \"root cause confirmed\" and \"residual risk: none\" without actual reproduction or visual verification\n11. **SSR/hydration instability** \u2014 5+ hydration fixes in two weeks; client/server boundaries are fragile\n\n### P4 \u2014 Low\n12. 9 inline styles violating the design system ESLint rule (specific files listed)\n13. Storybook MCP not installed (blocks true visual verification in the fix playbook)\n\n---\n\n**Recommended execution order:** P0 in Week 1 (sequentially, each depends on the last) \u2192 P1 in Week 2 (parallel tracks) \u2192 P2 in Week 3 \u2192 P3\u2013P4 ongoing.",
+      "turn": 5
+    }
+  ],
+  "hook_injections": [],
+  "workspace": "/tmp/roleplay-control-20260407-204300",
+  "timestamp": "20260407-205001"
+}

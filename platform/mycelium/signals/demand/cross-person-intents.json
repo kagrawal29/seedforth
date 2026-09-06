@@ -1,0 +1,56 @@
+{
+  "computed_at": "2026-04-10T18:32:04Z",
+  "alignments": [
+    {
+      "alignment_id": "ai-work-product-verification-gap",
+      "persons": ["Sahil", "Ankit-S"],
+      "person1_intent": "ai-doc-validation-process-gap",
+      "person2_intent": "spec-human-verification-affordance",
+      "shared_gap": "AI-generated work product (specs, architecture docs) lacks built-in human verification affordances — the team has no standard mechanism for confirming that Claude-authored content is correct before it becomes ground truth for decisions.",
+      "confidence": "high",
+      "graph_region": "Knowledge Management & Research Patterns"
+    },
+    {
+      "alignment_id": "meta-system-observability-loop",
+      "persons": ["Kshitiz", "Pranav"],
+      "person1_intent": "meta-system-staged-deployment-governance",
+      "person2_intent": "meta-system-personal-observability",
+      "shared_gap": "End-to-end observability for the meta-system is broken in both directions: Kshitiz (the system operator) lacks a verifiable readiness signal before deployment, and Pranav (a team member) cannot see what the system captures about his own work. Neither side of the loop has self-service visibility.",
+      "confidence": "high",
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "alignment_id": "ai-collaboration-error-detection",
+      "persons": ["Pranav", "Ankit-S"],
+      "person1_intent": "claude-collaboration-trust-repair",
+      "person2_intent": "spec-human-verification-affordance",
+      "shared_gap": "The team lacks a standard mechanism for detecting when Claude introduces errors into logically correct structures — Pranav experienced this in the rule builder (incorrect AND/OR advice), and Ankit-S is proactively building a spec-level control to prevent it from happening in specs.",
+      "confidence": "medium",
+      "graph_region": "Frontend Quality & Design System"
+    },
+    {
+      "alignment_id": "running-system-design-intent-verification",
+      "persons": ["Kshitiz", "Pranav"],
+      "person1_intent": "v1-implementation-vs-design-intent-delta",
+      "person2_intent": "copilot-infrastructure-root-cause-assessment",
+      "shared_gap": "Both are trying to determine whether a running system's current behavior matches its intended design — Kshitiz for Mycelium v1 vs the living systems architecture, Pranav for the copilot rule-creation infrastructure. Neither has authoritative process documentation to do this without reading logs and source code.",
+      "confidence": "medium",
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "alignment_id": "active-decisions-missing-from-knowledge-base",
+      "persons": ["Abhishek", "Kshitiz"],
+      "person1_intent": "nango-abstraction-depth-assessment",
+      "person2_intent": "cycle-output-completeness-ledger",
+      "shared_gap": "Abhishek is actively evaluating Nango as an architectural decision, but it has not been captured in any knowledge base entry — creating an invisible blind spot that Kshitiz's cycle completeness audit should surface but currently misses.",
+      "confidence": "medium",
+      "graph_region": "Meta Intelligence System"
+    }
+  ],
+  "summary": {
+    "total_intents": 18,
+    "intents_with_deeper_meaning": 12,
+    "cross_person_alignments": 5,
+    "highest_alignment_region": "Meta Intelligence System"
+  }
+}

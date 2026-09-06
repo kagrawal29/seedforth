@@ -1,0 +1,43 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - falkordb-data:/data
+    restart: unless-stopped
+    networks:
+      - mycelium
+
+  # Test container: runs full v2 pipeline in sandbox mode
+  # No pushes to team repos, no git remote, distribute is no-op
+  # Usage: docker compose -f docker/docker-compose.yml up maverick-test
+  maverick-test:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - MODE=test
+      - BRANCH=${BRANCH:-mycelium/evolution}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CC_LANGSMITH_API_KEY=${CC_LANGSMITH_API_KEY}
+      - GH_TOKEN=${GH_TOKEN}
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+    depends_on:
+      - falkordb
+    volumes:
+      - test-workspace:/workspace
+    networks:
+      - mycelium
+    # Override entrypoint for manual testing:
+    #   docker compose run maverick-test bash
+    # Or let it run the full cron cycle:
+    #   docker compose up maverick-test
+
+volumes:
+  falkordb-data:
+  test-workspace:
+
+networks:
+  mycelium:

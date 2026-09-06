@@ -1,0 +1,53 @@
+{
+  "person": "Sahiram",
+  "computed_at": "2026-04-11T09:37:17Z",
+  "question_clusters": [
+    {
+      "id": "spec-format-tech-detail-convention",
+      "representative_question": "Is 'no technical detail in specs' a universal industry standard, or does it apply only to Software Requirements Specifications (SRS) \u2014 and how does spec-kit handle this?",
+      "all_questions": [
+        "Research verdict is in. Your teammate is wrong \u2014 'no tech in specs' is NOT a universal rule. It applies to ONE specific document type \u2014 the SRS.",
+        "Question 1 \u2014 Does spec-kit use tech in specs? spec-kit deliberately separates tech from the spec.",
+        "Both agents are back. Here's the clear picture. Question 1 \u2014 Tech in specs: spec-kit's answer vs ours"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-11",
+      "domain": "spec-methodology",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-spec-reading-guides",
+          "coverage_score": 0.2,
+          "gap": "spec-reading-guides covers reading guide format within a spec but not the 'tech in specs vs not' debate. No entry documents the spec-kit philosophy (spec = WHAT, plan = HOW), IEEE/SRS standards context, or the team's settled position on technology detail in product specs."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "enrichment-provider-error-handling",
+      "representative_question": "HTTP 500s from enrichment endpoints (person, profile_updates, company_employee) due to 'No free account' provider exhaustion \u2014 how to handle and monitor?",
+      "all_questions": [
+        "Errors since ~8h ago: HTTP 500 on person (3,217), profile_updates (902), company_employee (305). Provider exhaustion.",
+        "Batch 6: 5910/10000 (59.1%) \u2014 done=5408, fail=502, 119/hr, ETA ~31.5h. Steady, still running in screen.",
+        "Server Status: EmailEngine active, Redis active, 102 days uptime, no reboot."
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-11",
+      "last_asked": "2026-04-11",
+      "domain": "enrichment-operations",
+      "matched_entries": [],
+      "gap_signal": true
+    }
+  ],
+  "summary": {
+    "total_questions": 6,
+    "gaps": 2,
+    "highest_frustration_domain": "spec-methodology",
+    "cross_person_connections": [
+      "Abhishek (both actively working on spec methodology \u2014 Sahiram debating tech detail in specs with teammate, Abhishek managing multi-spec dependency overlap)",
+      "Ankit-S (both building spec workflows \u2014 Sahiram establishing spec content conventions, Ankit-S embedding spec-to-ship playbook into team workflow)"
+    ]
+  }
+}

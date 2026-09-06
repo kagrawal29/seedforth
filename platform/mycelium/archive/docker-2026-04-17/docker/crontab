@@ -1,0 +1,28 @@
+# Maverick Meta Intelligence System — Three-Speed Metabolism
+# All times in UTC. IST = UTC + 5:30.
+# Root user crontab — jobs run as maverick via su
+#
+# === REAL-TIME: MCP coupling (every query, $0) — not in cron, wired in MCP server ===
+#
+# === HEARTBEAT: every 30 min during work hours (10am-10pm IST), $0 ===
+# Free Cypher stages: graph-ingest, convergence, dream, integrity, L7 execute, pulse sync
+# 10:00 IST = 04:30 UTC → 22:00 IST = 16:30 UTC
+*/30 4-16 * * * su - maverick -c 'source /workspace/bin/env.sh && cd /workspace/maverick-meta && python3 scripts/heartbeat.py' >> /var/log/cron.log 2>&1
+#
+# === FULL BREATH: 2x/day, ~$5.42 ===
+# Night dream (00:30 IST = 19:00 UTC) + afternoon breath (15:00 IST = 09:30 UTC)
+0 19 * * * su - maverick -c 'source /workspace/bin/env.sh && /workspace/bin/run-job.sh synthesis' >> /var/log/cron.log 2>&1
+30 9 * * * su - maverick -c 'source /workspace/bin/env.sh && /workspace/bin/run-job.sh synthesis' >> /var/log/cron.log 2>&1
+
+# Entry feedback: daily at 10pm IST (16:45 UTC)
+45 16 * * * su - maverick -c 'source /workspace/bin/env.sh && /workspace/bin/run-job.sh entry-feedback' >> /var/log/cron.log 2>&1
+
+# Skill feedback: daily at 10pm IST (self-skips if <2 days since last)
+55 16 * * * su - maverick -c 'source /workspace/bin/env.sh && /workspace/bin/run-job.sh skill-feedback' >> /var/log/cron.log 2>&1
+
+# === GRAPH BACKUP: daily at midnight IST (18:30 UTC) ===
+# FalkorDB RDB snapshot → /var/backups/falkordb/asgard-YYYY-MM-DD.rdb
+# Keeps last 7 days, prunes older. Restore with scripts/graph-restore.sh
+30 18 * * * su - maverick -c 'source /workspace/bin/env.sh && cd /workspace/maverick-meta && bash scripts/graph-backup.sh' >> /var/log/cron.log 2>&1
+
+# Empty line required by cron

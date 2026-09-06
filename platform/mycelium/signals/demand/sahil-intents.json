@@ -1,0 +1,39 @@
+{
+  "person": "Sahil",
+  "computed_at": "2026-04-10T18:32:04Z",
+  "intents": [
+    {
+      "intent_id": "deal-continuity-deep-comprehension",
+      "source_cluster_id": "cross-channel-continuity-design",
+      "surface_question": "How exactly does deal continuity work, and how do we handle multiple deals or funds within a single conversation context?",
+      "underlying_intent": null,
+      "intent_domain": "architecture",
+      "evidence": "Sahil built the feature across multiple turns, incorporating at least two rounds of peer review feedback. He asked for a 'simpler language' explanation to confirm his own understanding matched what was implemented. The 'tell me how exactly deal continuity is working' question came after the implementation was pushed — it is comprehension verification, not design exploration. The surface question is the real question.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Memory, Continuity & Workflow Orchestration"
+    },
+    {
+      "intent_id": "ai-doc-validation-process-gap",
+      "source_cluster_id": "ai-generated-doc-quality-concern",
+      "surface_question": "Can AI-generated architecture and audit documentation be trusted, or does it need human validation?",
+      "underlying_intent": "Sahil is asking whether the team's decision to use Claude as the primary documentation author requires a compensating process control — a human review gate before AI-generated architecture docs are used as decision ground truth. He is not questioning Claude's capability; he is questioning whether the production process has a verification step.",
+      "intent_domain": "process",
+      "evidence": "'All the documentation — whether frontend/gaps/audit — most of it is just done by AI' — this is a process observation, not a capability concern. It came while he was reviewing architecture and audit docs that were actively being used to make decisions. His follow-up harness question ('is an AI-generated harness trustworthy vs adopting open-source?') extends the same concern to infrastructure: he worries about lock-in to AI-generated systems that haven't been externally validated.",
+      "frustration_driver": "Medium — uncomfortable using AI-generated docs as authoritative source without a visible human review step in the process.",
+      "recurrence_count": 3,
+      "graph_region": "Knowledge Management & Research Patterns"
+    },
+    {
+      "intent_id": "agent-harness-build-vs-adopt",
+      "source_cluster_id": "agent-harness-architecture-decision",
+      "surface_question": "Should we adopt an existing open-source AI agent harness or build a custom one?",
+      "underlying_intent": null,
+      "intent_domain": "architecture",
+      "evidence": "The Grand Debate was settled: Vercel AI SDK + Trigger.dev chosen over LangGraph/CrewAI/AutoGen. Sahil researched Reddit practitioner opinions (finding existing open-source options over-engineered for Maverick's needs) and reached a decision. This was architectural evaluation, not a deeper unresolved concern.",
+      "frustration_driver": null,
+      "recurrence_count": 4,
+      "graph_region": "Memory, Continuity & Workflow Orchestration"
+    }
+  ]
+}

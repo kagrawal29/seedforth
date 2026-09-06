@@ -1,0 +1,19 @@
+=== artifact-graphify started at 2026-04-11T09:33:40.021984 ===
+[artifact-graphify] Found 9 artifacts to graphify
+  Fetching Qubit-Capital/VC-AI-Assoicate/docs/phase-1/DECISIONS.md...
+    14680 chars
+  Fetching Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/AGENT-FEATURE-ANALYSIS.md...
+    31022 chars
+  Fetching Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/ARCHITECTURE-AUDIT.md...
+    21731 chars
+  Fetching Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/CONTRACT-REVIEW.md...
+    40753 chars
+  Fetching Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/SECURITY-AUDIT-REPORT.md...
+    31629 chars
+[artifact-graphify] Starting extraction (5 docs)...
+[artifact-graphify] Complete.
+  Duration: 200.4s
+  Turns: 3
+  Cost: $0.2826
+  Snapshot: 5 doc nodes archived before replacement
+  Graph sync: 65 concepts, 47 relationships, 21 links to existing nodes

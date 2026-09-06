@@ -1,0 +1,18 @@
+{
+  "action": "created",
+  "repository": {
+    "full_name": "Qubit-Capital/VC-AI-Assoicate"
+  },
+  "issue": {
+    "number": 7
+  },
+  "comment": {
+    "id": 9900001,
+    "body": "Confirmed — the guard clause is missing. Fix incoming.",
+    "html_url": "https://github.com/Qubit-Capital/VC-AI-Assoicate/issues/7#issuecomment-9900001",
+    "created_at": "2026-04-18T09:30:00Z",
+    "user": {
+      "login": "alicedev"
+    }
+  }
+}

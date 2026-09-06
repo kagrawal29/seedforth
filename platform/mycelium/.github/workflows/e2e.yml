@@ -1,0 +1,74 @@
+name: e2e
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+  # PR trigger disabled until first v1.0.0 release exists — the install scripts
+  # fetch artifacts from /releases/latest/download, which 404s before any release.
+  # Re-enable the pull_request trigger below after v1.0.0 ships.
+  # pull_request:
+  #   paths:
+  #     - install/**
+  #     - .goreleaser.yaml
+  #     - .github/workflows/e2e.yml
+
+jobs:
+  e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine release tag
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG=$(curl -fsSL https://api.github.com/repos/Qubit-Capital/maverick/releases/latest | grep -oE '"tag_name": *"[^"]+"' | head -1 | cut -d'"' -f4)
+            if [ -z "$TAG" ]; then TAG="v0.0.0-snapshot"; fi
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install (unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          bash install/install.sh
+          bash install/install.sh  # idempotency: second run must not fail
+          export PATH="$HOME/.mycelium/bin:$PATH"
+          command -v mycelium
+          mycelium version
+
+      - name: Install (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./install/install.ps1
+          ./install/install.ps1  # idempotency
+          $env:PATH = "$env:LOCALAPPDATA\mycelium\bin;$env:PATH"
+          Get-Command mycelium
+          mycelium version
+
+      - name: Smoke — staging RETURN 1
+        if: vars.STAGING_READY == 'true'
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            export PATH="$LOCALAPPDATA/mycelium/bin:$PATH"
+          else
+            export PATH="$HOME/.mycelium/bin:$PATH"
+          fi
+          OUT=$(mycelium --target staging shell "RETURN 1 AS one")
+          echo "$OUT"
+          echo "$OUT" | grep -E '(^|[^0-9])1([^0-9]|$)' || { echo "expected '1' in output"; exit 1; }
+
+      - name: Skip smoke (staging not ready)
+        if: vars.STAGING_READY != 'true'
+        run: echo "STAGING_READY repo var not set — skipping live smoke (wi-ob-16 gates this)"

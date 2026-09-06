@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# ============================================================================
+# mycelium — shim dispatcher
+# ============================================================================
+# The Go binary `mycelium` takes precedence if installed globally (on PATH).
+# If not found, this shim provides a friendly error message directing users
+# to the install script, and points them to ./mycelium-dev for the legacy
+# bash write-path (bootstrapping, heartbeat control, etc.).
+# ============================================================================
+
+# Check if mycelium is available on PATH (the Go binary)
+if command -v mycelium &>/dev/null; then
+  # Go binary is installed and available on PATH
+  # Delegate to it with all arguments
+  exec mycelium "$@"
+fi
+
+# Go binary not found — user needs to install it
+cat >&2 <<'EOF'
+The `mycelium` command is now the Go binary (faster, cross-platform).
+
+To install:
+  curl -sSL https://github.com/Qubit-Capital/maverick/releases/latest/download/install.sh | bash
+
+Then restart your shell and try again.
+
+For the legacy write-path (bootstrap, start, stop, dump, restore, fork, sync, drift, ingest-repo, inject):
+  ./mycelium-dev <command> [args]
+
+EOF
+exit 1

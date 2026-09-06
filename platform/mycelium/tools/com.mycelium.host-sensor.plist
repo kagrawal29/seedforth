@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+Launch agent template for persistent host-sensor execution on macOS.
+
+Installation:
+  cp tools/com.mycelium.host-sensor.plist ~/Library/LaunchAgents/
+  launchctl load ~/Library/LaunchAgents/com.mycelium.host-sensor.plist
+
+Uninstall:
+  launchctl unload ~/Library/LaunchAgents/com.mycelium.host-sensor.plist
+  rm ~/Library/LaunchAgents/com.mycelium.host-sensor.plist
+
+Verify status:
+  launchctl list | grep com.mycelium.host-sensor
+  tail -f /tmp/mycelium-host-sensor.log
+
+This template does NOT install the plist. Another agent owns installation.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mycelium.host-sensor</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/kshitiz/Desktop/SeedForth/tetrahedron/projects/mycelium/tools/host-sensor.sh</string>
+  </array>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/mycelium-host-sensor.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/mycelium-host-sensor.log</string>
+
+  <key>StartInterval</key>
+  <integer>30</integer>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</string>
+    <key>MYCELIUM_LOG</key>
+    <string>/tmp/mycelium-host-sensor.log</string>
+  </dict>
+</dict>
+</plist>

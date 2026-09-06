@@ -1,0 +1,83 @@
+# Mycelium v2 Production Stack
+# Runs on delta-server (143.110.226.214)
+#
+# Usage:
+#   docker compose -f docker/docker-compose.production.yml up -d
+#   docker compose -f docker/docker-compose.production.yml logs -f maverick-meta
+#
+# Requires .env file with:
+#   CLAUDE_CODE_OAUTH_TOKEN, CC_LANGSMITH_API_KEY, GH_TOKEN, ASGARD_GRAPH_TOKEN
+
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - falkordb-data:/data
+    restart: unless-stopped
+    networks:
+      - mycelium
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  maverick-meta:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - MODE=production
+      - BRANCH=main
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
+      - CC_LANGSMITH_API_KEY=${CC_LANGSMITH_API_KEY}
+      - GH_TOKEN=${GH_TOKEN}
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - PULSE_HOST=5.78.206.137
+      - PULSE_PORT=6380
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    volumes:
+      - workspace:/workspace
+    restart: unless-stopped
+    networks:
+      - mycelium
+    healthcheck:
+      test: ["CMD", "/healthcheck.sh", "--quiet"]
+      interval: 5m
+      timeout: 10s
+      retries: 2
+
+  asgard-graph:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.asgard-graph
+    environment:
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - ASGARD_GRAPH_TOKEN=${ASGARD_GRAPH_TOKEN}
+    ports:
+      - "6381:6381"
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - mycelium
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:6381/sse')\" 2>/dev/null || exit 0"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  falkordb-data:
+  workspace:
+
+networks:
+  mycelium:

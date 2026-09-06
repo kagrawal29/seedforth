@@ -1,0 +1,66 @@
+# Core repos (cloned separately)
+maverick-market-research/
+VC-AI-Assoicate/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings (contains API keys)
+.claude/settings.local.json
+.claude/.mcp.local.json
+.claude/CLAUDE.local.md
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+graphify-out/
+.memsearch/
+mycelium-arch-input/
+
+# Auth wallets (private keys — never commit)
+.team-tokens.json
+.asgard-wallet
+
+# Graph state exports exceed GitHub 100MB limit. Kept locally only.
+# Recover via: ./mycelium bootstrap (protocols) + graph/backups/ (state snapshots)
+graph-state.cypher
+graph/backups/graph-state-*.cypher
+
+# Test analysis / diagnostic artifacts (locally generated, not source)
+FAILING_TESTS_REFERENCE.txt
+TEST_FAILURE_ANALYSIS.md
+analyze_tests.py
+detailed_breakdown.md
+failing_test_names.txt
+failing_tests.txt
+swarm_diagnosis.txt
+test_output.txt
+cmd/mycelium/mycelium
+cmd/mycelium/*.exe
+cmd/maverick/maverick
+cmd/maverick/*.exe
+
+# Embedded creds (never commit actual creds file)
+cmd/mycelium/internal/embedded/credentials.toml
+cmd/maverick/internal/embedded/credentials.toml
+
+# Goreleaser output
+dist/
+dist-e2e/

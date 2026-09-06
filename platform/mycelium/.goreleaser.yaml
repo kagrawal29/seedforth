@@ -1,0 +1,78 @@
+version: 2
+
+project_name: mycelium
+
+before:
+  hooks:
+    - go mod tidy -C cmd/mycelium
+
+builds:
+  - id: mycelium
+    main: ./cmd/mycelium
+    binary: mycelium
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: linux
+        goarch: arm64
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s
+      - -w
+      - -X 'github.com/Qubit-Capital/maverick/cmd/mycelium/internal/embedded.VersionStamp={{.Version}}'
+      - -X 'github.com/Qubit-Capital/maverick/cmd/mycelium/internal/embedded.BuildTime={{.Date}}'
+
+archives:
+  - id: mycelium-archives
+    name_template: "mycelium_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+snapshot:
+  name_template: "{{ .Tag }}-SNAPSHOT-{{.ShortCommit}}"
+
+release:
+  github:
+    owner: Qubit-Capital
+    name: maverick
+  draft: true
+  extra_files:
+    - glob: install/install.sh
+    - glob: install/install.ps1
+  header: |
+    ## mycelium CLI {{ .Tag }}
+
+    One install line, zero Python/JDK/WSL for readers.
+
+    **macOS / Linux:**
+    ```
+    curl -sSL https://github.com/Qubit-Capital/maverick/releases/download/{{ .Tag }}/install.sh | bash
+    ```
+
+    **Windows (PowerShell):**
+    ```
+    iwr -useb https://github.com/Qubit-Capital/maverick/releases/download/{{ .Tag }}/install.ps1 | iex
+    ```
+
+    Verify: `mycelium --target dev shell "MATCH (b:Being) RETURN count(b)"`
+  footer: |
+    ### Closes
+    - Closes #22 — /opt/mycelium-dev branch pinning + autodeploy
+    - Closes #23 — dev Neo4j credential rotation
+    - Closes #24 — Windows onboarding
+    - Closes #25 — JDK/Ollama/Qdrant not required for readers
+    - Closes #26 — config schema dual-support + clear errors
+    - Closes #27 — 12-point friction (Abhishek, Windows 11)

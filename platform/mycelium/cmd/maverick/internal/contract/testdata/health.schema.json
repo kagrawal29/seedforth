@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Health Output",
+  "type": "object",
+  "properties": {
+    "invariants_pass": {
+      "type": "integer",
+      "description": "Number of invariants passing"
+    },
+    "invariants_fail": {
+      "type": "integer",
+      "description": "Number of invariants failing"
+    },
+    "autonomous_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "System autonomous score (0-1)"
+    }
+  },
+  "required": ["invariants_pass", "invariants_fail", "autonomous_score"],
+  "additionalProperties": false
+}

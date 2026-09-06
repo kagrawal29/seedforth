@@ -1,0 +1,37 @@
+{
+  "date": "2026-04-09",
+  "ts": "2026-04-09T07:54:16.772608+00:00",
+  "results": [
+    {
+      "agent": "ingest",
+      "success": true,
+      "elapsed_s": 191.2,
+      "error": null
+    },
+    {
+      "agent": "synthesis",
+      "success": true,
+      "elapsed_s": 422.9,
+      "error": null
+    },
+    {
+      "agent": "evaluate",
+      "success": true,
+      "elapsed_s": 218.4,
+      "error": null
+    },
+    {
+      "agent": "feedback",
+      "success": false,
+      "elapsed_s": 300.0,
+      "error": "Timeout after 300s"
+    },
+    {
+      "agent": "distribute",
+      "success": false,
+      "elapsed_s": 300.0,
+      "error": "Timeout after 300s"
+    }
+  ],
+  "summary": "3 ok, 2 failed, 1432s total"
+}

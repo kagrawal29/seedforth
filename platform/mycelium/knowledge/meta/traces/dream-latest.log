@@ -1,0 +1,35 @@
+=== dream started at 2026-04-11T09:50:38.941683 ===
+[dream] Cypher-native dream round — 2026-04-11
+
+Sensing...
+  Graph: 1199 nodes, 2199 edges, 50 types
+  Missing triangles: 10
+  Orphan nodes (transient, degree 0): 111
+  High-degree hubs: 5
+
+Healing...
+  Triangles closed: 10
+  Orphans pruned: 111
+
+Proposing...
+  WorkItems unblocked: 9
+  Dream node: dream-2026-04-11
+  Proposals: 10
+
+Learning...
+    [learned] Dream edges attract traffic (70893.0 activations)
+    [learned] Dream-created edges attract real traffic (450.0 activations)
+    [learned] Dream edges attract traffic (5292.0 activations)
+  measurements: 1
+  attributions: 1
+  adjustments: 1
+  learnings_created: 1
+  active_learnings: 3
+
+Report: /workspace/maverick-meta/knowledge/meta/dream-proposals.md
+
+=== DREAM SUMMARY ===
+Sensed: 10 triangles, 111 orphans, 5 hubs
+Healed: 10 closures, 111 prunes
+Proposed: 10 actions from purpose
+Learned: 1 new learnings

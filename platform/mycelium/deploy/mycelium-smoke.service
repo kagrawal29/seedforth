@@ -1,0 +1,11 @@
+[Unit]
+Description=mycelium smoke test — dev + prod RETURN 1
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=nobody
+Group=nogroup
+ExecStart=/usr/local/sbin/mycelium-smoke.sh
+StandardOutput=journal
+StandardError=journal

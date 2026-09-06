@@ -1,0 +1,49 @@
+name: Protect main
+on:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check if merge commit
+        id: check
+        run: |
+          parents=$(git rev-list --parents -n 1 HEAD | awk '{print NF-1}')
+          msg=$(git log -1 --pretty=%s)
+          if [ "$parents" -ge 2 ] && echo "$msg" | grep -qE '^Merge (pull request|#)'; then
+            echo "legitimate=true" >> $GITHUB_OUTPUT
+          else
+            echo "legitimate=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Auto-revert direct push
+        if: steps.check.outputs.legitimate == 'false' && github.actor != 'github-actions[bot]'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          sha=$(git rev-parse HEAD)
+          parent=$(git rev-parse HEAD~1)
+
+          git checkout -b auto-revert-${sha:0:7}
+          git revert --no-edit $sha
+          git push origin auto-revert-${sha:0:7}
+      - name: Open issue for direct push
+        if: steps.check.outputs.legitimate == 'false' && github.actor != 'github-actions[bot]'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha;
+            const actor = context.actor;
+            const shortSha = sha.slice(0, 7);
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Direct push to main reverted: ${shortSha}`,
+              body: `@${actor} pushed ${shortSha} directly to main. This violates the two-tier branching model.\n\n**Auto-reverted by workflow.** Change was pushed to branch \`auto-revert-${shortSha}\`.\n\n**Rule:** feature/* → PR → dev → PR → main. Please reopen as a PR from \`dev/<username>/<desc>\` → \`dev\` → \`main\`.\n\nNote: If this is an emergency, coordinate in Slack first, then use \`git push --no-verify\` (but this is a last resort).`,
+              labels: ['policy-violation', 'branch-protection']
+            });

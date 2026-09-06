@@ -1,0 +1,50 @@
+{
+  "person": "Ankit-S",
+  "computed_at": "2026-04-10T18:32:04Z",
+  "intents": [
+    {
+      "intent_id": "spec-human-verification-affordance",
+      "source_cluster_id": "spec-reading-guide-format",
+      "surface_question": "How should technical specs include reading guides so non-technical reviewers can verify correctness?",
+      "underlying_intent": "Ankit-S is designing a built-in verification affordance for AI-generated specs — a structural mechanism that lets a non-technical reviewer confirm correctness without needing codebase access. The reading guide is not documentation; it is a traceability contract between the spec writer and the spec reviewer.",
+      "intent_domain": "process",
+      "evidence": "He specifically required that 'each line of the explanation points back to the specific technical thing it's explaining' — this is a traceability constraint, not a readability improvement. He then codified it as playbook rule 16 ('NO-SKIP'), making it a hard process gate rather than a style recommendation. The progression from 'how do we write a reading guide?' to 'what should the Agent Contract rule look like for requiring reading guides?' shows he was designing a systemic control, not a one-off doc improvement.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Knowledge Management & Research Patterns"
+    },
+    {
+      "intent_id": "spec-to-ship-workflow-validation",
+      "source_cluster_id": "channel-preferences-feature-build",
+      "surface_question": "How do we implement the channel preferences feature following the spec-to-ship playbook end to end?",
+      "underlying_intent": "Ankit-S is using channel preferences as a deliberate workflow probe — testing whether the spec-to-ship playbook v7 (which he just updated with reading guide rules) holds together end-to-end before it gets used on more complex features.",
+      "intent_domain": "workflow",
+      "evidence": "He independently checked each phase gate (Storybook build, typecheck, lint, dev server) after implementation — verifying the pipeline, not just the feature. This matches his pattern from the deal-comparison cluster, where he selected features specifically for workflow stress-testing capacity rather than product need. The feature was simple enough to complete quickly but complex enough to exercise all playbook phases.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Product Architecture & Fund Configuration"
+    },
+    {
+      "intent_id": "autonomous-cross-session-coordination",
+      "source_cluster_id": "architecture-audit-systematic-fixes",
+      "surface_question": "How do we systematically work through ARCHITECTURE-AUDIT.md issues using fix-playbook.md in isolation without circular dependencies?",
+      "underlying_intent": "Ankit-S wants autonomous parallel execution — one agent watching another agent's progress via JSONL file polling — so he can hand off cross-session coordination to the system itself rather than manually tracking it. The audit is the use case; autonomous execution is the goal.",
+      "intent_domain": "tooling",
+      "evidence": "'Do I have to ask you every 120 seconds? Or will you do by yourself?' — he asked this after setting up a cross-session monitoring pattern (Agent A reading Agent B's conversation JSONL every 60-120s). He asked Claude to self-poll without human prompting. This is not debugging behavior; it is infrastructure-building behavior. He was designing an autonomous coordination primitive, using the architecture audit as the first test case.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "intent_id": "workflow-stress-test-via-feature-selection",
+      "source_cluster_id": "deal-comparison-feature-design",
+      "surface_question": "What features should we build to stress-test the spec-to-ship workflow, and how should deal comparison be designed?",
+      "underlying_intent": "Ankit-S is selecting features as workflow stress tests — he needs sufficient complexity to expose spec-to-ship weaknesses. The feature choice is a means of creating a challenging test environment, not a product prioritization decision.",
+      "intent_domain": "workflow",
+      "evidence": "He rejected simpler features ('deal scorecard is not complex enough'), asked Claude to 'think harder.' His final acceptance of deal comparison was based on complexity criteria: multi-component coordination, branching logic, multiple FSD layers. This selection behavior is diagnostic: he is probing the workflow's limits, not the product's needs.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Product Architecture & Fund Configuration"
+    }
+  ]
+}

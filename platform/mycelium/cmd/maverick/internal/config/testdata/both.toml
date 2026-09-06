@@ -1,0 +1,11 @@
+# Flat schema (legacy)
+[dev]
+bolt_uri = "bolt://localhost:7600"
+user = "neo4j"
+password = "flatpass123"
+
+# Nested schema (preferred) - should win
+[targets.dev]
+bolt_uri = "bolt://localhost:7687"
+user = "neo4j"
+password = "nestedpass123"

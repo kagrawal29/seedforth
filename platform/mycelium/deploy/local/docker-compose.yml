@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  neo4j:
+    image: neo4j:5.22-community
+    container_name: maverick-neo4j-local
+    ports:
+      - "7687:7687"  # Bolt protocol
+      - "7474:7474"  # Browser UI
+    environment:
+      NEO4J_AUTH: neo4j/${MAVERICK_LOCAL_PASSWORD}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_apoc_import_file_enabled: "true"
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_trigger_enabled: "true"
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    volumes:
+      - maverick_local_neo4j_data:/data
+      - maverick_local_neo4j_logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${MAVERICK_LOCAL_PASSWORD}", "--encryption", "false", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - maverick_local
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: maverick-ollama-local
+    ports:
+      - "11434:11434"
+    volumes:
+      - maverick_local_ollama:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - maverick_local
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+
+  embed-proxy:
+    build:
+      context: ../
+      dockerfile: local/Dockerfile.embed-proxy
+    container_name: maverick-embed-proxy-local
+    ports:
+      - "7701:7701"
+    environment:
+      LISTEN_ADDR: "0.0.0.0:7701"
+      OLLAMA_URL: "http://ollama:11434"
+      OLLAMA_MODEL: "nomic-embed-text"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:7701/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - maverick_local
+
+volumes:
+  maverick_local_neo4j_data:
+  maverick_local_neo4j_logs:
+  maverick_local_ollama:
+
+networks:
+  maverick_local:
+    driver: bridge

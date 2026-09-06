@@ -1,0 +1,124 @@
+[
+  {
+    "columns": [
+      "species",
+      "signatures",
+      "parent"
+    ],
+    "data": [
+      {
+        "row": [
+          {
+            "created_at": "2026-04-16T14:22:16.063Z",
+            "git_branch": "main",
+            "canonical": false,
+            "label": "Genesis Species",
+            "superseded_by": "species-candidate-07d7a5360835e19d",
+            "minted_at": "2026-04-17T20:49:10.584Z",
+            "parent_dna": "genesis",
+            "fractal_scale": 0,
+            "superseded_at": "2026-04-17T20:50:34.618Z",
+            "genesis": true,
+            "current": true,
+            "manifest_root": "097a100d25c89305d3b4a0435dd20dcc8931066f442416a797a20bc037470921",
+            "is_semantic_head": true,
+            "health_status": "unknown",
+            "node_id": "species-genesis-v1",
+            "algorithm": "phase-b-v1"
+          },
+          [],
+          null
+        ],
+        "meta": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "type": "datetime"
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "row": [
+          {
+            "canonized_at": "2026-04-17T20:50:34.618Z",
+            "description": "Candidate species pending witness signatures. Commits to Being.root_hash at mint time. Promoted to canonical by species-canonize.cypher once quorum_required WitnessSignatures accumulate.",
+            "signed": true,
+            "git_branch": "species/candidate-07d7a5360835e19d",
+            "canonical": true,
+            "label": "Candidate Species (phase-b-v1, root=07d7a5360835)",
+            "minted_at": "2026-04-17T20:49:10.692Z",
+            "parent_dna": "097a100d25c89305d3b4a0435dd20dcc8931066f442416a797a20bc037470921",
+            "canonized_with_signatures": 1,
+            "candidate": false,
+            "manifest_root": "07d7a5360835e19d2bf18942d479f52a43f88026b311573b47814b8ce349fc4b",
+            "file_type": "species",
+            "minted_from": "species-mint.cypher",
+            "quorum_required": 1,
+            "node_id": "species-candidate-07d7a5360835e19d",
+            "algorithm": "phase-b-v1"
+          },
+          [
+            {
+              "public_key": "4607d8ff2db3a652a7b9ebc75c125e46fb63c6d1779beffb6605289593c4d585",
+              "signature": "46f654ff1ffc505544a2e449cb00fe77d5b6fe810d6a2dac036f54f251b80950",
+              "file_type": "witness-signature",
+              "witness_alias": "Mycelium",
+              "signed_at": "2026-04-17T20:50:27.697Z",
+              "signed_message": "07d7a5360835e19d2bf18942d479f52a43f88026b311573b47814b8ce349fc4b|097a100d25c89305d3b4a0435dd20dcc8931066f442416a797a20bc037470921|species-candidate-07d7a5360835e19d",
+              "label": "Witness Mycelium signature of 07d7a5360835",
+              "species_node_id": "species-candidate-07d7a5360835e19d",
+              "species_dna": "07d7a5360835e19d2bf18942d479f52a43f88026b311573b47814b8ce349fc4b",
+              "algorithm": "sha256-commitment",
+              "node_id": "witsig-07d7a5360835e19d-Mycelium"
+            }
+          ],
+          "species-genesis-v1"
+        ],
+        "meta": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ]
+  }
+]

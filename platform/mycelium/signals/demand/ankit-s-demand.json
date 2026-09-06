@@ -1,0 +1,104 @@
+{
+  "person": "Ankit-S",
+  "computed_at": "2026-04-11T09:37:17Z",
+  "question_clusters": [
+    {
+      "id": "skill-auto-selection-mechanism",
+      "representative_question": "Does Claude automatically select and invoke the right superpowers skill, or does the user have to explicitly trigger it each time?",
+      "all_questions": [
+        "is this how it works currently? We didn't define which agent to pick, but Claude automatically picks the right things, so is it already working like that?",
+        "Are you sure that we have to use every skill in this phase-wise? Instead, maybe we can add one of the skill tech, like the code reviewer or superpower reviewer?",
+        "Can you finally give me the confirmation that I wanted my workflow to be the way it is? It should work at that level."
+      ],
+      "frequency": 3,
+      "frustration": "medium",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-10",
+      "domain": "skills-integration",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-claude-code-agent-as-primary-builder",
+          "coverage_score": 0.2,
+          "gap": "Covers Claude Code as primary builder pattern, but does not explain the skill auto-selection mechanism \u2014 how Claude reads skill descriptions to decide invocation, what the 1% trigger threshold means in practice, whether auto-invocation is reliable, and how to verify a skill was actually invoked vs ignored."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "playbook-skill-integration-strategy",
+      "representative_question": "Should superpowers skills be embedded into the spec-to-ship playbook phases, or left as standalone invocations? Which approach preserves quality without breaking the workflow?",
+      "all_questions": [
+        "So what do you think? Should we integrate them again to make it much better? The main thing I wanted was to improve our quality of this workflow in any way.",
+        "One more thing, can we add the reviewer as well? We have the superpower reviewer agent, so once the whole work is done, it can review the things.",
+        "is there any place where you think that we should create a skill or a plugin or something for that?",
+        "All right, let's finalise this. Just create the version 8 of the version 7 with the updated things."
+      ],
+      "frequency": 4,
+      "frustration": "low",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-10",
+      "domain": "skills-integration",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-claude-code-agent-as-primary-builder",
+          "coverage_score": 0.4,
+          "gap": "Covers the builder pattern but not when to embed skills into a playbook vs keep them standalone. No entry captures the 'execution patterns require actual agent dispatch' vs 'rules absorbed into playbook' distinction that Ankit-S worked through in this session."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "cross-agent-monitoring-loop",
+      "representative_question": "Can Claude autonomously poll another Claude Code session's JSONL conversation file every 60-120 seconds and report progress without user input?",
+      "all_questions": [
+        "Do I have to ask you every 120 seconds? Or will you do by yourself?",
+        "Check every 60 seconds (or maybe 120) what it is doing, how it is doing \u2014 log how it follows fix-playbook",
+        "Check the other Claude Code conversation...parse all entries, compare against database"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-07",
+      "domain": "agent-coordination",
+      "matched_entries": [
+        {
+          "entry_id": "tool-configs-claude-code-hooks-for-data-capture",
+          "coverage_score": 0.1,
+          "gap": "hooks entry covers data capture patterns, not autonomous cross-agent monitoring. No entry documents the pattern of Agent A watching Agent B's JSONL conversation file, how to parse Claude Code conversation logs, or how to implement self-polling loops without user input."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "multi-fund-hierarchy-implementation",
+      "representative_question": "How do we implement multi-fund hierarchy in the frontend with fund switching, spec-to-plan accuracy checking, and proper branch strategy?",
+      "all_questions": [
+        "Branch created from feat/multi-fund-hierarchy. Spec and plan are committed. Ready for Phase 3.",
+        "Yes \u2014 I already ran the Phase 1.5 validator. The spec-flow-analyzer returned PASS WITH FIXES \u2014 no blocking findings, 8 non-blocking.",
+        "All 6 gaps patched. Now cross-check spec \u2192 plan accuracy."
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-11",
+      "last_asked": "2026-04-11",
+      "domain": "multi-fund",
+      "matched_entries": [
+        {
+          "entry_id": "architecture-configurable-per-fund-pattern",
+          "coverage_score": 0.5,
+          "gap": "configurable-per-fund documents the per-fund config pattern and schema requirements. Does not cover multi-fund UI patterns \u2014 fund switcher component design, fund context provider, FundContextProvider zero-funds guard, or how to implement the FundSwitcher story hierarchy."
+        }
+      ],
+      "gap_signal": true
+    }
+  ],
+  "summary": {
+    "total_questions": 13,
+    "gaps": 4,
+    "highest_frustration_domain": "skills-integration",
+    "cross_person_connections": [
+      "Abhishek (both actively building spec workflows \u2014 Ankit-S building spec-to-ship playbook v8, Abhishek managing 10-spec dependency overlap for product)",
+      "Sahil (both researching skill/plugin integration architecture \u2014 Ankit-S embedding skills into playbook phases, Sahil evaluating agent harness plugin models vs CASDK)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "branch": "main",
+  "actor": "Ankit-S",
+  "opening_task": "Ok, what open source alternatives do we have? Even if you consider that Sahiram has done nothing, we can do a fresh start. What open source alternative do you suggest for this?",
+  "turns": 0,
+  "total_cost": 0.0,
+  "conversation": [],
+  "hook_injections": [],
+  "workspace": "/tmp/test-buddy-20260407-220207"
+}

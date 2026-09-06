@@ -1,0 +1,165 @@
+name: graph-validate
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: start neo4j with apoc
+        run: |
+          docker run -d --name mycelium-neo4j-ci \
+            -p 7687:7687 -p 7474:7474 \
+            -e NEO4J_AUTH=neo4j/localtest12 \
+            -e NEO4J_PLUGINS='["apoc"]' \
+            -e NEO4J_dbms_security_procedures_unrestricted='apoc.*' \
+            -e NEO4J_dbms_security_procedures_allowlist='apoc.*' \
+            -e NEO4J_apoc_export_file_enabled=true \
+            -e NEO4J_apoc_import_file_enabled=true \
+            -e NEO4J_server_memory_pagecache_size=1G \
+            -e NEO4J_server_memory_heap_max__size=1G \
+            neo4j:5.22
+          echo "waiting for neo4j to accept connections..."
+          until docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false "RETURN 1" >/dev/null 2>&1; do
+            sleep 2
+          done
+          echo "neo4j ready"
+
+      - name: install python deps
+        run: python3 -m pip install --quiet neo4j requests cryptography
+
+      - name: seed from base branch graph-state.cypher
+        run: |
+          git fetch origin "${{ github.base_ref }}"
+          if git show "origin/${{ github.base_ref }}:graph-state.cypher" > /tmp/base-graph-state.cypher 2>/dev/null; then
+            echo "base state: $(wc -l < /tmp/base-graph-state.cypher) lines"
+            docker cp /tmp/base-graph-state.cypher mycelium-neo4j-ci:/tmp/seed.cypher
+            docker exec -i mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false \
+              "MATCH (n) DETACH DELETE n" >/dev/null
+            docker exec mycelium-neo4j-ci sh -c 'cypher-shell -u neo4j -p localtest12 --encryption false < /tmp/seed.cypher' >/dev/null
+            NODES=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (n) RETURN count(n)" | tail -1)
+            echo "nodes loaded: $NODES"
+          else
+            echo "no graph-state.cypher on origin/${{ github.base_ref }} - skipping seed (legacy file; replaced by repo-as-SoT per wi-gs-05)"
+          fi
+
+      - name: baseline checks (sanity)
+        run: |
+          set -e
+          export NEO4J_CONTAINER=mycelium-neo4j-ci
+          export NEO4J_USER=neo4j
+          export NEO4J_PASS=localtest12
+          if [ -f graph/runner/run-invariants.sh ] && [ -f graph/runner/run-tests.sh ]; then
+            bash graph/runner/run-invariants.sh
+            bash graph/runner/run-tests.sh
+          else
+            echo "legacy runner scripts absent - skipping baseline checks (replaced by maverick-dev verify per wi-gs-05)"
+          fi
+
+      - name: detect proposed cypher files
+        id: changed
+        run: |
+          # Convention: proposed mutations live under pr/ as individual .cypher files.
+          # Each file is one atomic merge to validate.
+          git fetch origin "${{ github.base_ref }}"
+          changed_files=$(git diff --name-only "origin/${{ github.base_ref }}..HEAD" -- 'pr/**.cypher' || true)
+          {
+            echo "changed_files<<EOF"
+            echo "$changed_files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          if [ -z "$changed_files" ]; then
+            echo "(no proposed cypher files in this PR — validating runtime protocols only)"
+          else
+            echo "$changed_files"
+          fi
+
+      - name: run validate-merge on each proposed cypher
+        id: validate
+        if: steps.changed.outputs.changed_files != ''
+        env:
+          NEO4J_CONTAINER: mycelium-neo4j-ci
+          NEO4J_USER: neo4j
+          NEO4J_PASS: localtest12
+        run: |
+          set -e
+          rm -f /tmp/validate-results.md
+          {
+            echo "## Graph validation results"
+            echo ""
+          } > /tmp/validate-results.md
+          overall_exit=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo ""
+            echo "=== validating $f ==="
+            if bash graph/runner/validate-merge.sh "$f" > /tmp/vm.out 2>&1; then
+              echo "- :white_check_mark: \`$f\` — all checks green" >> /tmp/validate-results.md
+            else
+              overall_exit=1
+              echo "- :x: \`$f\` — validation failed" >> /tmp/validate-results.md
+              echo "  \`\`\`" >> /tmp/validate-results.md
+              tail -15 /tmp/vm.out | sed 's/^/  /' >> /tmp/validate-results.md
+              echo "  \`\`\`" >> /tmp/validate-results.md
+            fi
+          done <<< "${{ steps.changed.outputs.changed_files }}"
+
+          # Attach Merkle + chain state
+          {
+            echo ""
+            echo "### Post-validation chain state"
+            echo ""
+          } >> /tmp/validate-results.md
+          ROOT=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (b:Being) RETURN b.root_hash" | tail -1 | tr -d '"')
+          CANONICAL=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (b:Being)-[:CURRENT_SPECIES]->(s) RETURN s.node_id" | tail -1 | tr -d '"')
+          echo "- \`Being.root_hash\`: \`$ROOT\`" >> /tmp/validate-results.md
+          echo "- current canonical species: \`$CANONICAL\`" >> /tmp/validate-results.md
+
+          if [ "$overall_exit" -eq 0 ]; then
+            {
+              echo ""
+              echo "### Candidate species"
+            } >> /tmp/validate-results.md
+            bash graph/runner/species-mint.sh > /tmp/mint.out 2>&1 || true
+            CANDIDATE=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (c:CandidateSpecies) RETURN c.node_id LIMIT 1" | tail -1 | tr -d '"')
+            CANDIDATE_ROOT=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (c:CandidateSpecies) RETURN c.manifest_root LIMIT 1" | tail -1 | tr -d '"')
+            if [ -n "$CANDIDATE" ] && [ "$CANDIDATE" != "NULL" ]; then
+              {
+                echo "- \`$CANDIDATE\`"
+                echo "- manifest_root: \`$CANDIDATE_ROOT\`"
+                echo "- to sign locally:"
+                echo "  \`\`\`"
+                echo "  graph/runner/witness-sign.sh $CANDIDATE <your-alias>"
+                echo "  graph/runner/verify-signatures.sh $CANDIDATE"
+                echo "  graph/runner/species-canonize.sh $CANDIDATE"
+                echo "  \`\`\`"
+              } >> /tmp/validate-results.md
+            else
+              echo "- (no drift — candidate not minted, current canonical already commits to this state)" >> /tmp/validate-results.md
+            fi
+          fi
+
+          cat /tmp/validate-results.md
+          exit $overall_exit
+
+      - name: post validation comment to PR
+        if: always() && steps.changed.outputs.changed_files != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: graph-validate
+          path: /tmp/validate-results.md

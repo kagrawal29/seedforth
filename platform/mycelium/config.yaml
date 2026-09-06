@@ -1,0 +1,83 @@
+# Meta Intelligence System Configuration
+# Change this file to deploy for a different team. No code changes needed.
+
+team:
+  - name: Sahiram
+    alias: Banyan
+    langsmith_project: f6b7d95f-ebda-48e6-81f9-9cfdbe28294c
+  - name: Abhishek
+    alias: Sequoia
+    langsmith_project: 43265e84-4cad-452b-b2d2-65859553e043
+  - name: Ankit-S
+    alias: Birch
+    langsmith_project: 3473bc94-aa22-40ab-80bd-8588c9b00861
+  - name: Sahil
+    alias: Cedar
+    langsmith_project: bf63ca28-62c6-4466-9c3b-97e6f6bbc32a
+  - name: Pranav
+    alias: Oak
+    langsmith_project: 7d991519-fad6-4ede-bed1-9be395152ebe
+  - name: Kshitiz
+    alias: Mycelium
+    langsmith_project: ce70362b-3f8f-499b-b90c-a09f45bb000b
+
+repos:
+  - name: VC-AI-Assoicate
+    org: Qubit-Capital
+    domain: product
+  - name: maverick-market-research
+    org: Qubit-Capital
+    domain: research
+  - name: maverick-meta
+    org: Qubit-Capital
+    domain: meta
+
+settings:
+  max_rules: 20
+  staleness_warn_days: 7
+  staleness_decay_days: 14
+  relevance_threshold: 2
+  max_procedure_chars: 3575
+  confidence_gate: medium  # never distribute entries below this confidence
+
+# Cadence: all times in IST. Work hours = 10am-10pm IST.
+cadence:
+  synthesis_interval_hours: 14    # 2x/day: 00:30 IST (night dream) + 15:00 IST (afternoon breath)
+  work_hours_start: 10            # IST
+  work_hours_end: 22              # IST
+  entry_feedback: daily           # end of work day
+  skill_feedback_interval_days: 2 # every 2 days
+  distribution: after_gates       # after Heimdall + pre-dist audit pass
+
+# Model selection per agent
+models:
+  ingest: sonnet                  # mechanical data fetching
+  synthesis: sonnet               # was opus — moved to sonnet for quota
+  heimdall: sonnet                # was opus — moved to sonnet for quota
+  pre_dist_audit: sonnet          # was opus — moved to sonnet for quota
+  entry_feedback: sonnet          # was opus — moved to sonnet for quota
+  skill_feedback: sonnet          # was opus — moved to sonnet for quota
+  demand: sonnet                  # question extraction + clustering
+  distribution: none              # deterministic Python, no AI
+
+langsmith:
+  api_key_env: CC_LANGSMITH_API_KEY  # reads from this env var at runtime
+  base_url: https://api.smith.langchain.com/api/v1
+
+graph:
+  neo4j_bolt: bolt://143.110.226.214:7687
+  neo4j_user: neo4j
+  falkordb_url: redis://143.110.226.214:6380
+  falkordb_external: redis://143.110.226.214:6380
+  mcp_port: 6381
+  embedding_model: text-embedding-3-small
+
+artifact_patterns:
+  - "**/playbook/**"
+  - "**/learnings*"
+  - "**/CLAUDE.md"
+  - "**/AGENTS.md"
+  - "**/*rules*"
+  - "**/*guide*"
+  - "**/docs/research/**"
+  - "**/docs/architecture/**"

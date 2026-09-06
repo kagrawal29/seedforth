@@ -1,0 +1,91 @@
+{
+  "person": "Kshitiz",
+  "computed_at": "2026-04-11T09:37:17Z",
+  "question_clusters": [
+    {
+      "id": "graph-native-pipeline-design",
+      "representative_question": "How do we make the intelligence pipeline itself a graph structure \u2014 PipelineStage nodes holding Cypher queries as properties, with FLOWS_TO edges defining execution order?",
+      "all_questions": [
+        "You're right. A Python file defining the pipeline is the same bypass we just identified \u2014 the pipeline structure itself should be graph topology.",
+        "Yes \u2014 that's the critical constraint. The pipeline has to run at zero LLM cost, otherwise it's not a nervous system, it's a billing event.",
+        "The Cypher-native pipeline is live. 19 stages in the graph, zero LLM cost, all intelligence is graph traversal."
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-11",
+      "last_asked": "2026-04-11",
+      "domain": "meta-intelligence",
+      "matched_entries": [],
+      "gap_signal": true
+    },
+    {
+      "id": "staged-testing-before-team-deployment",
+      "representative_question": "How do we verify the meta-intelligence system is fully functional before distributing to the team?",
+      "all_questions": [
+        "before pushing anything to team or deploying, i want to do a full cycle, fetching fresh signal data, to all the way updated asgard state after all our agents running, first check if the system is fully ready",
+        "we don't want to ship anything to team yet, i saw a remark stating otherwise on issue #4. first test ourselves before shipping to team",
+        "yes let's test everything thoroughly, keep using issues as writing pad"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-09",
+      "domain": "meta-intelligence",
+      "matched_entries": [
+        {
+          "entry_id": "tool-configs-auto-sync-hooks",
+          "coverage_score": 0.1,
+          "gap": "auto-sync-hooks covers commit/push automation. No entry covers the full-cycle pre-deployment validation process for meta-intelligence systems \u2014 what 'ready to ship' means for Mycelium, what the validation sequence is (ingest \u2192 synth \u2192 Heimdall gate \u2192 feedback \u2192 distribute), and what test coverage threshold triggers team deployment."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "issue-as-working-memory",
+      "representative_question": "How should GitHub issues be used as a working scratchpad during meta-system development sessions?",
+      "all_questions": [
+        "yes. and in your journey keep using issues as writing pad",
+        "yes let's test everything thoroughly, keep using issues as writing pad",
+        "you decide, remember we were on implementation, so if it's natural step in that then do it"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-09",
+      "domain": "development-workflow",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-issue-driven-research-tracking",
+          "coverage_score": 0.6,
+          "gap": "issue-driven-research-tracking covers using issues for research tracking. Does not cover the 'issue as agent scratchpad' pattern \u2014 how long-running orchestration sessions use issues as persistent working memory, how sub-agents write progress to issues, and how to close issues when the working session is done."
+        }
+      ],
+      "gap_signal": false
+    },
+    {
+      "id": "meta-system-layer-architecture",
+      "representative_question": "What are L1-L8 in the meta-intelligence system and which layers are built vs not built yet?",
+      "all_questions": [
+        "let's wire what's built first, then L5 and L6 are high priority, test everything we build",
+        "checkout latest issues",
+        "cool, now we need to get ready for the next phase"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-10",
+      "domain": "meta-intelligence",
+      "matched_entries": [],
+      "gap_signal": true
+    }
+  ],
+  "summary": {
+    "total_questions": 12,
+    "gaps": 3,
+    "highest_frustration_domain": "meta-intelligence",
+    "cross_person_connections": [
+      "Sahil (both concerned about AI-generated content trust and validation \u2014 Kshitiz enforcing TDD/test-before-ship for meta-system, Sahil questioning whether AI audit docs are reliable)",
+      "Pranav (both asking about Asgard graph from different angles \u2014 Pranav as curious team member, Kshitiz as system builder defining graph topology)"
+    ]
+  }
+}

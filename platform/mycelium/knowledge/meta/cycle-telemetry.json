@@ -1,0 +1,145 @@
+[
+  {
+    "cycle_id": "2026-04-10-cycle-1854",
+    "start": "2026-04-10T18:54:48.425125+00:00",
+    "end": "2026-04-10T19:10:34.593900+00:00",
+    "total_elapsed_s": 946.2,
+    "steps_ok": 6,
+    "steps_total": 11,
+    "steps": [
+      {
+        "name": "ingest",
+        "success": true,
+        "elapsed_s": 322.1,
+        "error": null,
+        "timestamp": "2026-04-10T19:00:10.569341+00:00",
+        "sdk_duration_s": 312.5,
+        "sdk_turns": 2,
+        "sdk_cost_usd": 0.5995
+      },
+      {
+        "name": "demand",
+        "success": true,
+        "elapsed_s": 347.9,
+        "error": null,
+        "timestamp": "2026-04-10T19:05:58.510221+00:00",
+        "sdk_duration_s": 338.8,
+        "sdk_turns": 21,
+        "sdk_cost_usd": 0.7651
+      },
+      {
+        "name": "intent",
+        "success": false,
+        "elapsed_s": 249.7,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:08.230351+00:00",
+        "sdk_duration_s": 240.7,
+        "sdk_turns": 13,
+        "sdk_cost_usd": 0.4067
+      },
+      {
+        "name": "convergence",
+        "success": true,
+        "elapsed_s": 0.1,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:08.309553+00:00",
+        "sdk_duration_s": null,
+        "sdk_turns": null,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "sync-layers",
+        "success": true,
+        "elapsed_s": 0.3,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:08.656781+00:00",
+        "sdk_duration_s": null,
+        "sdk_turns": null,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "synthesis",
+        "success": false,
+        "elapsed_s": 8.2,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:17.082984+00:00",
+        "sdk_duration_s": 0.4,
+        "sdk_turns": 1,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "graph-sync",
+        "success": true,
+        "elapsed_s": 0.4,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:17.440633+00:00",
+        "sdk_duration_s": null,
+        "sdk_turns": null,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "dream",
+        "success": false,
+        "elapsed_s": 0.3,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:17.955330+00:00",
+        "sdk_duration_s": null,
+        "sdk_turns": null,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "integrity",
+        "success": true,
+        "elapsed_s": 0.1,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:18.069714+00:00",
+        "sdk_duration_s": null,
+        "sdk_turns": null,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "heimdall",
+        "success": false,
+        "elapsed_s": 8.2,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:26.306546+00:00",
+        "sdk_duration_s": 0.4,
+        "sdk_turns": 1,
+        "sdk_cost_usd": null
+      },
+      {
+        "name": "pre-dist-audit",
+        "success": false,
+        "elapsed_s": 8.3,
+        "error": null,
+        "timestamp": "2026-04-10T19:10:34.592963+00:00",
+        "sdk_duration_s": 0.4,
+        "sdk_turns": 1,
+        "sdk_cost_usd": null
+      }
+    ],
+    "graph_interactions": [
+      {
+        "agent": "orchestrator",
+        "action": "cache_refresh",
+        "target": "graph-context.md, graph-demand.md, heimdall-graph-context.md, pre-dist-graph-context.md",
+        "tokens": 0,
+        "results": 4,
+        "falkordb_reachable": true,
+        "timestamp": "2026-04-10T19:10:08.890640+00:00"
+      },
+      {
+        "agent": "orchestrator",
+        "action": "cache_refresh",
+        "target": "graph-context.md, graph-demand.md",
+        "tokens": 0,
+        "results": 2,
+        "falkordb_reachable": true,
+        "timestamp": "2026-04-10T19:10:17.445769+00:00"
+      }
+    ],
+    "graph_interactions_count": 2,
+    "files_produced": [],
+    "files_read": []
+  }
+]

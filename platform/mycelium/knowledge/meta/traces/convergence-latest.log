@@ -1,0 +1,12 @@
+=== convergence started at 2026-04-11T09:48:18.463201 ===
+[convergence] Cypher-native convergence detection...
+  Intents: 12 from 4 people
+  Region convergence: 3
+  Total convergence events: 3
+  Wrote /workspace/maverick-meta/signals/demand/convergence-events.json
+  Wrote /workspace/maverick-meta/knowledge/meta/convergence-report.md
+
+  === CONVERGENCE DETECTED ===
+    [region_cluster] Meta Intelligence System: 3 people, 6 intents, strength 23.0
+    [region_cluster] Product Architecture & Fund Configuration: 2 people, 3 intents, strength 15.5
+    [region_cluster] Security Stack & Infrastructure: 2 people, 3 intents, strength 13.5

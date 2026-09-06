@@ -1,0 +1,52 @@
+=== distribute started at 2026-04-10T22:42:03.931209 ===
+[distribute] Starting at 2026-04-10T22:42:04.013664
+  [lint] Running: python3 scripts/lint-knowledge.py
+  [lint] Building knowledge search index...
+  Found 34 entries
+  Search index: knowledge/search-index.md (831 keywords)
+  Situation index: knowledge/index.md (43 entries in 6 situations)
+Done.
+Linting knowledg
+  [index] Running: python3 scripts/build-search-index.py
+  [index] Building knowledge search index...
+  Found 34 entries
+  Search index: knowledge/search-index.md (831 keywords)
+  Situation index: knowledge/index.md (43 entries in 6 situations)
+Done.
+  [community-map] Running: python3 /workspace/maverick-meta/scripts/generate-community-map-live.py
+  [community-map] FAILED: 
+  [distribute] Community map regeneration failed — using existing static map
+  [push-knowledge] Running: bash scripts/push-knowledge.sh
+  [push-knowledge] Files to distribute: 42
+
+============================================
+REPO: Qubit-Capital/VC-AI-Assoicate
+============================================
+
+  Branch: audit/phase-1-corrections
+    .claude/
+  [push-rules] Running: bash scripts/push-to-all-branches.sh
+  [push-rules] ============================================
+REPO: Qubit-Capital/VC-AI-Assoicate
+============================================
+
+  Branch: audit/phase-1-corrections
+    check-existing-state.md — already
+  [context-gen] Running: python3 agents/run-context.py
+  [context-gen] FAILED: 
+  [push-context] Running: bash scripts/push-person-context.sh
+  [push-context] === Pushing per-person context files ===
+
+============================================
+REPO: Qubit-Capital/VC-AI-Assoicate
+============================================
+
+  Person: Abhishek
+    No match
+  [stage] Running: git add knowledge/ distribution/ .claude/
+  [commit] Running: git commit -m "auto-distribute: 2026-04-10" --allow-empty
+  [commit] [main 371cf09] auto-distribute: 2026-04-10
+ 30 files changed, 559 insertions(+), 219 deletions(-)
+ create mode 100644 knowledge/meta/.synthesis-lock
+ create mode 100644 knowledge/meta/convergence-repo
+[distribute] Complete.

@@ -1,0 +1,832 @@
+{
+  "extracted_at": "2026-04-11T09:33:44Z",
+  "documents": [
+    {
+      "source": "Qubit-Capital/VC-AI-Assoicate/docs/phase-1/DECISIONS.md",
+      "title": "Architecture Decisions from Track A Audit",
+      "concepts": [
+        {
+          "id": "configurable-stages-per-fund",
+          "label": "Configurable DD/IC Pipeline Stages",
+          "type": "decision",
+          "summary": "Each fund can define its own DD/IC pipeline stages and sequence; ships with a sensible default."
+        },
+        {
+          "id": "deal-research-doc-system",
+          "label": "DealResearchDoc Unified Document System",
+          "type": "decision",
+          "summary": "DealResearchDoc becomes the single document system; adds 'quick-note' type alongside 'memo', 'competitor', 'market'; memos.ts deleted."
+        },
+        {
+          "id": "call-list-detail-pattern",
+          "label": "Light List + Full Detail Call Pattern",
+          "type": "pattern",
+          "summary": "List views return summary fields (title, date, participants); detail views return full data (transcript, metrics, risks, tasks)."
+        },
+        {
+          "id": "configurable-scoring-dimensions",
+          "label": "Configurable Scoring Dimensions per Fund Thesis",
+          "type": "decision",
+          "summary": "Ships with 6-8 default scoring dimensions; each fund can configure weights and add/remove dimensions during thesis setup."
+        },
+        {
+          "id": "deal-contacts-join-table",
+          "label": "deal_contacts Join Table",
+          "type": "component",
+          "summary": "Relationship table with role, isPrimary, addedAt fields; reuses existing DealContactAssociation type."
+        },
+        {
+          "id": "security-defer-to-phase2",
+          "label": "Security Quick-Wins Deferred to Phase 2",
+          "type": "decision",
+          "summary": "Security issues are documented only; full fixes deferred until Phase 2 after audit completion."
+        },
+        {
+          "id": "configurable-deal-metrics",
+          "label": "Configurable Deal Metrics Schema per Fund",
+          "type": "decision",
+          "summary": "Deal.metrics schema is configurable per fund; needs separate design session for frontend/backend implementation."
+        },
+        {
+          "id": "soft-stage-enforcement",
+          "label": "Soft Stage Enforcement with Partner Override",
+          "type": "decision",
+          "summary": "Warn when skipping stages; partners can override. No hard blocking."
+        },
+        {
+          "id": "structured-pass-decision",
+          "label": "Structured PassDecision Entity",
+          "type": "component",
+          "summary": "Pass/decline tracking with reason category, free-text notes, stage-at-pass, reviewer; enables learning loop."
+        },
+        {
+          "id": "dd-checklist-entity",
+          "label": "DDChecklist First-Class Entity",
+          "type": "component",
+          "summary": "DDChecklist type with areas, items, status, assignee, notes, linked reference calls."
+        },
+        {
+          "id": "thesis-config-merged",
+          "label": "Single Comprehensive ThesisConfig",
+          "type": "decision",
+          "summary": "Two ThesisConfig types merged into one with both structured fields and free-text overview."
+        },
+        {
+          "id": "fsd-chat-inversion-fix",
+          "label": "FSD shared→widget Inversion Fix (Phase 2)",
+          "type": "decision",
+          "summary": "ChatMessage types to be extracted to shared/types/ai-chat.ts before backend build; deferred to Phase 2."
+        },
+        {
+          "id": "stage-aware-fixture-factories",
+          "label": "Stage-Aware Fixture Factories",
+          "type": "pattern",
+          "summary": "Pre-Seed caps at $20K MRR/$10M val; Seed at $100K/$25M; Series A at $500K/$100M — fixtures reflect realistic stage-correlated metrics."
+        },
+        {
+          "id": "co-investor-tracking",
+          "label": "Co-Investor Tracking on Deal",
+          "type": "decision",
+          "summary": "coInvestors array added to Deal type: name, firm, isLead, status (confirmed/verbal/interested/passed)."
+        },
+        {
+          "id": "deal-ownership-terms-v2",
+          "label": "Deal Ownership and Term Sheet Fields Deferred to V2",
+          "type": "decision",
+          "summary": "V1 focuses on screening/evaluation; term sheet and ownership fields deferred to V2."
+        },
+        {
+          "id": "passive-email-capture",
+          "label": "Passive Email Capture + Email Tab",
+          "type": "decision",
+          "summary": "Both active email tab and passive capture are included in scope."
+        }
+      ],
+      "relationships": [
+        {
+          "source": "configurable-stages-per-fund",
+          "target": "configurable-scoring-dimensions",
+          "relation": "IMPLEMENTS",
+          "detail": "Both follow the same per-fund configurability pattern established for the DD pipeline."
+        },
+        {
+          "source": "configurable-stages-per-fund",
+          "target": "configurable-deal-metrics",
+          "relation": "IMPLEMENTS",
+          "detail": "Round types, metrics, and stages are all consistently configurable per fund thesis."
+        },
+        {
+          "source": "deal-research-doc-system",
+          "target": "dd-checklist-entity",
+          "relation": "DEPENDS_ON",
+          "detail": "DDChecklist links reference calls, which are part of the unified DealResearchDoc document system."
+        },
+        {
+          "source": "structured-pass-decision",
+          "target": "soft-stage-enforcement",
+          "relation": "IMPLEMENTS",
+          "detail": "PassDecision captures the stage-at-pass field, complementing soft stage enforcement with an audit trail."
+        },
+        {
+          "source": "thesis-config-merged",
+          "target": "configurable-scoring-dimensions",
+          "relation": "DEPENDS_ON",
+          "detail": "ThesisConfig holds the scoring dimension weights and fund-specific configuration."
+        },
+        {
+          "source": "fsd-chat-inversion-fix",
+          "target": "security-defer-to-phase2",
+          "relation": "IMPLEMENTS",
+          "detail": "Both are architectural clean-up items explicitly deferred from Phase 1 to Phase 2."
+        },
+        {
+          "source": "deal-contacts-join-table",
+          "target": "co-investor-tracking",
+          "relation": "IMPLEMENTS",
+          "detail": "co-investor tracking extends the same relationship-table pattern established for deal-contact associations."
+        }
+      ],
+      "links_to_existing": [
+        {
+          "concept_id": "configurable-stages-per-fund",
+          "existing_node_id": "configurable_per_fund_pattern",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "configurable-scoring-dimensions",
+          "existing_node_id": "configurable_per_fund_pattern",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "configurable-deal-metrics",
+          "existing_node_id": "configurable_per_fund_jsonb",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "fsd-chat-inversion-fix",
+          "existing_node_id": "concept_esLint_enforcement",
+          "relation": "REFERENCES"
+        }
+      ]
+    },
+    {
+      "source": "Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/AGENT-FEATURE-ANALYSIS.md",
+      "title": "Maverick-as-Employee Feature Analysis",
+      "concepts": [
+        {
+          "id": "maverick-as-employee-framing",
+          "label": "Maverick-as-Employee Framing",
+          "type": "pattern",
+          "summary": "Maverick is positioned as a single AI VC Associate hired to do a job, not 7 sub-agents sharing a frontend; sub-agents are internal implementation details."
+        },
+        {
+          "id": "vc-core-workflow",
+          "label": "VC Core Workflow: SIGNAL→SCREEN→RESEARCH→BRIEF→MEMO",
+          "type": "process",
+          "summary": "The five-stage workflow Maverick must own end-to-end as a hired associate."
+        },
+        {
+          "id": "maverick-positioning-bridge",
+          "label": "Maverick Positioning: True AI Teammate",
+          "type": "pattern",
+          "summary": "'Not a tool. Not a feature. A true AI teammate.' — VCs want fewer tools, ideally one that does the work, not just displays it."
+        },
+        {
+          "id": "vc-associate-workload-model",
+          "label": "VC Associate Workload Model",
+          "type": "process",
+          "summary": "300-800 first-pass looks/year, 5-10 detailed DD processes, 3-6 memos; time split: 40% info gathering, 20% modeling, 20% writing, 15% meetings, 5% CRM."
+        },
+        {
+          "id": "maverick-sub-agents",
+          "label": "Maverick Internal Sub-Agents",
+          "type": "component",
+          "summary": "Deck Parser, Fit Scorer, Call Summarizer, Memo Drafter, Email Drafter, Research Agent, Ask-the-Analyst — internal neural circuits, not user-facing products."
+        },
+        {
+          "id": "contact-management-essential",
+          "label": "Contact Management as Essential Capability",
+          "type": "decision",
+          "summary": "60-70% of deals come from warm intros; contact management was promoted to ESSENTIAL in the 2026-04-07 validation session."
+        },
+        {
+          "id": "notification-center",
+          "label": "Proactive Notification Center",
+          "type": "component",
+          "summary": "Maverick must alert partners proactively about stale deals, upcoming meetings, new high-fit deals; priority elevated in validation."
+        },
+        {
+          "id": "voice-notes-capability",
+          "label": "Voice Notes Capability",
+          "type": "component",
+          "summary": "New essential capability added in 2026-04-07 validation; enables quick capture during calls and fieldwork."
+        },
+        {
+          "id": "multi-fund-architecture",
+          "label": "Multi-Fund Architecture",
+          "type": "decision",
+          "summary": "Organization → Fund → Team hierarchy; new essential capability identified in 2026-04-07 validation."
+        },
+        {
+          "id": "multi-channel-capability",
+          "label": "Multi-Channel Agent Output",
+          "type": "decision",
+          "summary": "Maverick must operate across multiple channels (email, Slack, in-app); capability elevated in validation."
+        },
+        {
+          "id": "conversational-workflow",
+          "label": "Conversational Workflow Execution",
+          "type": "decision",
+          "summary": "New essential capability: Maverick runs workflows conversationally, not just through structured UI."
+        },
+        {
+          "id": "custom-fields-essential",
+          "label": "Custom Fields as Essential Capability",
+          "type": "decision",
+          "summary": "Custom fields via JSONB on all entities; identified as essential in 2026-04-07 validation."
+        },
+        {
+          "id": "day-one-associate-capabilities",
+          "label": "Day-One Associate Bootstrap Capabilities",
+          "type": "process",
+          "summary": "Know the team, manage relationships, set up integrations, handle notifications, prepare for meetings, run workflows autonomously."
+        }
+      ],
+      "relationships": [
+        {
+          "source": "maverick-as-employee-framing",
+          "target": "maverick-sub-agents",
+          "relation": "CONSTRAINS",
+          "detail": "The employee framing means sub-agents are internal implementation details; they must not be exposed as separate products."
+        },
+        {
+          "source": "maverick-as-employee-framing",
+          "target": "maverick-positioning-bridge",
+          "relation": "IMPLEMENTS",
+          "detail": "'True AI teammate' positioning is the market-facing expression of the employee framing."
+        },
+        {
+          "source": "vc-core-workflow",
+          "target": "maverick-sub-agents",
+          "relation": "DEPENDS_ON",
+          "detail": "Each stage of SIGNAL→SCREEN→RESEARCH→BRIEF→MEMO maps to one or more internal sub-agents."
+        },
+        {
+          "source": "vc-associate-workload-model",
+          "target": "vc-core-workflow",
+          "relation": "IMPLEMENTS",
+          "detail": "The workload model (300-800 decks, 5-10 DD, 40% info gathering) defines the volume and time distribution that the core workflow must handle."
+        },
+        {
+          "source": "contact-management-essential",
+          "target": "vc-associate-workload-model",
+          "relation": "IMPLEMENTS",
+          "detail": "60-70% warm intro stat from the workload model directly motivates contact management being essential."
+        },
+        {
+          "source": "multi-fund-architecture",
+          "target": "custom-fields-essential",
+          "relation": "DEPENDS_ON",
+          "detail": "Each fund in the hierarchy needs its own custom field configurations via JSONB."
+        },
+        {
+          "source": "multi-channel-capability",
+          "target": "conversational-workflow",
+          "relation": "IMPLEMENTS",
+          "detail": "Conversational workflow execution is one expression of multi-channel agent output."
+        },
+        {
+          "source": "day-one-associate-capabilities",
+          "target": "notification-center",
+          "relation": "IMPLEMENTS",
+          "detail": "Proactive notifications are explicitly listed as a Day-One capability: alert about stale deals, meetings, high-fit deals."
+        }
+      ],
+      "links_to_existing": [
+        {
+          "concept_id": "multi-fund-architecture",
+          "existing_node_id": "configurable_per_fund_pattern",
+          "relation": "EXTENDS"
+        },
+        {
+          "concept_id": "custom-fields-essential",
+          "existing_node_id": "configurable_per_fund_jsonb",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "multi-channel-capability",
+          "existing_node_id": "cross_channel_continuity_contexts_table",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "maverick-sub-agents",
+          "existing_node_id": "concept_multi_agent_research",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "conversational-workflow",
+          "existing_node_id": "cross_channel_continuity_work_unit_members",
+          "relation": "REFERENCES"
+        }
+      ]
+    },
+    {
+      "source": "Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/ARCHITECTURE-AUDIT.md",
+      "title": "Architecture Audit Report",
+      "concepts": [
+        {
+          "id": "fsd-layer-structure",
+          "label": "Feature-Sliced Design (FSD) Layer Structure",
+          "type": "pattern",
+          "summary": "app/widgets/features/entities/shared hierarchy with 14 widgets, 40 features, 9 entities — structure is sound."
+        },
+        {
+          "id": "fsd-critical-inversion",
+          "label": "FSD Critical Inversion: shared imports from widgets",
+          "type": "constraint",
+          "summary": "shared/ imports from widgets/ai-chat in 6+ production files (providers, hooks, lib, molecules), creating a circular dependency that violates FSD's core principle."
+        },
+        {
+          "id": "eslint-boundary-coverage-gap",
+          "label": "ESLint Boundary Coverage Gap (~25%)",
+          "type": "constraint",
+          "summary": "Only 9/14 widgets, 3/40 features, 2/9 entities have boundary rules; the rest fall through to permissive layer-level fallbacks."
+        },
+        {
+          "id": "react-context-only-state",
+          "label": "React Context-Only State (No Zustand)",
+          "type": "constraint",
+          "summary": "All state in 4 React Context providers and local useState — clean today but will not scale to cross-widget coordination."
+        },
+        {
+          "id": "deal-research-repo-unwired",
+          "label": "DealResearchRepo Not Wired into ServicesProvider",
+          "type": "constraint",
+          "summary": "DealResearchRepo is defined but not in Services type or provider context, creating a gap where deal-research features cannot access the repository through DI."
+        },
+        {
+          "id": "fixture-data-in-production",
+          "label": "Fixture Data Shipped to Production Bundle",
+          "type": "constraint",
+          "summary": "DealWorkspace imports DealWorkspace.fixture.ts mock data in production code, shipping test data to production bundles."
+        },
+        {
+          "id": "god-components",
+          "label": "God Component Files",
+          "type": "constraint",
+          "summary": "8 files exceed 500 LOC; message-router.tsx at 2,404 lines is largest, with ThenSection.tsx (1,233) and AIChatPanel.tsx (1,247) also critical candidates for decomposition."
+        },
+        {
+          "id": "message-router-decomposition",
+          "label": "message-router.tsx Decomposition",
+          "type": "component",
+          "summary": "2,404-line file handles keyword routing for all chat message types and inlines 66+ mock data references; must be split into route registry + per-route handlers."
+        },
+        {
+          "id": "then-section-decomposition",
+          "label": "ThenSection.tsx Decomposition",
+          "type": "component",
+          "summary": "1,233-line file handles ALL workflow action types; must extract each action config (NotifyTeamConfig, SendEmailConfig, etc.) using a registry pattern."
+        },
+        {
+          "id": "ai-chat-panel-decomposition",
+          "label": "AIChatPanel.tsx Decomposition",
+          "type": "component",
+          "summary": "1,247-line chat panel; must extract useChatMessages hook, ChatHeader, ThreadHistoryPanel, ChatScrollManager."
+        },
+        {
+          "id": "org-fund-team-hierarchy",
+          "label": "Organization → Fund → Team Multi-Fund Hierarchy",
+          "type": "decision",
+          "summary": "Architectural decision from 2026-04-07 validation: multi-fund hierarchy uses Organization → Fund → Team structure."
+        },
+        {
+          "id": "agent-response-channel-agnostic",
+          "label": "AgentResponse Must Be Channel-Agnostic",
+          "type": "decision",
+          "summary": "AgentResponse interface must not be tied to a specific output channel; required for multi-channel operation."
+        },
+        {
+          "id": "custom-fields-jsonb-all-entities",
+          "label": "Custom Fields via JSONB on All Entities",
+          "type": "decision",
+          "summary": "Custom fields implemented via JSONB column on all entities, not a separate table per entity."
+        }
+      ],
+      "relationships": [
+        {
+          "source": "fsd-critical-inversion",
+          "target": "fsd-layer-structure",
+          "relation": "CONSTRAINS",
+          "detail": "The shared→widgets circular import violates FSD's core downward-only dependency principle."
+        },
+        {
+          "source": "fsd-critical-inversion",
+          "target": "fsd-chat-inversion-fix",
+          "relation": "IMPLEMENTS",
+          "detail": "The inversion (shared imports from widgets/ai-chat) is exactly what the Phase 2 fix targets."
+        },
+        {
+          "source": "eslint-boundary-coverage-gap",
+          "target": "fsd-layer-structure",
+          "relation": "CONSTRAINS",
+          "detail": "Without boundary rules on 75% of modules, FSD layer violations can silently proliferate."
+        },
+        {
+          "source": "react-context-only-state",
+          "target": "fsd-layer-structure",
+          "relation": "CONSTRAINS",
+          "detail": "React Context state cannot coordinate across widgets cleanly within FSD boundaries; Zustand or equivalent needed."
+        },
+        {
+          "source": "deal-research-repo-unwired",
+          "target": "deal-research-doc-system",
+          "relation": "CONSTRAINS",
+          "detail": "The DealResearchDoc decision requires DealResearchRepo to be wired into ServicesProvider to be accessible."
+        },
+        {
+          "source": "god-components",
+          "target": "message-router-decomposition",
+          "relation": "IMPLEMENTS",
+          "detail": "message-router.tsx is the largest god component and the primary candidate for splitting."
+        },
+        {
+          "source": "god-components",
+          "target": "then-section-decomposition",
+          "relation": "IMPLEMENTS",
+          "detail": "ThenSection.tsx handles all workflow action types in a single file — classic god component pattern."
+        },
+        {
+          "source": "god-components",
+          "target": "ai-chat-panel-decomposition",
+          "relation": "IMPLEMENTS",
+          "detail": "AIChatPanel.tsx combines message handling, file drops, conversation history, thread management, scroll into one file."
+        },
+        {
+          "source": "org-fund-team-hierarchy",
+          "target": "multi-fund-architecture",
+          "relation": "IMPLEMENTS",
+          "detail": "The concrete Organization → Fund → Team schema implements the multi-fund architecture capability."
+        },
+        {
+          "source": "agent-response-channel-agnostic",
+          "target": "multi-channel-capability",
+          "relation": "IMPLEMENTS",
+          "detail": "A channel-agnostic AgentResponse is the technical prerequisite for multi-channel output."
+        },
+        {
+          "source": "custom-fields-jsonb-all-entities",
+          "target": "custom-fields-essential",
+          "relation": "IMPLEMENTS",
+          "detail": "JSONB on all entities is the implementation strategy for the custom fields essential capability."
+        }
+      ],
+      "links_to_existing": [
+        {
+          "concept_id": "fsd-layer-structure",
+          "existing_node_id": "pattern_design_system_enforcement",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "eslint-boundary-coverage-gap",
+          "existing_node_id": "concept_esLint_enforcement",
+          "relation": "EXTENDS"
+        },
+        {
+          "concept_id": "custom-fields-jsonb-all-entities",
+          "existing_node_id": "configurable_per_fund_jsonb",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "org-fund-team-hierarchy",
+          "existing_node_id": "configurable_per_fund_pattern",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "agent-response-channel-agnostic",
+          "existing_node_id": "cross_channel_continuity_contexts_table",
+          "relation": "IMPLEMENTS"
+        }
+      ]
+    },
+    {
+      "source": "Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/CONTRACT-REVIEW.md",
+      "title": "Service Contract Review",
+      "concepts": [
+        {
+          "id": "services-provider-di-pattern",
+          "label": "ServicesProvider Dependency Injection Pattern",
+          "type": "pattern",
+          "summary": "Services are injected via a provider context; 5 of 8 service interfaces are currently wired in."
+        },
+        {
+          "id": "user-settings-repo-write-only",
+          "label": "UserSettingsRepo Write-Only Gap",
+          "type": "constraint",
+          "summary": "Six save* methods, zero get* methods; frontend settings pages hardcode initial values, no way to load persisted settings."
+        },
+        {
+          "id": "deal-repo-missing-mutations",
+          "label": "DealRepo Missing Mutation Operations",
+          "type": "constraint",
+          "summary": "No create, update, or delete on DealRepo; only updateStage exists; search takes bare string not filter objects."
+        },
+        {
+          "id": "call-repo-read-only",
+          "label": "CallRepo Read-Only and Under-Specified",
+          "type": "constraint",
+          "summary": "Only listForDeal and get; no create/update/delete, no list-all, no filter-by-date, no transcript upload; mock ignores dealId parameter."
+        },
+        {
+          "id": "memo-repo-one-to-one-assumption",
+          "label": "MemoRepo 1:1 Deal-to-Memo Assumption",
+          "type": "constraint",
+          "summary": "get(dealId) returns single Memo | null; real workflows produce multiple memos per deal (draft, IC, follow-up); no list, no delete, no versioning."
+        },
+        {
+          "id": "agent-runner-no-error-path",
+          "label": "AgentRunner.run() No Error Path or Lifecycle Hooks",
+          "type": "constraint",
+          "summary": "Returns only { cancel }; no onError, no onComplete, no reconnect logic, no token/cost tracking, no run ID for audit — unusable for production."
+        },
+        {
+          "id": "agent-response-interface",
+          "label": "AgentResponse — Channel-Agnostic Agent Output Interface",
+          "type": "component",
+          "summary": "V2 P0 interface: channel-agnostic agent output; Sprint 0 target; source: GAP-MULTI-CHANNEL.md."
+        },
+        {
+          "id": "workflow-intent-interface",
+          "label": "WorkflowIntent — NLP Intent to Structured Workflow Schema",
+          "type": "component",
+          "summary": "V2 P0 interface: maps NLP intent to structured workflow schema; Sprint 3-4 target; source: GAP-AI-AUTONOMY.md."
+        },
+        {
+          "id": "org-fund-repo-interfaces",
+          "label": "OrganizationRepo + FundRepo — Org/Fund Hierarchy Services",
+          "type": "component",
+          "summary": "V2 P0 interfaces for org/fund hierarchy; Sprint 0 target; source: GAP-ORG-CUSTOM.md."
+        },
+        {
+          "id": "template-registry-service",
+          "label": "TemplateRegistryService — Fund-Type Template Storage",
+          "type": "component",
+          "summary": "V2 P0 interface: fund-type template storage and application; Sprint 0 target; source: GAP-ONBOARDING.md."
+        },
+        {
+          "id": "contact-repo-informal",
+          "label": "ContactRepo Informal Mock Interface",
+          "type": "constraint",
+          "summary": "ContactRepo exists only as a mock interface in fixtures — never promoted to a formal service contract."
+        },
+        {
+          "id": "v2-p0-gap-inventory",
+          "label": "V2 P0 Gap Inventory (20 Items)",
+          "type": "process",
+          "summary": "Complete P0 gap inventory of 20 items documented in V2-SCOPE-EXPANSION.md Section 2; source for Sprint 0-4 new interfaces."
+        }
+      ],
+      "relationships": [
+        {
+          "source": "deal-research-repo-unwired",
+          "target": "services-provider-di-pattern",
+          "relation": "CONSTRAINS",
+          "detail": "DealResearchRepo's absence from ServicesProvider means it bypasses the DI pattern entirely."
+        },
+        {
+          "source": "user-settings-repo-write-only",
+          "target": "services-provider-di-pattern",
+          "relation": "CONSTRAINS",
+          "detail": "A write-only settings repo means backend engineers cannot implement a valid read/write contract."
+        },
+        {
+          "source": "deal-repo-missing-mutations",
+          "target": "services-provider-di-pattern",
+          "relation": "CONSTRAINS",
+          "detail": "Missing create/update/delete on DealRepo means the backend cannot implement full CRUD through the DI pattern."
+        },
+        {
+          "source": "memo-repo-one-to-one-assumption",
+          "target": "deal-research-doc-system",
+          "relation": "CONSTRAINS",
+          "detail": "The merged document system requires multiple memos per deal; MemoRepo's 1:1 assumption must be replaced with list+versioning."
+        },
+        {
+          "source": "agent-runner-no-error-path",
+          "target": "agent-response-interface",
+          "relation": "DEPENDS_ON",
+          "detail": "A production-grade AgentRunner requires a proper AgentResponse interface with lifecycle hooks and error paths."
+        },
+        {
+          "source": "agent-response-interface",
+          "target": "agent-response-channel-agnostic",
+          "relation": "IMPLEMENTS",
+          "detail": "The AgentResponse V2 P0 interface is the concrete implementation of the channel-agnostic requirement."
+        },
+        {
+          "source": "org-fund-repo-interfaces",
+          "target": "org-fund-team-hierarchy",
+          "relation": "IMPLEMENTS",
+          "detail": "OrganizationRepo and FundRepo are the service-layer implementations of the Organization→Fund→Team hierarchy."
+        },
+        {
+          "source": "workflow-intent-interface",
+          "target": "conversational-workflow",
+          "relation": "IMPLEMENTS",
+          "detail": "WorkflowIntent maps NLP to structured schemas, which is the backend contract for conversational workflow execution."
+        },
+        {
+          "source": "contact-repo-informal",
+          "target": "contact-management-essential",
+          "relation": "CONSTRAINS",
+          "detail": "Contact management was promoted to ESSENTIAL, but ContactRepo is still an informal mock — this gap must be closed."
+        },
+        {
+          "source": "v2-p0-gap-inventory",
+          "target": "agent-response-interface",
+          "relation": "IMPLEMENTS",
+          "detail": "AgentResponse is one of the 20 P0 gaps in the V2 scope expansion."
+        },
+        {
+          "source": "v2-p0-gap-inventory",
+          "target": "org-fund-repo-interfaces",
+          "relation": "IMPLEMENTS",
+          "detail": "OrganizationRepo+FundRepo are in the V2 P0 gap inventory targeting Sprint 0."
+        },
+        {
+          "source": "template-registry-service",
+          "target": "thesis-config-merged",
+          "relation": "DEPENDS_ON",
+          "detail": "Fund-type templates are stored and applied through TemplateRegistryService, backed by the merged ThesisConfig."
+        }
+      ],
+      "links_to_existing": [
+        {
+          "concept_id": "services-provider-di-pattern",
+          "existing_node_id": "pattern_research_driven_arch",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "agent-response-interface",
+          "existing_node_id": "cross_channel_continuity_contexts_table",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "org-fund-repo-interfaces",
+          "existing_node_id": "configurable_per_fund_pattern",
+          "relation": "IMPLEMENTS"
+        },
+        {
+          "concept_id": "workflow-intent-interface",
+          "existing_node_id": "concept_multi_agent_research",
+          "relation": "REFERENCES"
+        }
+      ]
+    },
+    {
+      "source": "Qubit-Capital/VC-AI-Assoicate/docs/phase-1/audit/SECURITY-AUDIT-REPORT.md",
+      "title": "Security Audit Report",
+      "concepts": [
+        {
+          "id": "safe-markdown-rehype-sanitize",
+          "label": "SafeMarkdown with rehype-sanitize",
+          "type": "component",
+          "summary": "Well-implemented sanitization component; dangerouslySetInnerHTML completely absent; no hardcoded API keys in codebase."
+        },
+        {
+          "id": "pdf-export-innerhtml-risk",
+          "label": "PDF Export innerHTML DOM Injection Surface",
+          "type": "constraint",
+          "summary": "export-to-pdf.ts uses container.innerHTML = html with escapeHTML(); if any TipTap content bypasses escaping, this creates a DOM injection surface."
+        },
+        {
+          "id": "client-side-only-file-validation",
+          "label": "Client-Side-Only File Upload Validation",
+          "type": "constraint",
+          "summary": "All MIME type checks are client-side only and trivially bypassable; backend validation absent."
+        },
+        {
+          "id": "permissions-ui-decoration",
+          "label": "Permissions as UI Decoration Only",
+          "type": "constraint",
+          "summary": "No middleware, no route guards, no server-side enforcement; permissions exist only in the UI layer."
+        },
+        {
+          "id": "conversation-history-plaintext-localstorage",
+          "label": "Conversation History in Plaintext localStorage",
+          "type": "constraint",
+          "summary": "Deal data in conversation history stored in plaintext localStorage — no encryption at rest on client."
+        },
+        {
+          "id": "tiptap-javascript-uri-vulnerability",
+          "label": "TipTap Link Extension javascript: URI Vulnerability",
+          "type": "constraint",
+          "summary": "Both TipTap editor instances configure Link extension without protocol restrictions; javascript: URIs stored in documents become executable when exported or shared (CRITICAL severity)."
+        },
+        {
+          "id": "next-config-empty-no-csp",
+          "label": "Empty next.config.ts — No CSP or Security Headers",
+          "type": "constraint",
+          "summary": "next.config.ts is completely empty; no Content Security Policy, no security headers configured."
+        },
+        {
+          "id": "passive-email-capture-security",
+          "label": "Passive Email/Calendar Capture Security Concern",
+          "type": "constraint",
+          "summary": "New concern from 2026-04-07 validation: passive email and calendar data capture introduces data access and privacy risks."
+        },
+        {
+          "id": "ai-autonomous-email-security",
+          "label": "AI Autonomous Email Sending Security Concern",
+          "type": "constraint",
+          "summary": "New concern from 2026-04-07 validation: AI autonomously sending email requires send-gate controls and audit trail."
+        },
+        {
+          "id": "voice-note-privacy",
+          "label": "Voice Note Privacy Concern",
+          "type": "constraint",
+          "summary": "New concern from 2026-04-07 validation: voice note capture may record ambient or privileged conversations."
+        },
+        {
+          "id": "overall-risk-level",
+          "label": "Security Risk Level: MEDIUM→HIGH on Backend Connection",
+          "type": "constraint",
+          "summary": "Overall risk is MEDIUM pre-backend, escalating to HIGH once real data flows through these patterns without fixes."
+        }
+      ],
+      "relationships": [
+        {
+          "source": "tiptap-javascript-uri-vulnerability",
+          "target": "pdf-export-innerhtml-risk",
+          "relation": "IMPLEMENTS",
+          "detail": "TipTap documents containing javascript: URIs become executable when exported via the innerHTML PDF export path."
+        },
+        {
+          "source": "tiptap-javascript-uri-vulnerability",
+          "target": "safe-markdown-rehype-sanitize",
+          "relation": "CONSTRAINS",
+          "detail": "SafeMarkdown correctly sanitizes markdown, but TipTap content follows a different rendering path not covered by SafeMarkdown."
+        },
+        {
+          "source": "permissions-ui-decoration",
+          "target": "overall-risk-level",
+          "relation": "IMPLEMENTS",
+          "detail": "UI-only permissions are one of the key factors driving the risk level to HIGH once a backend is connected."
+        },
+        {
+          "source": "client-side-only-file-validation",
+          "target": "overall-risk-level",
+          "relation": "IMPLEMENTS",
+          "detail": "Client-side-only validation is trivially bypassable and contributes to the elevated risk profile."
+        },
+        {
+          "source": "conversation-history-plaintext-localstorage",
+          "target": "overall-risk-level",
+          "relation": "IMPLEMENTS",
+          "detail": "Deal data in plaintext localStorage is a confidentiality risk that escalates with real data."
+        },
+        {
+          "source": "next-config-empty-no-csp",
+          "target": "tiptap-javascript-uri-vulnerability",
+          "relation": "IMPLEMENTS",
+          "detail": "Absence of CSP headers means javascript: URI execution is not blocked at the browser policy level."
+        },
+        {
+          "source": "ai-autonomous-email-security",
+          "target": "security-defer-to-phase2",
+          "relation": "CONSTRAINS",
+          "detail": "AI autonomous email sending was deferred to Phase 2 fixes, but its security implications (send-gate, audit) must be designed before backend build."
+        },
+        {
+          "source": "passive-email-capture-security",
+          "target": "passive-email-capture",
+          "relation": "CONSTRAINS",
+          "detail": "The decision to include passive email capture raises the security concerns around data access and privacy that must be addressed in Phase 2."
+        },
+        {
+          "source": "voice-note-privacy",
+          "target": "voice-notes-capability",
+          "relation": "CONSTRAINS",
+          "detail": "Voice note capability must be designed with ambient recording privacy constraints in mind."
+        }
+      ],
+      "links_to_existing": [
+        {
+          "concept_id": "tiptap-javascript-uri-vulnerability",
+          "existing_node_id": "concept_heimdall_gate",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "overall-risk-level",
+          "existing_node_id": "concept_quality_gates",
+          "relation": "REFERENCES"
+        },
+        {
+          "concept_id": "ai-autonomous-email-security",
+          "existing_node_id": "cross_channel_continuity_contexts_table",
+          "relation": "REFERENCES"
+        }
+      ]
+    }
+  ]
+}

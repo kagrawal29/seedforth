@@ -1,0 +1,39 @@
+{
+  "person": "Abhishek",
+  "computed_at": "2026-04-10T18:32:04Z",
+  "intents": [
+    {
+      "intent_id": "api-gateway-pricing-cliff-detection",
+      "source_cluster_id": "api-gateway-zuplo-evaluation",
+      "surface_question": "Should we use Zuplo as an API management layer, and what are the cost implications of SSE streaming through it?",
+      "underlying_intent": "Abhishek is checking whether Zuplo creates a pricing cliff — specifically whether SSE streaming (the delivery mechanism for AI agent responses) requires Enterprise tier ($1,000+/mo) from day one, which would make Zuplo economically untenable before product-market fit is established.",
+      "intent_domain": "architecture",
+      "evidence": "He researched all three pricing tiers in detail, then installed Xpoz MCP specifically to get practitioner community sentiment — not just to confirm what the docs say. This two-track validation (official docs + social signal) suggests he didn't trust the pricing page alone. The SSE question was asked after the pricing deep-dive, confirming he was hunting for a specific constraint, not just general education.",
+      "frustration_driver": null,
+      "recurrence_count": 7,
+      "graph_region": "Product Architecture & Fund Configuration"
+    },
+    {
+      "intent_id": "security-stack-external-validation",
+      "source_cluster_id": "security-tech-stack-validation",
+      "surface_question": "Have we validated the security scanning stack (Infisical, Semgrep, Trivy, Coraza) through expert review?",
+      "underlying_intent": null,
+      "intent_domain": "architecture",
+      "evidence": "Abhishek ran a multi-agent expert panel simulation (4 specialist agents, each reviewing specific tools) and received clean validation. The surface question was the real question — he wanted external validation of internal choices, and he built a structured mechanism to get it.",
+      "frustration_driver": null,
+      "recurrence_count": 5,
+      "graph_region": "Security Stack & Infrastructure"
+    },
+    {
+      "intent_id": "nango-abstraction-depth-assessment",
+      "source_cluster_id": "nango-crm-integration",
+      "surface_question": "Does Nango provide pre-built connectors for Salesforce and HubSpot, and can we call contacts/leads data via its API?",
+      "underlying_intent": "Abhishek is evaluating whether Nango provides sufficient abstraction depth to eliminate CRM-specific integration code — or whether the team will end up building around its gaps anyway. The compliance angle (NILAs vs on-prem) added a second risk vector: whether Nango's cloud dependency conflicts with the on-premises enterprise deployment constraint.",
+      "intent_domain": "integration",
+      "evidence": "He asked about API coverage breadth AND compliance implications in the same session — two independent risk vectors for a single tool. The progression from 'does it provide every API?' to 'what are the compliance considerations for NILAs vs on-prem?' shows he was testing Nango's boundary conditions, not just confirming a capability. The on-prem constraint is a settled architectural driver (OSS stack for enterprise), so the NILAs question is checking whether Nango violates that constraint.",
+      "frustration_driver": null,
+      "recurrence_count": 4,
+      "graph_region": "Security Stack & Infrastructure"
+    }
+  ]
+}

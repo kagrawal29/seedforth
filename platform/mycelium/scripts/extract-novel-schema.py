@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Extract novel schema from a local graph vs shared dev.
+
+Compares the set of labels + relationship types + property shapes between a
+local (presumably heavy) graph and the shared dev graph, then emits clean
+cypher files describing the novel parts so a contributor can PR them without
+hand-transcribing their whole dump.
+
+Usage:
+    python3 scripts/extract-novel-schema.py [--samples 3] [--out graph/]
+
+Emits:
+    graph/knowledge/<label>-schema-v1.cypher     — one per novel label
+    graph/fixtures/<label>-examples.cypher       — one per novel label (N samples)
+
+Reads:
+    local:  $NEO4J_BOLT  / $NEO4J_USER  / $NEO4J_PASS   (default localhost/neo4j/localtest12)
+    dev:    $DEV_BOLT    / $DEV_USER    / $DEV_PASS     (default 5.78.206.137:7698/team/secrets)
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+import re
+import subprocess
+from pathlib import Path
+from textwrap import indent
+
+from neo4j import GraphDatabase
+
+
+def load_dev_pass() -> str:
+    if os.environ.get("DEV_PASS"):
+        return os.environ["DEV_PASS"]
+    secrets = os.path.expanduser("~/.mycelium/secrets.env")
+    if os.path.exists(secrets):
+        out = subprocess.check_output(
+            ["bash", "-c", f"source {secrets} && echo \"$MYCELIUM_DEV_PASS\""],
+            text=True,
+        ).strip()
+        if out:
+            return out
+    return "localtest12"
+
+
+LOCAL_BOLT = os.environ.get("NEO4J_BOLT", "bolt://localhost:7687")
+LOCAL_USER = os.environ.get("NEO4J_USER", "neo4j")
+LOCAL_PASS = os.environ.get("NEO4J_PASS", "localtest12")
+DEV_BOLT   = os.environ.get("DEV_BOLT",   "bolt://5.78.206.137:7698")
+DEV_USER   = os.environ.get("DEV_USER",   "team")
+DEV_PASS   = load_dev_pass()
+
+
+def fetch_labels(driver) -> set[str]:
+    with driver.session() as s:
+        return {r["label"] for r in s.run("CALL db.labels() YIELD label RETURN label")}
+
+
+def fetch_rel_types(driver) -> set[str]:
+    with driver.session() as s:
+        return {r["relationshipType"] for r in s.run("CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType")}
+
+
+def fetch_label_shape(driver, label: str, samples: int) -> dict:
+    """For one label: property keys, rough types, sample nodes, typical rels."""
+    with driver.session() as s:
+        # property keys across the label
+        rec = s.run(
+            f"MATCH (n:`{label}`) UNWIND keys(n) AS k RETURN DISTINCT k AS key ORDER BY key"
+        )
+        props = [r["key"] for r in rec]
+
+        # count
+        count = s.run(f"MATCH (n:`{label}`) RETURN count(n) AS c").single()["c"]
+
+        # sample nodes — N of them
+        sample_nodes = []
+        res = s.run(f"MATCH (n:`{label}`) RETURN n ORDER BY rand() LIMIT $lim", lim=samples)
+        for rec in res:
+            sample_nodes.append(dict(rec["n"]))
+
+        # typical outgoing relationships (top 5 by count)
+        out_rels = list(s.run(
+            f"MATCH (n:`{label}`)-[r]->(m) "
+            f"WITH type(r) AS rel, labels(m)[0] AS target_label, count(*) AS c "
+            f"ORDER BY c DESC LIMIT 5 "
+            f"RETURN rel, target_label, c"
+        ))
+        incoming = list(s.run(
+            f"MATCH (n:`{label}`)<-[r]-(m) "
+            f"WITH type(r) AS rel, labels(m)[0] AS source_label, count(*) AS c "
+            f"ORDER BY c DESC LIMIT 5 "
+            f"RETURN rel, source_label, c"
+        ))
+
+    return {
+        "label": label,
+        "count": count,
+        "properties": props,
+        "samples": sample_nodes,
+        "outgoing_rels": [dict(r) for r in out_rels],
+        "incoming_rels": [dict(r) for r in incoming],
+    }
+
+
+def slug(label: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+
+
+def cypher_literal(v):
+    """Render a Python value as a Cypher literal."""
+    if v is None:
+        return "null"
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, (int, float)):
+        return str(v)
+    if isinstance(v, (list, tuple)):
+        return "[" + ", ".join(cypher_literal(x) for x in v) + "]"
+    # string
+    s = str(v).replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+    return f"'{s}'"
+
+
+def render_schema_file(shape: dict, project_default: str = "mycelium") -> str:
+    label = shape["label"]
+    node_id = f"schema-{slug(label)}-v1"
+    props_list_cypher = ", ".join(f"'{p}'" for p in shape["properties"])
+    out_lines = []
+    for r in shape["outgoing_rels"]:
+        if r.get("rel"):
+            out_lines.append(f"    -  (:{label}) -[:{r['rel']}]-> (:{r['target_label'] or '?'})  ({r['c']} edges)")
+    in_lines = []
+    for r in shape["incoming_rels"]:
+        if r.get("rel"):
+            in_lines.append(f"    -  (:{r['source_label'] or '?'}) -[:{r['rel']}]-> (:{label})  ({r['c']} edges)")
+
+    header = f"""// @node_id: {node_id}
+// @label: "{label} schema v1 — extracted from friend's local graph"
+// @kind: knowledge
+//
+// Auto-generated by scripts/extract-novel-schema.py. Review before PR.
+// Observed {shape['count']} :{label} nodes in friend's local graph; zero in dev.
+//
+// Properties observed: {len(shape['properties'])}
+//   {', '.join(shape['properties'][:20])}{'...' if len(shape['properties']) > 20 else ''}
+//
+// Outgoing relationships:
+{chr(10).join(out_lines) if out_lines else '    (none)'}
+//
+// Incoming relationships:
+{chr(10).join(in_lines) if in_lines else '    (none)'}
+// ============================================================================
+
+MERGE (s:SchemaDeclaration {{node_id: '{node_id}'}})
+SET s.project = '{project_default}',
+    s.for_label = '{label}',
+    s.observed_count = {shape['count']},
+    s.properties = [{props_list_cypher}],
+    s.declared_at = datetime(),
+    s.source = 'extract-novel-schema.py';
+"""
+    # Add invariant: every :Label has {project: X}
+    header += f"""
+// Invariant: every :{label} belongs to a scope (Forest Promise rule)
+MERGE (inv:Invariant {{node_id: 'invariant-{slug(label)}-scoped'}})
+SET inv.project = '{project_default}',
+    inv.label = 'Every :{label} has {{project: X}}',
+    inv.severity = 'critical',
+    inv.fsd_layer = 'shared',
+    inv.scope = 'forest-wide',
+    inv.enforced_by = 'forest-promise-sovereignty',
+    inv.check_cypher = 'MATCH (n:{label}) WHERE n.project IS NULL RETURN count(n) AS violations',
+    inv.heal_protocol = 'protocol-backfill-{slug(label)}-project-scope';
+"""
+    return header
+
+
+def render_fixtures_file(shape: dict, project_default: str = "maverick-dev-friend") -> str:
+    label = shape["label"]
+    node_id = f"fixtures-{slug(label)}-examples"
+    out = f"""// @node_id: {node_id}
+// @label: "{label} sample fixtures — extracted from friend's local graph"
+// @kind: fixtures
+//
+// Auto-generated examples. Idempotent via MERGE on node_id when available,
+// or on a synthesized key when not. Prune aggressively — ship 3 clean
+// exemplars, not the full corpus.
+// ============================================================================
+
+"""
+    for i, node in enumerate(shape["samples"][:3]):
+        # Prefer existing node_id; otherwise synthesize
+        nid = node.get("node_id") or f"example-{slug(label)}-{i}"
+        # Clean properties: stringify, cap long ones
+        props = {k: (v[:200] + "…") if isinstance(v, str) and len(v) > 200 else v
+                 for k, v in node.items() if v is not None}
+        props.setdefault("project", project_default)
+        props["node_id"] = nid
+        lit = ", ".join(f"{k}: {cypher_literal(v)}" for k, v in sorted(props.items()))
+        out += f"MERGE (n:{label} {{node_id: '{nid}'}})\nSET n += {{{lit}}};\n\n"
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--samples", type=int, default=3, help="sample nodes per label")
+    ap.add_argument("--out", type=str, default=".", help="repo root (emits under graph/knowledge and graph/fixtures)")
+    ap.add_argument("--project", type=str, default="mycelium", help="default :project scope for generated schema")
+    ap.add_argument("--fixture-scope", type=str, default="maverick-dev-friend", help="default :project scope for fixtures")
+    ap.add_argument("--include", type=str, default="", help="comma-separated label whitelist (default: all novel)")
+    ap.add_argument("--exclude-dev-labels", action="store_true", default=True, help="skip labels already on dev")
+    args = ap.parse_args()
+
+    out_root = Path(args.out)
+    knowledge_dir = out_root / "graph" / "knowledge"
+    fixtures_dir = out_root / "graph" / "fixtures"
+    knowledge_dir.mkdir(parents=True, exist_ok=True)
+    fixtures_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[extract] local={LOCAL_BOLT}  dev={DEV_BOLT}")
+    local = GraphDatabase.driver(LOCAL_BOLT, auth=(LOCAL_USER, LOCAL_PASS))
+    dev   = GraphDatabase.driver(DEV_BOLT,   auth=(DEV_USER, DEV_PASS))
+
+    try:
+        local_labels = fetch_labels(local)
+        dev_labels   = fetch_labels(dev)
+        novel = sorted(local_labels - dev_labels)
+
+        if args.include:
+            whitelist = {x.strip() for x in args.include.split(",") if x.strip()}
+            novel = [l for l in novel if l in whitelist]
+
+        print(f"[extract] local labels: {len(local_labels)}")
+        print(f"[extract] dev labels:   {len(dev_labels)}")
+        print(f"[extract] novel labels: {len(novel)}")
+        if not novel:
+            print("[extract] nothing novel to extract — either identical schemas or your local has no new labels")
+            return 0
+
+        manifest = []
+        for i, label in enumerate(novel):
+            print(f"[extract] {i+1}/{len(novel)}: {label}", end=" ", flush=True)
+            shape = fetch_label_shape(local, label, args.samples)
+            if shape["count"] == 0:
+                print("(empty — skip)")
+                continue
+
+            schema_path = knowledge_dir / f"{slug(label)}-schema-v1.cypher"
+            schema_path.write_text(render_schema_file(shape, args.project))
+
+            fix_path = fixtures_dir / f"{slug(label)}-examples.cypher"
+            fix_path.write_text(render_fixtures_file(shape, args.fixture_scope))
+
+            print(f"→ {shape['count']} nodes, {len(shape['properties'])} props  schema+fixtures written")
+            manifest.append({"label": label, "schema": str(schema_path), "fixtures": str(fix_path), "count": shape["count"]})
+
+        # Manifest summary
+        man_path = out_root / "graph" / "extraction-manifest.md"
+        with open(man_path, "w") as f:
+            f.write(f"# Extraction manifest — {len(manifest)} novel labels\n\n")
+            f.write(f"Local had {len(local_labels)} labels; dev has {len(dev_labels)}; {len(novel)} are novel.\n\n")
+            f.write("| label | local count | schema file | fixtures file |\n|---|---|---|---|\n")
+            for m in sorted(manifest, key=lambda x: -x["count"]):
+                f.write(f"| `{m['label']}` | {m['count']} | `{m['schema']}` | `{m['fixtures']}` |\n")
+        print(f"\n[extract] wrote manifest to {man_path}")
+        print(f"[extract] done: {len(manifest)} labels extracted")
+        return 0
+    finally:
+        local.close()
+        dev.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

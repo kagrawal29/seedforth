@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Shell Output",
+  "type": "object",
+  "properties": {
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Result rows from the Cypher query"
+    },
+    "row_count": {
+      "type": "integer",
+      "description": "Number of rows returned"
+    },
+    "elapsed_ms": {
+      "type": "number",
+      "description": "Query execution time in milliseconds"
+    }
+  },
+  "required": ["rows", "row_count", "elapsed_ms"],
+  "additionalProperties": false
+}

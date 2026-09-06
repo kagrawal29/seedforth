@@ -1,0 +1,4 @@
+=== community-map started at 2026-04-10T19:10:17.446807 ===
+=== Generating Community Map from Live Graph ===
+
+ERROR: Could not connect to FalkorDB: No module named 'graphiti_core'

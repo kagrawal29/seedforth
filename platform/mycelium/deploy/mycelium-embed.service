@@ -1,0 +1,28 @@
+[Unit]
+Description=mycelium embedding proxy (HTTP → Ollama)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mycelium-embed
+Group=mycelium-embed
+ExecStart=/opt/mycelium-embed/bin/embed-proxy
+Restart=on-failure
+RestartSec=3
+Environment=LISTEN_ADDR=0.0.0.0:7701
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+Environment=OLLAMA_MODEL=nomic-embed-text
+Environment=READ_ONLY=1
+
+# hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/log/mycelium-embed
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

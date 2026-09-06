@@ -1,0 +1,33 @@
+=== integrity started at 2026-04-11T09:50:39.675210 ===
+[integrity] Cypher-native integrity checks — 2026-04-11
+
+  Demand decay (Knowledge with no demand/trace/coupling): 20
+    [DECAY] Team Knowledge Base Index
+    [DECAY] Search Index
+    [DECAY] Rapid API Pivot on Failure
+    [DECAY] Keyword Search on Social Platforms = Noise
+    [DECAY] Knowledge Base Lint Report
+    ... and 15 more
+
+  Stale INFERRED edges (no trace activity on either endpoint): 4
+  Pruned 4 stale INFERRED edges
+
+  Knowledge contradictions (same category, 4+ shared tags): 0
+
+  Cross-layer contradictions: 0
+
+  Effectiveness metrics:
+    [tracking] frustration: 1 high, 1 medium, 5 low out of 7
+    [needs_attention] gaps: 5 active, avg coverage 0.12
+    [warm] concept activation: 14/65 (21.5%)
+    [tracking] intents: 12 active
+    [tracking] convergence strength: 52.0
+
+  Decay: 0 CouplingEvents, 0 Traces, 0 Commits pruned
+    [CONVERGE] 'Graphiti OSS Self-Hosted' touched by 3 open items
+
+  WorkItem health: 0 issues
+
+  CM3 confidence decay: 2 single-source entries capped to low
+
+  Total integrity issues: 24

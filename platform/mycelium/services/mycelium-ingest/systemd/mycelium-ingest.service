@@ -1,0 +1,35 @@
+[Unit]
+Description=Mycelium GitHub Webhook Ingest Service
+Documentation=https://github.com/kagrawal29/mycelium
+After=network.target
+
+[Service]
+Type=simple
+User=mycelium-ingest
+Group=mycelium-ingest
+
+WorkingDirectory=/opt/mycelium-ingest
+
+# Activate the venv, then run the server
+ExecStart=/opt/mycelium-ingest/venv/bin/python /opt/mycelium-ingest/server.py
+
+Environment=INGEST_PORT=9090
+Environment=WEBHOOK_SECRET_PATH=/etc/mycelium-ingest/webhook.secret
+# Dev Neo4j only — NEVER prod
+Environment=NEO4J_DEV_URI=bolt://127.0.0.1:7688
+Environment=MYCELIUM_SECRETS_PATH=/root/.mycelium-secrets
+
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mycelium-ingest
+
+# Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/log/mycelium-ingest
+
+[Install]
+WantedBy=multi-user.target

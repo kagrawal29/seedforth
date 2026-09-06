@@ -1,0 +1,143 @@
+name: graph-import
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'imports/**.cypher'
+      - 'imports/**/source.json'
+
+  workflow_dispatch:
+
+jobs:
+  validate-imports:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: start neo4j with apoc
+        run: |
+          docker run -d --name mycelium-neo4j-ci \
+            -p 7687:7687 -p 7474:7474 \
+            -e NEO4J_AUTH=neo4j/localtest12 \
+            -e NEO4J_PLUGINS='["apoc"]' \
+            -e NEO4J_dbms_security_procedures_unrestricted='apoc.*' \
+            -e NEO4J_dbms_security_procedures_allowlist='apoc.*' \
+            -e NEO4J_apoc_export_file_enabled=true \
+            -e NEO4J_apoc_import_file_enabled=true \
+            -e NEO4J_server_memory_pagecache_size=1G \
+            -e NEO4J_server_memory_heap_max__size=1G \
+            neo4j:5.22
+          until docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false "RETURN 1" >/dev/null 2>&1; do
+            sleep 2
+          done
+
+      - name: seed from base branch graph-state.cypher
+        run: |
+          git fetch origin "${{ github.base_ref }}"
+          git show "origin/${{ github.base_ref }}:graph-state.cypher" > /tmp/base-graph-state.cypher
+          docker cp /tmp/base-graph-state.cypher mycelium-neo4j-ci:/tmp/seed.cypher
+          docker exec -i mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false "MATCH (n) DETACH DELETE n" >/dev/null
+          docker exec mycelium-neo4j-ci sh -c 'cypher-shell -u neo4j -p localtest12 --encryption false < /tmp/seed.cypher' >/dev/null
+
+      - name: detect changed import bundles
+        id: changed
+        run: |
+          git fetch origin "${{ github.base_ref }}"
+          changed_files=$(git diff --name-only "origin/${{ github.base_ref }}..HEAD" -- 'imports/**.cypher' || true)
+          {
+            echo "changed_files<<EOF"
+            echo "$changed_files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "changed bundles:"
+          echo "$changed_files"
+
+      - name: ensure sources referenced in bundles are registered
+        if: steps.changed.outputs.changed_files != ''
+        env:
+          NEO4J_CONTAINER: mycelium-neo4j-ci
+          NEO4J_USER: neo4j
+          NEO4J_PASS: localtest12
+        run: |
+          # Each bundle path must be imports/<source_alias>/<date>.cypher.
+          # For each unique <source_alias>, look for a source.json sibling file
+          # describing the public_key + schema_version. If present, register
+          # the source via source-register.sh before importing its bundle.
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            alias=$(echo "$f" | awk -F/ '{print $2}')
+            src_meta="imports/${alias}/source.json"
+            if [ -f "$src_meta" ]; then
+              pub=$(jq -r '.public_key' "$src_meta")
+              schema=$(jq -r '.schema_version // "v1"' "$src_meta")
+              desc=$(jq -r '.description // ""' "$src_meta")
+              echo "[ci] registering source $alias from $src_meta"
+              bash graph/runner/source-register.sh "$alias" "$pub" "$schema" "$desc"
+            else
+              echo "[ci] WARN: no source.json for $alias at $src_meta — relying on pre-registered Source node"
+            fi
+          done <<< "${{ steps.changed.outputs.changed_files }}"
+
+      - name: run import-external on each bundle
+        id: run_imports
+        if: steps.changed.outputs.changed_files != ''
+        env:
+          NEO4J_CONTAINER: mycelium-neo4j-ci
+          NEO4J_USER: neo4j
+          NEO4J_PASS: localtest12
+        run: |
+          set -e
+          rm -f /tmp/import-results.md
+          {
+            echo "## Graph import validation"
+            echo ""
+          } > /tmp/import-results.md
+          overall_exit=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            alias=$(echo "$f" | awk -F/ '{print $2}')
+            echo ""
+            echo "=== importing $f (source=$alias) ==="
+            if bash graph/runner/import-external.sh "$alias" "$f" > /tmp/ie.out 2>&1; then
+              echo "- :white_check_mark: \`$f\` — imported + validated" >> /tmp/import-results.md
+              echo "  \`\`\`" >> /tmp/import-results.md
+              tail -10 /tmp/ie.out | sed 's/^/  /' >> /tmp/import-results.md
+              echo "  \`\`\`" >> /tmp/import-results.md
+            else
+              overall_exit=1
+              echo "- :x: \`$f\` — rejected" >> /tmp/import-results.md
+              echo "  \`\`\`" >> /tmp/import-results.md
+              tail -20 /tmp/ie.out | sed 's/^/  /' >> /tmp/import-results.md
+              echo "  \`\`\`" >> /tmp/import-results.md
+            fi
+          done <<< "${{ steps.changed.outputs.changed_files }}"
+
+          {
+            echo ""
+            echo "### Post-import chain state"
+            echo ""
+          } >> /tmp/import-results.md
+          ROOT=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (b:Being) RETURN b.root_hash" | tail -1 | tr -d '"')
+          IMPORTED=$(docker exec mycelium-neo4j-ci cypher-shell -u neo4j -p localtest12 --encryption false --format plain "MATCH (n:Imported) RETURN count(n)" | tail -1)
+          echo "- \`Being.root_hash\`: \`$ROOT\`" >> /tmp/import-results.md
+          echo "- :Imported node count: $IMPORTED" >> /tmp/import-results.md
+
+          cat /tmp/import-results.md
+          exit $overall_exit
+
+      - name: post results to PR
+        if: always() && steps.changed.outputs.changed_files != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: graph-import
+          path: /tmp/import-results.md

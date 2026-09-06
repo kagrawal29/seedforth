@@ -1,0 +1,18 @@
+{
+  "action": "created",
+  "repository": {
+    "full_name": "Qubit-Capital/maverick"
+  },
+  "pull_request": {
+    "number": 42
+  },
+  "comment": {
+    "id": 8800001,
+    "body": "This component needs a loading state.",
+    "html_url": "https://github.com/Qubit-Capital/maverick/pull/42#discussion_r8800001",
+    "created_at": "2026-04-18T14:00:00Z",
+    "user": {
+      "login": "bobsmith"
+    }
+  }
+}

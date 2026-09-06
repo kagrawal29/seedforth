@@ -1,0 +1,13 @@
+=== heimdall started at 2026-04-11T09:50:40.204900 ===
+
+=== heimdall evaluation completed at 2026-04-11 (cycle 6) ===
+Evaluated: 11 new entries from synthesis commit 00821ae
+Decisions: 11 DISTRIBUTE, 0 HOLD, 0 DISCARD
+Duplicates identified (never committed): 3 (mcp-transport-streamable-http, claude-md-thin-pointer, spec-multi-spec-dependency)
+
+Top-scored: architecture/mcp-streamable-http-auth.md (5/5), architecture/cypher-native-pipeline.md (5/5)
+Minimum-threshold distributes: patterns/vc-ai-market-ground-truth.md (3/5), patterns/emerging-manager-solo-gp-segment.md (3/5), patterns/vibe-coding-threat-assessment.md (3/5)
+
+Key finding: Research-document entries (March 29 research artifacts) structurally score 0 on trace evidence. Distribution justified by content quality + GitHub issue corroboration. Synthesis agent should link research-derived entries to demand signals.
+
+Log: knowledge/meta/evaluation-log.md

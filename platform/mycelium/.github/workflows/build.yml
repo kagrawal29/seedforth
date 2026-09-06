@@ -1,0 +1,25 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Seed embedded credentials placeholder
+        # //go:embed credentials.toml needs a file at build time.
+        # Real creds are injected only in release.yml via MAVERICK_CREDS_TOML.
+        # For PRs/CI we use the committed .example so the build compiles.
+        run: cp cmd/maverick/internal/embedded/credentials.toml.example cmd/maverick/internal/embedded/credentials.toml
+      - name: Build
+        run: cd cmd/maverick && go build ./...
+      - name: Vet
+        run: cd cmd/maverick && go vet ./...
+      - name: Test
+        run: cd cmd/maverick && go test ./...

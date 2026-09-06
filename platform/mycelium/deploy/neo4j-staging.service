@@ -1,0 +1,20 @@
+[Unit]
+Description=Neo4j Graph Database (staging instance)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=neo4j
+Group=neo4j
+# NEO4J_CONF points to /etc/neo4j-staging (separate conf from prod /etc/neo4j and dev /etc/neo4j-dev).
+# NEO4J_HOME stays at /var/lib/neo4j (shared plugins/lib), but
+# server.directories.data, .logs, and .run are all overridden inside neo4j.conf.
+Environment=NEO4J_CONF=/etc/neo4j-staging NEO4J_HOME=/var/lib/neo4j
+ExecStart=/usr/share/neo4j/bin/neo4j console
+Restart=on-failure
+LimitNOFILE=60000
+TimeoutSec=120
+
+[Install]
+WantedBy=multi-user.target

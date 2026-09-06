@@ -1,0 +1,725 @@
+{
+  "test": {
+    "name": "custom",
+    "description": "You are continuing work on the VC-AI-Assoicate codebase. You've been researching",
+    "timestamp": "20260407-200825",
+    "scenario_id": null
+  },
+  "control": {
+    "variant": "control",
+    "workspace": "/tmp/ab-test-control-20260407-200825",
+    "elapsed_s": 149.4,
+    "turns": 3,
+    "cost_usd": 0.4571353,
+    "is_error": false,
+    "message_count": 72,
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Let me explore the codebase to understand what issues have been found during spec-to-feature research, check existing docs, and look at team knowledge base.', signature='EtoCClsIDBgCKkAfUagbf/4T/aJjeOZET7rspLN4d8uLilzMKSrIzEimYrQ3BMPDFHLi8M1Gl15piu2QTYU/EuiJ50WEvWR/BzNLMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgy3uEfsYu0URmqIy2UaDNQ3UnHs/hDP64gYXyIwLTYddFL2Fz8Outl8LvWDS0pkHOr+lxF3U99RVG0vn6uBRYZwzz2IL3jfVVDie5taKqwBNI1OvOxxHeG/BIn03zOJUdSksZBxs7hZRy2NJ9qw58wbHJoZiTQt51x+jpgyxTgfVQ8ATz/G/cOXjUULtmYzxxxJMxQ4BCnY2OTsYYUGEO3CiYKs39lSft4q5VzzGW8jhLVnhHhGKMQdXIaqJYX+79eSd51q7IcemaAR39N3Wk7TbC8IOPCO6zK2HdibQGqg3zDGby0z6SqCM23lHHM0pVZQcnQYQFiU38twSRgB')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01TVkhQ9JkJoPbUXnFzzHtKh', name='Agent', input={'description': 'Explore codebase for issues and docs', 'subagent_type': 'Explore', 'prompt': 'I need to understand the current state of research and issues found in a VC-AI-Associate codebase. The project is at /private/tmp/ab-test-control-20260407-200825.\\n\\nPlease do a thorough exploration:\\n\\n1. Read the docs/ directory structure - list all files and subdirectories\\n2. Read .claude/knowledge/index.md and .claude/knowledge/search-index.md\\n3. Read any entries in .claude/knowledge/entries/ \\n4. Look for any audit files, research files, issue trackers, or spec documents in docs/\\n5. Check for any TODO files, FIXME files, or similar\\n6. Look for any existing architectural decision records (ADRs)\\n7. Check .claude/ for any notes or session files\\n8. Look at /Users/kshitiz/.claude/ for any recent memory entries (the session memory mentions 2026-04-07.md)\\n\\nReport back ALL findings - file contents, directory structures, issue lists, anything that looks like research findings or architectural problems. Be thorough.'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PfdbgJc57MoArqtszsewLD', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825 -type f -name \"*.md\" | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Q8ZMv8U58gupWRBtx3jpiT', name='Agent', input={'description': 'Search team knowledge base', 'subagent_type': 'Explore', 'prompt': 'In the project at /private/tmp/ab-test-control-20260407-200825, I need to find all team knowledge, decisions, and audit findings.\\n\\n1. Read /private/tmp/ab-test-control-20260407-200825/.claude/knowledge/index.md\\n2. Read /private/tmp/ab-test-control-20260407-200825/.claude/knowledge/search-index.md  \\n3. List and read ALL files in /private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/\\n4. Look for any QUALITY_GATES.md in .github/\\n5. Check for any spec documents - look in docs/specs/ or similar\\n6. Search for files containing \"architectural issue\", \"tech debt\", \"TODO\", \"FIXME\", \"issue\" across the codebase\\n7. Check /Users/kshitiz/.claude/ for memory files from today (2026-04-07) - there may be session notes about spec-to-feature research\\n\\nReturn all content found, especially anything related to architectural problems, issues found during research, or spec-to-feature gaps.'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01J5umWqoXcTGSVnDf1nEti8', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-control-20260407-200825/docs/ 2>/dev/null | head -50'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01T2Qjv6RA8AFxJnKbYHsG9L', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0157S43LbAH7ivR1dxSQg2gn', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HSRUi7AZZFr5BaVQkXQBE4', name='Glob', input={'pattern': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/**/*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01AKkPEGzThpZSTs7nrC77he', name='Glob', input={'pattern': '/private/tmp/ab-test-control-20260407-200825/.github/*QUALITY*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_011HjXx9nFXAz4ywWqYzKxRz', name='Glob', input={'pattern': '/private/tmp/ab-test-control-20260407-200825/docs/specs/*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Agvbzu34EgYMHZcnNYKMGL', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01LQ2PrrXXHpk8r1xnCHKDxJ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SfjRMfgpNxbnmgyc1gorwt', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/README.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Kqpg1SHWvbyYbcDHvcqYae', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/learnings.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01T9oUN6rdJU8MRv7mU5Ry3d', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.github/QUALITY_GATES.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XHr429Cwj2P73AMPvvxupj', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/anti-patterns/keyword-search-noise.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FjEwJYH9fUfxbYLcN1PebJ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VtdcDytoSsZ4WLz6Se7x3s', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/fixture-first-development.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01G4rJSSM8Esc4VW44b6L1Ca', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/memory-layer-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_019w4oSi7ouHbR1WSrPwXMca', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/ 2>/dev/null'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PAFH9DDU8LMUDgG8L1pLeT', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018EEG3aYW79qgVZL2nQXT65', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/research-to-product-pipeline.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018YcpZPqdsntwQD4zP7vCwn', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries -name \"*.md\" -type f'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Kg8RLACdae9dnNpYvpTRYa', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01YBJZ3v1WPHjefTMYjtNKxo', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.memsearch/memory/2026-04-07.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SKrDEASsbPKaw7pvtnb9ZW', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XaHuKKJRQEPcVvxc8FZL1L', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/design-system-enforcement-prevents-drift.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Afg3RtyUwbPXAgZFs83HRZ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/fixture-first-development.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FhyGmfqUT7nG35PnoYRrBQ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/issue-driven-research-tracking.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Dj6uZUSSX8BXqRHF4i8sxk', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01B4hpVb1m3ZTFyogQrDDLqF', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/rapid-api-pivot-on-failure.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_014LT4WYYw7yqdB339cdWvJB', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/research-driven-architecture-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PQ3hQvCA2engUw5iDYzSj3', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/memory-layer-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Ea2BDgGUqYvp1d66u1MurA', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Anw6hz47hpf8jqykrpQRFW', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/research-driven-architecture-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Ej9dwxrSbRLwMg2jx5J4Bi', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/auto-sync-hooks.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BaDM5cALcLMn75NpAr2DPJ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/claude-code-hooks-for-data-capture.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_012e8A4JVWY22dD4H4N3bH3G', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/cost-optimization-patterns.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BHt5HdCbxKGvWBdiE4kEeC', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/langsmith-tracing-setup.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HbMXK3ZcMRFypRGoztFmRF', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/research-tools-catalog.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_012EgbpBRwXKvnXpJx5Bic8e', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/workflows/parallel-workstream-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01W1xtsTnJReddnvkiRacAtb', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/architecture/research-to-product-pipeline.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013AvqhbifVi4Hy15Jms6CjH', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/rapid-api-pivot-on-failure.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01YNgtRDwXyUE9M2TXZ4P7f7', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/design-system-enforcement-prevents-drift.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018M58SxvJ4CTehw313uKVcd', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825/docs -name \"*audit*\" -o -name \"*issue*\" -o -name \"*TODO*\" -o -name \"*FIXME*\" 2>/dev/null | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_016HLeJVmt5sojK1JHyHByBU', name='Grep', input={'pattern': 'TODO|FIXME|XXX|HACK|BUG|issue|Issue|ISSUE', 'path': '/private/tmp/ab-test-control-20260407-200825', 'output_mode': 'files_with_matches', 'head_limit': 50})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_019B2FvtAzvoWmKvwnffvBwU', name='Bash', input={'command': 'find /Users/kshitiz/.claude -type f -name \"*2026-04-07*\" -o -name \"*memory*\" 2>/dev/null | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FkHp1CyQKsJ9Ze5uHcUyYF', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/design-system/hardcoded-usage-audit.md', 'command': 'ls -la /private/tmp/ab-test-control-20260407-200825/docs/audit/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01LuHJsqtZVmyj1Y8q7qBC3m', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/fix-playbook-v2.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BS1z8gdZ2ya7EWVV5dgQ5E', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/research/spec-to-feature-research-2026-04-06.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CaMAN1K4c62uktDh966aHJ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/research/spec-to-feature-research-2026-04-06.md', 'limit': 200})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01RwTSy6fmjiR9Eme7VSQb3o', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/design-system/hardcoded-usage-audit.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01H6Tk3fZiim2mT2r3vuVp36', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-control-20260407-200825/docs/audit/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01DMYMGEHYcfg8roPdwkXabj', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825/docs -name \"*.md\" | head -30'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0197LuwDBjXQULLh9sEFzPKZ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/research/spec-to-feature-research-2026-04-06.md', 'limit': 300, 'offset': 200})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017FPGfGH7JfM8ZJS1r3ctgy', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/audit/fix-playbook-gap-review.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018J7cR9a4cCe3vnGdnM4Gcm', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/docs/implementation/frontend-gap-features.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013rN5QSMjpKVXcphuQ7fQGV', name='Bash', input={'command': 'grep -r \"architectural issue\\\\|production gap\\\\|critical\\\\|blocker\\\\|risk\\\\|WARNING\" /private/tmp/ab-test-control-20260407-200825/docs --include=\"*.md\" | head -30'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GPsVipj9VCVC67Jn1enT28', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/patterns/issue-driven-research-tracking.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VYFQryhXmmfbMrwrzXgi4W', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/anti-patterns/keyword-search-noise.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01G1nJ4BziMTh7CxRkNsRUJX', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825 -name \"*issue*\" -o -name \"*problem*\" 2>/dev/null | grep -E \"\\\\.(md|txt)$\" | head -10'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01DafDYvD6z1Fdbwhc6FyoY5', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/cost-optimization-patterns.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XtpHA9WbxH2VbeNcJx2ixt', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/research-tools-catalog.md', 'limit': 100})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01YVTGTtZWtHZi8kWgQQDhGY', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825/.claude -type f -name \"*.md\" 2>/dev/null'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BSUf2wJWHfN15qp61NPSYJ', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/workflows/parallel-workstream-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01JGReEkapAPyW5mGdYRGaLd', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/langsmith-tracing-setup.md', 'limit': 80})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01S7XSo3f7DY1V2RHKQzfAk2', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/auto-sync-hooks.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Uuv88t4SCVAYWgD9jYYJgW', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-200825/.claude/knowledge/entries/tool-configs/claude-code-hooks-for-data-capture.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VNmUaQjmUnWaZbjBBJaqW9', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-control-20260407-200825/.claude/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018smbkkCEaDGks6px7RYbfr', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-200825/docs -type f -name \"*.md\" | xargs wc -l | sort -rn | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Now I have a comprehensive picture of what\\'s been found. Let me synthesize the key issues from spec-to-feature research specifically, and present my understanding to the user before writing any document.\\n\\nThe user wants a document about \"issues found during spec-to-feature research\" - so I need to focus on what architectural issues, gaps, and problems were discovered specifically in the context of going from specification documents to feature implementation.\\n\\nLet me think about what the research found:\\n\\n1. **Production Readiness Gap** - The biggest architectural issue - zero backend infrastructure behind a feature-complete frontend\\n2. **Fixture-First Development Risk** - All 1,069+ TSX files use mock data, no real API integration tested\\n\\n\\n3. **Missing Backend Components** - Database, auth, AI agents, API layer, deployment infrastructure all absent\\n4. **Spec-to-Feature Workflow Issues** - Gaps between specification documents and actual feature implementation\\n5. **Design System Issues** - Inline styles and linting warnings scattered throughout the codebase\\n6. **CopilotKit Mock** - Points to mock agent runner instead of real LLM integration\\n7. **Memory Layer** - Architecture decided but never implemented\\n8. **Anti-patterns Documented** - Zep Cloud and keyword search issues flagged as problematic patterns\\n\\nThe user wants an architectural issues document focused on what was discovered during the spec-to-feature research phase.\\n\\nI should clarify the scope and priority order with the user before drafting, and locate that specific research doc to ensure I\\'m capturing the right context.', signature='EtMNClsIDBgCKkA79plQmc4jNJtFjT4QegLY5qztdr5hxdEKlHEjO6Tw04uZ/zsUbVTz/r6VF3tuQxIm2r8dTmqUsxej8pRN0nRPMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgx6kIQNEql5xImkpBUaDLHOxC8FDyTu+L86NiIwQ7kCkUzw+iHrYy9LIFHPQoXRwnxI3oAY8SPkbrhfFb0JIHyYKfFNuZiQ4/m5N8lSKqUMGzlGLTggZz0VtlnI+ybBfT3EZ541VgBqtXS8Qvl/Y4cD4idrREBG2P1O++Sl0ySMBbY7WVXk1FUyA+x2v/L/MnlEyHlrEHdnhRwM",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='Great \u2014 I\\'ve done a thorough sweep. Let me explain what I found before touching any files.\\n\\n---\\n\\n## My Understanding of the Issues\\n\\nThe research surfaced issues in **three distinct layers**. Here\\'s what I see:\\n\\n---\\n\\n### Layer 1: Production Architecture Gap (Biggest / Most Critical)\\n\\nThe entire 902-commit, 1,069+ TSX file frontend was built **fixture-first** \u2014 meaning zero real backend exists. This isn\\'t just technical debt; it\\'s the entire critical path to production:\\n\\n- **No database** \u2014 no schema, no migrations, no ORM. Only fixture JSON.\\n- **No authentication** \u2014 no user sessions, no RBAC, no multi-tenant isolation (the fund-level RLS design is decided but unimplemented)\\n- **No real AI** \u2014 CopilotKit runtime exists but points to a mock agent runner with scripted token streams, not a real LLM or LangGraph\\n- **No API layer** \u2014 no REST/GraphQL endpoints; all \"queries\" are client-side fixture filtering\\n- **No deployment infrastructure** \u2014 no Docker, no staging, no production CI/CD\\n- **No real integrations** \u2014 Gmail and Calendar UIs exist, but no real API connections\\n\\n---\\n\\n### Layer 2: Architecture Decisions Made But Not Implemented\\n\\n31 research agents and 20M+ tokens were spent arriving at validated decisions \u2014 but those decisions exist only in docs, not in code:\\n\\n- **Memory layer** \u2014 Graphiti OSS + FalkorDB + pgvector hybrid decided, not built\\n- **Queue system** \u2014 Trigger.dev v4 chosen (v3 was shut down April 1, 2026 \u2014 forced migration), not wired up\\n- **Tenant isolation** \u2014 RLS on `fund_id` with `user_fund_access` junction table designed, not implemented\\n- **Embedding models** \u2014 BGE-small/large evaluated and approved, not deployed\\n- Zep Cloud explicitly **rejected** as anti-pattern (async deadlocks, fake success states) but nothing replaces it yet in code\\n\\n---\\n\\n### Layer 3: Spec-to-Feature Process Gaps (From the Research Doc)\\n\\nThe `spec-to-feature-research-2026-04-06.md` and the fix playbook audit identified",
+        "type": "assistant"
+      }
+    ],
+    "hook_injections": [],
+    "hook_injection_count": 0
+  },
+  "treatment": {
+    "variant": "treatment",
+    "workspace": "/tmp/ab-test-treatment-20260407-201058",
+    "elapsed_s": 195.6,
+    "turns": 15,
+    "cost_usd": 0.47152505000000006,
+    "is_error": false,
+    "message_count": 59,
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"The user wants me to create a document about issues found during spec-to-feature research. Let me first explore the codebase to understand what's been researched and documented already. I need to check existing docs, knowledge base, and any research findings before creating a new document.\\n\\nLet me follow the rules:\\n1. Check existing state before running scripts\\n2. Explain understanding before editing - I need to explain what I find BEFORE creating the document\\n3. Check team knowledge base first\\n\\nLet me start by exploring the codebase structure, especially docs and .claude/knowledge directories.\", signature='EpcGClsIDBgCKkDdrJmvW7qlRofDfHkfRL36+TSD2cQCMZiDdbEU7u1CJIkDcyOQO1wwQGes/HY1WB5khVNyOm84SlhI2qBlruvwMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgybF56cxdPympnJnE4aDHCAJOowwfOg95oPtiIwqZpuUHRket1IuJNtXCkoYAa3LNNBqlzFhLbw6+HpakeObFWWzhKZoOtdXClvo8S1KukEilRIECBG8EwZIUhffgFmY+pGc/sxlTMHxeLiTQ4/aevq8ZlvxMh/ZwdSSF3fPnODRUaJ9PGVN3RKHBNsRlnCXhsFidEa1ynuReUGulrkqjjaoFJiY8s6shPfrkuxB0uwulQIbAWLWPlXzxS4rVH07fbtJpN8lZpjIAGIRB2sVsZx7p+z7ahCqT5dE+UeQwkfVfY/b2J3opg0KYgEocdp9EAVM/5qG0eczJdiKcymkeEVVecsg7IBukpc33+Q9JWANIMBDxZ222j0gseq4qZIPIYkliALgt0sS+hNAJiI/EIJ5X90P639d4ps4Y3G6wmgiFfuf7FHYkHY+Q5QarDXG1tc56iivuvpLVblNXvzRVWSc6xjdRK6EGZOWZ1KoechSpEmKwBEAVzaDkr1Z/rYAePOXYNLfT4oF37tYEVaOk/Op+wXB2K65bCAr9+EOD8uNaJu2/63+m/bXaavt7aNOsdNhnDThxgIjLlt7kwwcHwosDxAljQ1lM8fWoudbGH6EnW+fm9I81IDvbTFdclpb9MeSFWjhPPSyEcDtwQoKUkw442/un0XdfPErKuNTD7TNKzUzZ/4hMyyhSAEQqz9SGOHdpl6abjrZ1qnV9GHkSyJDhlfVAw54rGwOlz4zzRvPecBY4f2dvHdm8JuxyIC6DqOHOie2FhmLBTrWaf4tIaDDBkkM+XdTV+ALUQQ7KfSND1r58AhjTQFV7PaqKVoPKFFrnk2U/d8dkJf/uzMcUpkJ6BwYhHUhwuv8Qr0fQrwYzHp/Mlrv69QfQf98wSnW7cEsjvjsXGbhDPwj3k1PGfYeZ+vrWaaXCIYAQ==')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01RTfr8jy9YuiiwvycCVeoBN', name='Agent', input={'description': 'Explore codebase for existing docs and research', 'subagent_type': 'Explore', 'prompt': 'I need to understand the current state of architectural research and issues documentation in this codebase. Please do a thorough exploration of:\\n\\n1. The `docs/` directory - any existing documents, especially about architecture, issues, or spec-to-feature work\\n2. The `.claude/knowledge/` directory - index.md, search-index.md, and any relevant entries\\n3. Any files that mention \"spec\", \"issues\", \"architecture\", \"audit\", or \"findings\" in their content\\n4. Look at recent or notable markdown files at the root level too\\n\\nThe project is a VC AI Associate tool (Maverick) built with Next.js 14+, TypeScript, Tailwind, shadcn/ui, Storybook. The FSD layer architecture is: app \u2192 widgets \u2192 features \u2192 entities \u2192 shared. There\\'s also an `agents/` directory that is SERVER-ONLY.\\n\\nPlease report back:\\n- The full directory structure of `docs/`\\n- The full content of `.claude/knowledge/index.md` and `search-index.md` if they exist\\n- Any documents that seem related to spec-to-feature research, architectural issues, or audit findings\\n- Any TODO files or research notes\\n\\nBe thorough - this is important background research.'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CDU5Sa3QhxxJN2z7D5y2oE', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058 -type f -name \"*.md\" | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HPCkbCPXuURou2JXGq6Aq2', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-201058/docs/ 2>/dev/null || echo \"docs directory not found\"'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01DQuXfMm9HrkKiwpQZi4Trx', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Sv7LuS6dEW9S7H9fT7MBmR', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Kc7Cedaia83X3Y4baP65Yj', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058/docs -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SjGJJqhAcBFtHvkLySRhRa', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/search-index.md', 'limit': 10000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01W4LKLTiMKXeSUHdFTUgByx', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GaqCqgVGPzwgUGcniyjUQR', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/audit/fix-playbook-gap-review.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01W8usQ4rPQU5uBgYq1G8BQB', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'limit': 5000, 'offset': 0})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Njc91DNDUfr4aJAfD9tNyj', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/README.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01M8TqRdMakmdkZyTwW3eHME', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058/docs -type d | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01EAFvs8dJj9ztGd5XevafMX', name='Bash', input={'command': 'head -100 /private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015etsLqboWvE78nXnNQJZ13', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/ && find /private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries -type f -name \"*.md\" | wc -l'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015fj2bNsMBeUrEJVzwG6uJN', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/learnings.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Whn2HrLvPt9TNtuTb8ckCX', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017DScugPUCH2LpS64i34NAy', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058 -type f -name \"*fsd*\" -o -name \"*audit*\" | grep -E \"\\\\.(md|json)$\" | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Q6UDwxjdw1n7ddk9ZAxAPr', name='Bash', input={'command': 'grep -r \"fsd-audit\" /private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/ 2>/dev/null'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_016FZMCKerexVTyjSaz3iKFY', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058 -path \"*/.claude/knowledge/entries/architecture/fsd-audit*\" -type f'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_011pPuQDKVk8ViRUMoj3N5sB', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/architecture/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SZLSEwXNUWGt1WsEVFQZfF', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01QVTiHs3vs6U8UKvGB4krmD', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/architecture/memory-layer-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01LmjJKd1uHsJ4onXEkn187p', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Rs8DPgqCTF1QedfBXoZ1RB', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-201058/*.md 2>/dev/null | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01U5Ub69WKBYGfQNTP7xA6Hq', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/CLAUDE.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01KLobSpD6rzmdZauxbftsys', name='Bash', input={'command': 'cat /private/tmp/ab-test-treatment-20260407-201058/.memsearch/memory/2026-04-07.md | head -100'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015dXjyJVH3wtz9EySfi1qif', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/search-index.md', 'limit': 2000, 'offset': 0})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015cSHbfvrtDdnnzdzrjEczj', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/search-index.md', 'limit': 2000, 'offset': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015M6HPCBxtHyUCLWataZ7T9', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058/docs/superpowers -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0136bCFrqWTfa3HtVkQ8nBzF', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/superpowers/specs/2026-04-06-deal-comparison-design.md', 'limit': 3000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FVsvUW9mEXTQGfZggXDYgK', name='Bash', input={'command': 'head -200 /private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md | tail -100'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01EGpirGg32sWvPbq4zQb2eq', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-201058 -name \"TODO*\" -o -name \"todo*\" 2>/dev/null | head -10'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_011u5ZBdaHEPGBhVV7ytDBSY', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-201058/docs/product/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"The exploration found a lot of useful information. Now I need to read the key documents more carefully to understand the specific issues found during spec-to-feature research. Let me read the most relevant files:\\n\\n1. `docs/research/spec-to-feature-research-2026-04-06.md` - the main research document\\n2. `docs/audit/fix-playbook-gap-review.md` - audit findings\\n3. `.claude/knowledge/entries/architecture/production-readiness-gap.md` - production gap\\n4. Check `.claude/knowledge/index.md` for the referenced FSD audit\\n\\n\\nI'll pull these files in parallel to get a complete picture of the gaps and issues.\", signature='EugFClsIDBgCKkDSvRaIK5HlegUn8rd4/hwBWBdPIKmZSZITBwxgCSCXFAG+LoFpEHSifUirKlfXsJ3iyE0oUmPDM709M54oLoW/MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgzlE5O5dRc06pDtHb4aDMqY9xXA3Nzjh5l2sCIwCiCcxjTUjTjgmOjSKlmx5Xl6y2FuOgPVApQEA89D3jB8njeIi/v7lVqLr/XHmtZdKroE8R2SALTFR9w31E7rhismdDSyWBYM9/Jao2JPB2TUjra0Yx3SLnjSzQnBoqczzLI5H9s1/w2cRAP5PRWeGDfJOUc0KsvVzMTSqRww0j9XbKR/nDYdD419Zn/O6lR27ZJF+78V3ZDF0otugGJAAXYg4Tedw/QLCi7tYu2zmcPcmCvBWZ2fBeknIosppI5Ar3afeOUNszamhRDjDFCixkhMbA0mwE3abTE/PDnAo/OMqQMKITqbMJ0HI+BXEZo6P4Oyrd038reKVzvrv8QZ7135mpSNvfIC1Fm0qT3JxFF9yVoUuZh+ZkPvrK5k4rkWOqZhdRxmQYvJ6knjiLu9pt3u5Rn9IsadV9Iybu3y+t3fgngsYDFWfZuK1RktIldHf/846kfJuSO4yZhphLMnJdubkMQS6VxWTBMONn47N9ieEGP0Rgj2YGK9LVv+JfanG08tMeIC6Mkk/Wks7CYLfWpBtYs+0PtWbGI5XLhCKPM8Fmyt6BTz4bYWJ7W33BN9ECAgan09uAob9fVDFgDVf6EfzUgzbc/Orrvb6MjHy1jrF5JP3nWF/iV33eOjmaJu/po0XRjGIJpMPGaQt/alSmjdJujt+ITgbAk5hRtOJxcM+3TN41hnANOdGVHDe1BxXrWKVMuJnC7T/A6StR4y3jzSs/DaM0jeYxOm24Z/o66KpnuqJ7xZoank6+68ka/fqdEuxb4zEqCMFdzj9L5lurf61LNtleBYLdupIXVcKsJK6Co+Gjz0seykr8PUGAE=')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='Let me read the key documents before explaining my understanding.')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VYmVxJ9ABNrXe4CdULD9dq', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0147AAUaKA1TAuxfG2T7CCaS', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/audit/fix-playbook-gap-review.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01EfLunHM1kT4T8Bn8pmreJ1', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Now let me read the FSD audit critical issues entry since that seems most directly relevant to architectural issues.', signature='ErICClsIDBgCKkAre05btuqEFStw1ZAl/uZwsQ62PwN18TtIymzgdzyHLwdWihAsTJfvPnmRFD7EFDBBSL9DBFgrmKAQlRybP6lcMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgzelck8vqyDGwF2En0aDFEH7nNEAmTuRPcGpiIw4SPKUqh00MwvU9j9uY95/994ZcPb7Xe+v+mCJEk4FxU0WsdakQiWUjeA+kctwVrfKoQBia4bChAxB83gYeUs60JDey4xug0Ef/I80TkgSEmqKrjoxFwHLIGF8R30B4uM+vug3iG0+vlypCJn/fhMLFynSE4rQktvdTKAkziS1kmg4HwfKJeDRi0hoJ9f/Aq6G+6Yhu5Wfm/pzrTu3Y00PCe1ZTdoIgYGy45Wgxt/7I20UyWriqiqGAE=')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='Now let me read the FSD audit entry and the spec-to-feature research doc (in parts):')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01MVSQXnbk3qGmxWFhxs3Q6G', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/architecture/fsd-audit-critical-issues.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013hmXyU1fkeDwwXW5uLmSjS', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 0, 'limit': 150})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HB5UuSHWcQ62AmUPGf5iA6', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"The FSD audit critical issues file doesn't exist yet - it's referenced in the index but hasn't been created. Let me now check the spec-to-feature research doc for the issues section and the implementation roadmap section, and also look at the docs/implementation directory.\", signature='Es8DClsIDBgCKkD4EiGP4a7E4D10+wE9lQI1DCqLGegd5e5vh4xosOW8e5T3BqQ6S96UY/0PPIC1oGb76OwIFV1E5LfuOVVO2GjIMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgzzjImqB4YXA8WgtT4aDG+4Aq9Sc9ZtscgTayIw6YpQI4J2i3xOs4ESqPn1AoMgdTF3pmy5IfvVCfJMuOT56DI60y+IYo1vr5xmzd4+KqECLnzSgH4PwkkSuCeb//PWPL8eXHvhfyRIXaDIvR1mJwXrDN3ODUwrB1b/Sq4TNzlI/NyO9GnxX6MnBcUrUdju+Ftv5OjLNhEpKoGKrLkxrTf+5MaHesICYfOsZn0YE82+O7U+7/PjfyWdCNuIMRWJvi65eJ6MYvlFgRswB0vrfChNcFuYafTYQvagbcchVfvoQxXa7nFmctl64MPI0CPBdXy5EDa7qMt2c2oHJPr74Hc+Vwr6YbcepAHLLIw4+Nm8dDy+gfppGiaB2pEBevnzrclvAd0yJONgtk0DeyUe2cZy/BCN5UWrrjrakjly2q2lyp3ltN8A1RUNXN3Cvsq9sGi6reZVOfAwlyLbZ34UqSDUP5SXOTgCHYshdKNOI0jhCxgB')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01G8zursUhxTdzkqAdbEdo3s', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 150, 'limit': 200})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018ibW8SV4SGmg1saYLEhSse', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/implementation/frontend-gap-features.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"Now I have a comprehensive picture of the issues found during spec-to-feature research. Let me also check the anti-patterns entry about AI-generated doc quality and the spec-to-feature research doc's anti-patterns section.\\n\\nLet me read the remaining part of the spec-to-feature research doc - specifically the anti-patterns and implementation roadmap sections.\", signature='EqYEClsIDBgCKkAyEHoI6m0KOzXZwpc7u1fCLmzyh9a9K7WD3dQTRfQKJUhBQVXTclqAUfLJVzqgOfHYwem9O0PXfF4nu2zesSnDMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgzxIeW+NwNf5zf4UvkaDM5B84i+XaB0V9J1XSIwcjv1NA50gMvKIe+gFXbN3LdHAA2Ui2S7irUcH8oh/UjP22fNbP2AvTwKHjKyyaP2KvgCCO2R2eUZni5KAklk1i/I2Cw1wG7b2bXCheR5U/3n6AEmmHN8SzK6d47OVXuW5Aojf6cKPVqT1rfiaVOattJpztVw2BroJZ3lmzmIgdvbRRTkNl/jqAAZo/iKj/FVyoH+hQyAxwQdh9+j4seOzd1q0FQKQ3qcpOo97lmdliQvUMfXDKdv7e7fqfn02ulYsgxF6zbSWduCGvqWU0RHC7JZnqZz02I1jbdW6FY33gXF3ORNOGCursJvIpDoPMUoWKSEbZhq1kAmUc2tqAfDfUqsxrrXF33hza9Tlkyx/XH29gJcnyFrqFdzQ60R+8Yu8k2Uqre2cy9CzJqirpFRJ0C7xhkANj7oifGOTZFfiFmC6GT+luiwPH7UveCBrxs+5IfWsQVZ3Qd2+D0ZysywGB/kfkGcJg9kbSo1+HrTG1mz6l1jCFWA+4rlDCZUl8NlGuPiMEBam/FbiWsRxVedu03lHXLYKtUEMXxSflERNHpWzxRqQVyk172+bhgB')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='Now let me read the final sections of the spec-to-feature research and the AI-generated doc quality anti-pattern:')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SrJKAtgifF68sxc1er3Dg6', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 350, 'limit': 150})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GAogYryZg9wyhx9rLPqj3j', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/.claude/knowledge/entries/anti-patterns/ai-generated-doc-quality.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"Now I have a solid understanding of all the issues found. Let me also quickly check the spec-to-feature research document's anti-patterns and implementation roadmap sections.\", signature='EuwCClsIDBgCKkBMllsgAWKqgWd+pAVqQBPmfTYqNUna9uZTWPzBAypiHC2IrhrIv7JUzjqx4o/jUSX9XphhV3HNyd3o/OBAEz1qMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgxUmSMVJ1W8o7NPLh8aDH0IX2Dlkysp2vEq1SIwuiPb7ArCW+RdNurwDOAtuiGeTiLhdHg+YkUKipkRgjVuvXo12+McEwdvb33JLKXeKr4B4tUCuOz/pB5097/qVOwaHNBaM0EOLBfrJDemR6tzug6pq96f2e2INH4JYhO0rH9YwbXY/4e/b0zjz5V61XbfTtY0QFmhyaYEHBHhxLXA0hiSbAC9egAkorrA1OYQF1a+flpiTxecxbI+M5c3X7HG0+OUNgGm7u26+JVGidLWv9hn8iHygpfH3cK7bS6Kun2WuVpcFBzbWDOtk0aNyrwGPtB/aKOYr9duwZbmsF5621rc8WeM1Ev29SgT7ooxahgB')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='Now let me get the anti-patterns section from the spec-to-feature research doc:')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013qLyqMddnonywfvc16k4w6', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 530, 'limit': 120})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Let me get the anti-patterns and implementation roadmap sections of the spec-to-feature research doc.', signature='EqICClsIDBgCKkDwSo922wy5cMDEfr2Y5fUsnq9p3yboRazsI7/FcXvctbkoi5JA4E5eh4ysAhSizA55VC/cDCDEOuoICfuypuRYMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgwwD7jcVCt5AXCXgQ8aDK3mUdVg6b9suWHYtSIw3J9FF2PVGxaVMNT+Ah4QILfQHH1fr5s6Jci77pjXSoxHNHUy2L0iZFVU/vvM1s/hKnX7Pn0FtqaWATxRA9Ln+OW5WMsHIeHIr0qgYAMdqQoZqe+g+O9sc2AhUwVAdF5zHD5ARXvs90432LilP4hI+bytkzLI6xjk4oEj4NplmxteRnoF5GiHTFgzgIvpwQskwc/fwxWXlv77G58dRL7TTULUoSDzWlgYAQ==')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BKFvdYbZKXMPJB1tcJjzuV', name='Grep', input={'pattern': '## 11. Anti-Patterns|## 13. Implementation Roadmap', 'path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'output_mode': 'content', '-n': True})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01JtLjpoCs1jjTSPKjT76vVK', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-201058/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 1023, 'limit': 200})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Now I have a thorough understanding of all the issues that were found. Let me synthesize them:\\n\\n**Issues found in spec-to-feature research:**\\n\\n1. **No standardized spec-to-feature pipeline** - The biggest finding. The codebase has great infrastructure (FSD, Storybook, 5-layer quality gates, 281+ stories) but no formalized workflow from \"we want X\" to \"X is shipped\". The workflow exists in the research doc but hasn\\'t been adopted as the standard.\\n\\n2. **FSD boundary violation** - Specifically mentioned: `shared \u2192 widget-ai-chat` dependency. This is an architectural violation (shared layer imports from widgets layer, which is higher up in FSD).\\n   \\n3. **225K lines of AI-generated code carrying unknown technical debt** - The patterns are inconsistent across different generation sessions, and there\\'s drift between mocks and actual fixtures that could hide issues.\\n\\n4. **Multiple gaps in the fix verification process** - The testing tracks revealed problems across the board: evidence gets overstated when it\\'s only based on build verification without visual confirmation, findings are presented as definitive when they\\'re actually inferred, the language around residual risk is too absolute, and there\\'s a pattern of skipping reproduction-first discipline in favor of generic regression checks instead of confirming the original bug.\\n\\n5. **Storybook needs a version upgrade** - Looking at the current setup and what\\'s needed.\\n\\n6. **Missing Storybook MCP integration** - Without it, there\\'s no way to do direct visual verification during fixes, so agents are stuck relying on inferred results from builds.\\n\\n7. **No cross-model review capability** - The OpenAI Codex plugin isn\\'t integrated yet.\\n\\n8. **Spec templates are documented but not organized** - They exist in the research notes but haven\\'t been moved into the proper `.claude/skills/` or `docs/specs/` structure.\\n\\n9. **Referenced FSD audit file is missing** - The architecture knowl",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text='I\\'ve now read all the key documents. Before creating anything, let me explain exactly what I found and what I plan to write \u2014 per the project rules.\\n\\n---\\n\\n## What I found\\n\\nThe research spans **four documents** already in the repo:\\n\\n1. **`docs/research/spec-to-feature-research-2026-04-06.md`** \u2014 The main research. Defines a 6-phase Spec-Driven Development (SDD) workflow and names several issues in Maverick\\'s current state explicitly.\\n2. **`docs/audit/fix-playbook-gap-review.md`** \u2014 A systematic 3-track audit of the fix playbook. Each track exposed specific, named failure patterns with `Evidence gap`, `Language gap`, `Verification gap` labels.\\n3. **`docs/implementation/frontend-gap-features.md`** \u2014 Four frontend features identified as missing from the current codebase.\\n4. **`.claude/knowledge/entries/architecture/production-readiness-gap.md`** \u2014 The backend infrastructure gap (zero DB, no auth, no real AI).\\n\\nThere\\'s also a **ghost entry** in the knowledge index: `architecture/fsd-audit-critical-issues.md` is catalogued as HIGH confidence with 4 critical FSD issues \u2014 but **the file doesn\\'t exist**. This is an important signal on its own.\\n\\n---\\n\\n## The issues as I\\'ve synthesised them\\n\\n**Category 1 \u2014 Process / Workflow gaps (from spec-to-feature research)**\\n- No standardized spec-to-feature pipeline exists yet (templates defined in research doc but not adopted)\\n- No `docs/specs/` directory \u2014 specs are written ad-hoc or nowhere\\n- The Superpowers skill chain exists but is not yet in practice used consistently\\n\\n**Category 2 \u2014 Agent behaviour gaps (from fix-playbook gap review)**\\n- All 3 tracks share an **evidence problem**: agents overstate confidence using build-only proof for UI fixes\\n- Track 1 + 2: inferred findings presented as confirmed facts; `RESIDUAL RISK: None` without proper surface coverage\\n- Track 3 (worst): code inspection treated as equivalent to bug reproduction; repro-first discipline skipped entirely; original",
+        "type": "assistant"
+      }
+    ],
+    "hook_injections": [
+      {
+        "ts": "2026-04-07T14:43:31.420252+00:00",
+        "tool": "Grep",
+        "query": "## 11. Anti-Patterns|## 13. Implementation Roadmap",
+        "injected_entries": [
+          "anti-patterns/keyword-search-noise.md",
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "anti-patterns",
+          "implementation",
+          "roadmap"
+        ],
+        "injection_length": 314
+      }
+    ],
+    "hook_injection_count": 1
+  },
+  "comparison": {
+    "cost": {
+      "control": 0.4571353,
+      "treatment": 0.47152505000000006,
+      "diff": 0.014389750000000034
+    },
+    "turns": {
+      "control": 3,
+      "treatment": 15
+    },
+    "time": {
+      "control": 149.4,
+      "treatment": 195.6
+    },
+    "hook_injections": 1,
+    "evaluation_criteria": [
+      "Manual evaluation needed"
+    ],
+    "note": "Review the full transcripts to evaluate each criterion manually."
+  }
+}

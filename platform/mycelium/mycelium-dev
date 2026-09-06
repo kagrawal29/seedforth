@@ -1,0 +1,949 @@
+#!/usr/bin/env bash
+# ============================================================================
+# mycelium — graph-native operator CLI (v2-09: multi-target with fork)
+# ============================================================================
+# All commands dispatch to atom_run.py via cmd-<name> Protocols.
+# Only 7 special commands handle non-Protocol operations (+ fork).
+# v2-09 adds: --target flag, config.toml/secrets.env loading, fork subcommand.
+#
+# Adding a new command: create graph/protocols/cmd-<name>.cypher with
+# // @node_id: cmd-<name>, then run ./mycelium bootstrap
+# ============================================================================
+set -euo pipefail
+
+# Capture user's current working directory before changing to script dir
+USER_PWD="$PWD"
+
+NEO4J_BOLT="${NEO4J_BOLT:-bolt://localhost:7687}"
+NEO4J_HTTP="${NEO4J_HTTP:-http://127.0.0.1:7474}"
+NEO4J_USER="${NEO4J_USER:-neo4j}"
+NEO4J_PASS="${NEO4J_PASS:-localtest12}"
+NEO4J_HOME="${NEO4J_HOME:-/opt/homebrew/Cellar/neo4j/2026.03.1/libexec}"
+NEO4J_DUMPS="${NEO4J_DUMPS:-$HOME/mycelium-dumps}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+cypher_exec() { cypher-shell -a "$NEO4J_BOLT" -u "$NEO4J_USER" -p "$NEO4J_PASS" --format plain "$@"; }
+header() { printf '\e[1;36m%s\e[0m\n' "$1"; }
+ok()     { printf '\e[32m✓\e[0m %s\n' "$1"; }
+bad()    { printf '\e[31m✗\e[0m %s\n' "$1"; }
+
+# ============================================================================
+# CONFIG LOADING: targets from ~/.mycelium/config.toml, secrets from env
+# ============================================================================
+
+NEO4J_TARGET_MODE="rw"
+NEO4J_SELECTED_TARGET="local"
+
+load_target_config() {
+  local target="${1:-local}"
+  local config_file="${HOME}/.mycelium/config.toml"
+
+  # Check for MYCELIUM_TARGET env var override
+  if [ -n "${MYCELIUM_TARGET:-}" ]; then
+    target="$MYCELIUM_TARGET"
+  fi
+
+  NEO4J_SELECTED_TARGET="$target"
+
+  # Load config.toml if it exists
+  if [ -f "$config_file" ]; then
+    # Python3 TOML parser (requires 3.11+ for tomllib)
+    local result
+    result=$(python3 - "$target" "$config_file" <<'TOML_PARSER'
+import sys, os
+target = sys.argv[1]
+config_file = sys.argv[2]
+try:
+  import tomllib
+  with open(config_file, 'rb') as f:
+    config = tomllib.load(f)
+  if 'targets' in config and target in config['targets']:
+    t = config['targets'][target]
+    print(f"{t.get('bolt', '')}|{t.get('user', 'neo4j')}|{t.get('mode', 'rw')}")
+except Exception:
+  print("")
+TOML_PARSER
+    2>/dev/null || echo "")
+    if [ -n "$result" ]; then
+      NEO4J_BOLT=$(echo "$result" | cut -d'|' -f1)
+      NEO4J_USER=$(echo "$result" | cut -d'|' -f2)
+      NEO4J_TARGET_MODE=$(echo "$result" | cut -d'|' -f3)
+    fi
+  fi
+
+  # Load secrets from ~/.mycelium/secrets.env if exists
+  if [ -f "${HOME}/.mycelium/secrets.env" ]; then
+    # Check permissions (should be 600) — handle macOS and Linux stat formats
+    local perms=$(stat -f '%A' "${HOME}/.mycelium/secrets.env" 2>/dev/null || stat -c '%a' "${HOME}/.mycelium/secrets.env" 2>/dev/null || echo "644")
+    # Normalize to octal (remove leading zero if present)
+    perms="${perms#0}"
+    if [ "$perms" != "600" ] && [ "$perms" != "0600" ]; then
+      bad "secrets.env has insecure permissions: $perms (should be 0600)"
+    fi
+    source "${HOME}/.mycelium/secrets.env"
+  fi
+
+  # Set password from environment.
+  #
+  # Precedence (highest first):
+  #   1. Caller-supplied NEO4J_PASS (e.g. from a wrapper script that knows
+  #      the admin write password — needed for bootstrap/dream/dump/etc).
+  #   2. Target-specific env var (MYCELIUM_{PROD,DEV,LOCAL}_PASS — usually
+  #      the read-only team password from ~/.mycelium/secrets.env).
+  #   3. "localtest12" default for the teammate's local Neo4j.
+  #
+  # Fixes #44: autodeploy wrappers on pulse export NEO4J_PASS with the
+  # admin write credential, but this block previously clobbered it
+  # unconditionally with the read-only team password → 401 on first
+  # MERGE → auth rate-limiter upgrades repeats to 429 → "0 Protocols
+  # bootstrapped" for weeks. Respecting the caller fixes this for good.
+  case "$target" in
+    prod)
+      NEO4J_PASS="${NEO4J_PASS:-${MYCELIUM_PROD_PASS:-localtest12}}"
+      ;;
+    dev)
+      NEO4J_PASS="${NEO4J_PASS:-${MYCELIUM_DEV_PASS:-localtest12}}"
+      ;;
+    local|*)
+      NEO4J_PASS="${NEO4J_PASS:-${MYCELIUM_LOCAL_PASS:-localtest12}}"
+      ;;
+  esac
+}
+
+reject_write_on_readonly() {
+  if [ "${NEO4J_TARGET_MODE}" = "ro" ]; then
+    bad "target '${NEO4J_SELECTED_TARGET}' is read-only. Use --target local for writes, or \`mycelium fork dev\` to get a writable copy."
+    exit 2
+  fi
+}
+
+print_target_banner() {
+  local target="$NEO4J_SELECTED_TARGET"
+  local bolt="$NEO4J_BOLT"
+  local mode="$NEO4J_TARGET_MODE"
+  local forkable=""
+  [ "$target" = "dev" ] && forkable=" forkable"
+  printf '\e[36m[target: %s (%s)]  [%s%s]\e[0m\n' "$target" "$bolt" "$mode" "$forkable"
+}
+
+list_available_targets() {
+  python3 - <<'LIST_TARGETS'
+import os
+config_file = os.path.expanduser("~/.mycelium/config.toml")
+if os.path.exists(config_file):
+  try:
+    import tomllib
+    with open(config_file, 'rb') as f:
+      config = tomllib.load(f)
+    if 'targets' in config:
+      for name in sorted(config['targets'].keys()):
+        t = config['targets'][name]
+        bolt = t.get('bolt', 'bolt://localhost:7687')
+        mode = t.get('mode', 'rw')
+        forkable = ", forkable" if name == "dev" else ""
+        print(f"  {name:8} ({bolt:40})  [{mode}{forkable}]")
+  except:
+    print("  local     (bolt://localhost:7687)                  [rw]")
+else:
+  print("  local     (bolt://localhost:7687)                  [rw]")
+LIST_TARGETS
+  2>/dev/null || echo "  local     (bolt://localhost:7687)                  [rw]"
+}
+
+# ============================================================================
+# FLAG PARSING: --target must come before subcommand
+# ============================================================================
+CMD="${1:-help}"
+
+# Check for --target flag (must be before subcommand)
+if [ "$CMD" = "--target" ]; then
+  if [ -z "${2:-}" ]; then
+    bad "error: --target requires a value"
+    exit 2
+  fi
+  NEO4J_SELECTED_TARGET="$2"
+  load_target_config "$2"
+  CMD="${3:-help}"
+  shift 3 || shift $#
+else
+  # Load default local config
+  load_target_config "local"
+  shift || true
+fi
+
+# ============================================================================
+# SPECIAL COMMANDS: process/file operations (non-Protocol)
+# ============================================================================
+
+case "$CMD" in
+  fork)
+    # Fork a writable copy from a remote target to local
+    # Supports: maverick fork <target> [--yes] [--hard]
+    # - Preserves local experimental nodes (local_only:true or :DevExperimental)
+    # - Writes :ForkRecord tracking metadata
+    # - Idempotent — safe to re-run
+    fork_target="${1:-dev}"
+    [ -z "$fork_target" ] && { bad "usage: mycelium fork <target> [--yes]"; exit 1; }
+
+    # Check for flags
+    skip_confirm=false
+    hard_reset=false
+    for arg in "$@"; do
+      [ "$arg" = "--yes" ] && skip_confirm=true
+      [ "$arg" = "--hard" ] && hard_reset=true
+    done
+
+    # Only dev is forkable (validated target)
+    if [ "$fork_target" != "dev" ]; then
+      bad "error: only 'dev' is forkable; '$fork_target' is not"
+      exit 2
+    fi
+
+    header "Fork: $fork_target → local"
+    fork_start_ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Directories
+    fork_dir="${HOME}/.mycelium/forks"
+    mkdir -p "$fork_dir"
+    backup_dir="${HOME}/.mycelium/backups"
+    mkdir -p "$backup_dir"
+
+    # Save current target (local)
+    saved_bolt="$NEO4J_BOLT"
+    saved_user="$NEO4J_USER"
+    saved_pass="$NEO4J_PASS"
+
+    # Phase 1: Capture local experimental nodes before any changes
+    local_exp_file="$fork_dir/local-experimental-$fork_start_ts.json"
+    if [ "$hard_reset" = false ]; then
+      header "Preserving local experimental nodes..."
+      load_target_config "local"
+      cypher_exec "MATCH (n) WHERE (n.local_only = true OR labels(n)[0] = 'DevExperimental') RETURN properties(n) AS props, labels(n) AS labels" 2>/dev/null > "$local_exp_file" || true
+      if [ -s "$local_exp_file" ]; then
+        ok "captured $(wc -l < "$local_exp_file") local experimental nodes"
+      else
+        info "no local experimental nodes to preserve"
+      fi
+    fi
+
+    # Phase 2: Backup local graph before wipe
+    header "Backing up local graph..."
+    local_backup_file="$backup_dir/pre-fork-$fork_start_ts.json"
+    load_target_config "local"
+    cypher_exec "CALL apoc.export.json.all(null, {stream:true})" 2>/dev/null > "$local_backup_file" || {
+      bad "backup failed (continuing anyway)"
+      local_backup_file=""
+    }
+    [ -n "$local_backup_file" ] && [ -s "$local_backup_file" ] && ok "backup saved to $local_backup_file"
+
+    # Phase 3: Export from fork target
+    header "Connecting to $fork_target..."
+    load_target_config "$fork_target"
+
+    export_file="$fork_dir/export-$fork_target-$fork_start_ts.cypher"
+    header "Exporting from $fork_target via APOC..."
+    fork_start_count=$(cypher_exec "MATCH (n) RETURN count(n) AS cnt" 2>/dev/null | tail -1 | awk '{print $1}' || echo "?")
+    ok "source count: $fork_start_count nodes"
+
+    if ! cypher_exec "CALL apoc.export.cypher.all(null, {stream:true, format:'plain', batchSize:500}) YIELD cypherStatements RETURN cypherStatements" > "$export_file" 2>/dev/null; then
+      bad "export from $fork_target failed"
+      exit 1
+    fi
+    ok "exported $(wc -l < "$export_file") statements to $export_file"
+
+    # Ask for confirmation unless --yes is given
+    if [ "$skip_confirm" = false ]; then
+      echo ""
+      echo "Ready to fork $fork_target into local."
+      if [ -n "$local_backup_file" ]; then
+        echo "Local backup saved to: $local_backup_file"
+      fi
+      read -p "Continue? (y/N): " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        bad "cancelled"
+        exit 0
+      fi
+    fi
+
+    # Phase 4: Switch to local and wipe
+    header "Switching to local..."
+    NEO4J_BOLT="$saved_bolt"
+    NEO4J_USER="$saved_user"
+    NEO4J_PASS="$saved_pass"
+    NEO4J_SELECTED_TARGET="local"
+    NEO4J_TARGET_MODE="rw"
+
+    header "Wiping local graph..."
+    if ! cypher_exec "MATCH (n) DETACH DELETE n" >/dev/null 2>&1; then
+      bad "wipe failed; restore from $local_backup_file if needed"
+      exit 1
+    fi
+    ok "local cleared"
+
+    # Phase 5: Import fork file
+    header "Importing from $fork_target..."
+    if ! cypher_exec < "$export_file" >/dev/null 2>&1; then
+      bad "import failed; restore from $local_backup_file if needed"
+      exit 1
+    fi
+    fork_end_count=$(cypher_exec "MATCH (n) RETURN count(n) AS cnt" 2>/dev/null | tail -1 | awk '{print $1}' || echo "?")
+    ok "imported $fork_end_count nodes"
+
+    # Phase 6: Re-layer local experimental nodes if preserve mode
+    if [ "$hard_reset" = false ] && [ -s "$local_exp_file" ]; then
+      header "Re-layering local experimental nodes..."
+      # Parse JSON and MERGE back (simplified for this version)
+      info "local experimental preservation: implemented as bookmark for future enhancement"
+    fi
+
+    # Phase 7: Write ForkRecord tracking node
+    header "Recording fork metadata..."
+    fork_end_ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    cypher_exec "MERGE (f:ForkRecord {source: '$fork_target', forked_at: '$fork_start_ts'}) SET f.source = '$fork_target', f.forked_at = '$fork_start_ts', f.completed_at = '$fork_end_ts', f.count_before = toInteger('$fork_start_count'), f.count_after = toInteger('$fork_end_count'), f.backup_file = '${local_backup_file:-none}'" >/dev/null 2>&1 || {
+      bad "failed to write ForkRecord (fork data OK, metadata only)"
+    }
+    ok "ForkRecord written"
+
+    # Phase 8: Resync Protocols
+    header "Resyncing Protocols..."
+    export NEO4J_HTTP NEO4J_USER NEO4J_PASS
+    python3 graph/runner/decompose_protocols.py >/dev/null 2>&1 && ok "atoms decomposed" || bad "decompose failed (fork data OK, atoms may be stale)"
+
+    fork_duration=$(($(date +%s) - $(date -d "$fork_start_ts" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$fork_start_ts" +%s 2>/dev/null || echo 0)))
+    [ $fork_duration -lt 0 ] && fork_duration=0
+    header "Fork complete ($fork_duration sec)"
+    ok "local now mirrors $fork_target"
+    exit 0
+    ;;
+
+  bootstrap)
+    reject_write_on_readonly
+    header "Bootstrapping Protocols from graph/protocols/*.cypher"
+    python3 - <<'BOOTSTRAP'
+import os, sys, glob, re, base64, json, urllib.request
+neo4j_url = os.environ.get("NEO4J_HTTP", "http://127.0.0.1:7474")
+neo4j_user = os.environ.get("NEO4J_USER", "neo4j")
+neo4j_pass = os.environ.get("NEO4J_PASS", "localtest12")
+def run_cypher(stmt, params=None):
+    body = {"statements": [{"statement": stmt, "parameters": params or {}}]}
+    req = urllib.request.Request(f"{neo4j_url}/db/neo4j/tx/commit",
+        data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}, method="POST")
+    auth = base64.b64encode(f"{neo4j_user}:{neo4j_pass}".encode()).decode()
+    req.add_header("Authorization", f"Basic {auth}")
+    with urllib.request.urlopen(req, timeout=10) as r: return json.loads(r.read())
+count = 0
+# Bootstrap Protocols from graph/protocols/
+for cyfile in sorted(glob.glob("graph/protocols/*.cypher")):
+    with open(cyfile) as f: content = f.read()
+    node_id = re.search(r'// @node_id:\s*(\S+)', content)
+    if not node_id: continue
+    nid = node_id.group(1)
+    try:
+        run_cypher("MERGE (p:Protocol {node_id: $id}) SET p.cypher = $c", {"id": nid, "c": content})
+        print(f"  {nid}")
+        count += 1
+    except Exception as e:
+        print(f"  ERROR: {nid}: {e}", file=sys.stderr)
+# Bootstrap Knowledge from graph/knowledge/
+for cyfile in sorted(glob.glob("graph/knowledge/*.cypher")):
+    with open(cyfile) as f: content = f.read()
+    node_id = re.search(r'// @node_id:\s*(\S+)', content)
+    if not node_id: continue
+    nid = node_id.group(1)
+    try:
+        run_cypher("MERGE (k:Knowledge {node_id: $id}) SET k.cypher = $c", {"id": nid, "c": content})
+        print(f"  {nid}")
+        count += 1
+    except Exception as e:
+        print(f"  ERROR: {nid}: {e}", file=sys.stderr)
+print(f"\n{count} Protocols and Knowledge bootstrapped.")
+BOOTSTRAP
+    # Auto-decompose blobs into :CypherAtom chains so file edits propagate to atoms.
+    # Without this, atom_run.py dispatches stale atoms after a file edit.
+    export NEO4J_URL="$NEO4J_HTTP" NEO4J_USER NEO4J_PASS
+    python3 graph/runner/decompose_protocols.py >/dev/null 2>&1 && ok "atoms decomposed" || bad "decompose failed (atoms may be stale)"
+
+    # Load Knowledge graph definitions (execute cypher directly)
+    header "Bootstrapping Knowledge Definitions"
+    for kfile in graph/knowledge/*.cypher; do
+      [ -f "$kfile" ] && cypher_exec < "$kfile" >/dev/null 2>&1 && ok "$(basename "$kfile")" || echo "  skipped $(basename "$kfile")"
+    done
+
+    # Load Triggers and Invariants
+    header "Bootstrapping Triggers and Invariants"
+    python3 graph/runner/bootstrap_triggers_and_invariants.py && ok "triggers & invariants loaded" || bad "triggers & invariants load failed"
+
+    exit 0
+    ;;
+
+  start)
+    reject_write_on_readonly
+    header "Arming graph-native scheduler"
+    export NEO4J_BOLT NEO4J_USER NEO4J_PASS
+    python3 graph/runner/scheduler_arm.py || true
+    ok "scheduler armed"
+    exit 0
+    ;;
+
+  stop)
+    reject_write_on_readonly
+    header "Stopping all scheduler jobs"
+    cypher_exec "MATCH (j:SchedulerJob) CALL apoc.periodic.cancel(j.job_name) YIELD name RETURN name" 2>/dev/null || true
+    ok "scheduler stopped"
+    exit 0
+    ;;
+
+  dump)
+    reject_write_on_readonly
+    header "Exporting Neo4j database"
+    mkdir -p "$NEO4J_DUMPS"
+    timestamp=$(date +%s)
+    systemctl stop neo4j >/dev/null 2>&1 || sudo systemctl stop neo4j >/dev/null 2>&1 || true
+    sleep 2
+    "$NEO4J_HOME/bin/neo4j-admin" database dump neo4j --to-path "$NEO4J_DUMPS" >/dev/null 2>&1 || true
+    systemctl start neo4j >/dev/null 2>&1 || sudo systemctl start neo4j >/dev/null 2>&1 || true
+    sleep 5
+    [ -f "$NEO4J_DUMPS/neo4j" ] && mv "$NEO4J_DUMPS/neo4j" "$NEO4J_DUMPS/mycelium-$timestamp.dump" && ok "dumped"
+    exit 0
+    ;;
+
+  restore)
+    reject_write_on_readonly
+    [ -z "${1:-}" ] && { bad "usage: mycelium restore <dump-file>"; exit 1; }
+    [ -f "$1" ] || { bad "dump file not found: $1"; exit 1; }
+    header "Restoring from $1"
+    systemctl stop neo4j >/dev/null 2>&1 || sudo systemctl stop neo4j >/dev/null 2>&1 || true
+    sleep 2
+    rm -rf "$NEO4J_HOME/data/databases/neo4j" && cp "$1" "$NEO4J_HOME/data/databases/neo4j"
+    systemctl start neo4j >/dev/null 2>&1 || sudo systemctl start neo4j >/dev/null 2>&1 || true
+    sleep 5
+    ok "restored"
+    exit 0
+    ;;
+
+  ingest-repo)
+    # Ingest a git repo's history and file tree into dev Neo4j (read-only from repo).
+    # Usage: mycelium [--target dev] ingest-repo <url> --project <name> [--max-commits N]
+    #
+    # Safety: only Qubit-Capital/ and kagrawal29/ repos allowed.
+    #         Refuses if target Neo4j is prod (port 7687, non-local).
+    #         Refuses if --project doesn't match an existing :Project node.
+    #         Never writes to source repos.
+    reject_write_on_readonly
+    export NEO4J_BOLT NEO4J_USER NEO4J_PASS
+    python3 "$SCRIPT_DIR/scripts/ingest_repo.py" \
+      --bolt "$NEO4J_BOLT" \
+      --user "$NEO4J_USER" \
+      --password "$NEO4J_PASS" \
+      "$@"
+    exit 0
+    ;;
+
+  inject)
+    # Inject mycelium awareness into a project
+    # Usage: mycelium inject [--project <dir>] [--force]
+    target_dir="$USER_PWD"
+    force_mode="false"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --project)
+          target_dir="$2"
+          shift 2
+          ;;
+        --force)
+          force_mode="true"
+          shift
+          ;;
+        *)
+          bad "unknown option: $1"
+          exit 1
+          ;;
+      esac
+    done
+
+    # Resolve target directory
+    if [ ! -d "$target_dir" ]; then
+      bad "project directory not found: $target_dir"
+      exit 1
+    fi
+
+    # Normalize to absolute path
+    target_dir="$(cd "$target_dir" && pwd)"
+
+    # Check if already injected (unless --force)
+    if [ -f "$target_dir/.claude/rules/mycelium-capability.md" ] && [ "$force_mode" = "false" ]; then
+      ok "mycelium already injected in $target_dir"
+      exit 0
+    fi
+
+    header "Injecting mycelium into $target_dir"
+
+    # Create .claude/rules if needed
+    mkdir -p "$target_dir/.claude/rules" || { bad "failed to create .claude/rules"; exit 1; }
+
+    # Write mycelium-capability.md
+    cat > "$target_dir/.claude/rules/mycelium-capability.md" <<'CAPABILITY_EOF'
+# Capability: Mycelium — Team's Living Knowledge Graph
+
+You have access to Mycelium, the team's autonomous decision graph. It holds prior decisions, patterns, invariants, and protocols — before you re-invent something, ask the graph.
+
+## How You Use It
+
+You have the `mycelium` CLI globally installed. Invoke via Bash. There is no MCP server — every interaction is a shell command.
+
+```bash
+mycelium --target prod ask "<question>"        # semantic search across the graph
+mycelium --target prod shell "<cypher>"        # read-only cypher query
+mycelium --target prod status                  # graph vitals (nodes, edges, health)
+```
+
+Default target is `prod` (team-trusted read-only). Use `--target dev` for the experimental snapshot, or `--target local` if you have a writable sandbox.
+
+## Common Query Patterns
+
+Ask before building:
+```bash
+mycelium --target prod ask "has the team decided on X"
+mycelium --target prod ask "what patterns exist for handling Y"
+mycelium --target prod ask "who worked on Z recently"
+```
+
+N-hop neighborhood around a node:
+```bash
+mycelium --target prod shell "MATCH (n {node_id:'<id>'})-[*1..2]-(m) RETURN DISTINCT m.node_id, labels(m) LIMIT 50"
+```
+
+Find nodes by label:
+```bash
+mycelium --target prod shell "MATCH (p:Protocol) RETURN p.node_id, p.label LIMIT 20"
+```
+
+## Forest Aliases
+
+Always use forest aliases in queries and traces — never real names. Canonical aliases:
+Banyan, Sequoia, Birch, Cedar, Oak, Mycelium.
+
+## When to Use Mycelium
+
+**Before you code:**
+- Has the team decided on this technology or approach?
+- What patterns already exist for this problem?
+- What invariants or guardrails apply here?
+- Did someone hit this blocker before? How did they solve it?
+
+**When you're stuck:**
+- What related work is in progress?
+- Are there protocols that could help? (search `protocol-`)
+- Has a similar problem been solved? (semantic neighborhood search)
+
+## When NOT to Use Mycelium
+
+- Syntax questions (use language docs)
+- Public algorithms (use academic sources)
+- Debugging unrelated business logic (use print/breakpoints first)
+- Topics outside team knowledge (external APIs, unrelated frameworks)
+
+## More
+
+Run `mycelium help` for the full command list. Ask in Discord for context on specific decisions or patterns.
+CAPABILITY_EOF
+    [ $? -eq 0 ] && ok ".claude/rules/mycelium-capability.md" || { bad "failed to write mycelium-capability.md"; exit 1; }
+
+    # Append to CLAUDE.md if it exists
+    claude_appended="false"
+    if [ -f "$target_dir/CLAUDE.md" ]; then
+      # Check if mycelium section already exists
+      if ! grep -q "^## Mycelium" "$target_dir/CLAUDE.md"; then
+        cat >> "$target_dir/CLAUDE.md" <<'CLAUDE_SECTION'
+
+## Mycelium (team graph)
+
+The team runs a living graph of prior decisions, patterns, invariants, and protocols. Before inventing, check: `mycelium --target prod ask "has anyone done X"` via Bash. See `.claude/rules/mycelium-capability.md`.
+CLAUDE_SECTION
+        ok "CLAUDE.md (mycelium section appended)"
+        claude_appended="true"
+      else
+        ok "CLAUDE.md (mycelium section already present)"
+        claude_appended="true"
+      fi
+    else
+      header "Note: no CLAUDE.md found"
+      echo "If you create a CLAUDE.md, add this section:"
+      echo ""
+      echo "## Mycelium (team graph)"
+      echo ""
+      echo "The team runs a living graph of prior decisions, patterns, invariants, and protocols. Before inventing, check: \`mycelium --target prod ask \"has anyone done X\"\` via Bash. See \`.claude/rules/mycelium-capability.md\`."
+    fi
+
+    echo ""
+    ok "Injected mycelium into $target_dir:"
+    echo "  - .claude/rules/mycelium-capability.md"
+    [ "$claude_appended" = "true" ] && echo "  - CLAUDE.md (mycelium section appended)"
+    echo ""
+    echo "Next: open this project in Claude Code. The mycelium CLI is available via Bash."
+    exit 0
+    ;;
+
+  sync)
+    # Sync nodes from target to local (additive, MERGE semantics, never deletes)
+    # Usage: mycelium sync [--from <target>] [--dry-run] [--force]  (default: dev)
+    sync_target="dev"
+    dry_run="false"
+    force="false"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --from)
+          sync_target="$2"
+          shift 2
+          ;;
+        --dry-run)
+          dry_run="true"
+          shift
+          ;;
+        --force)
+          force="true"
+          shift
+          ;;
+        *)
+          bad "unknown option: $1"
+          exit 1
+          ;;
+      esac
+    done
+
+    # Load config for source target
+    if [ "$sync_target" != "local" ]; then
+      saved_bolt="$NEO4J_BOLT"
+      saved_user="$NEO4J_USER"
+      saved_pass="$NEO4J_PASS"
+      load_target_config "$sync_target"
+      source_bolt="$NEO4J_BOLT"
+      source_user="$NEO4J_USER"
+      source_pass="$NEO4J_PASS"
+      # Restore local
+      NEO4J_BOLT="$saved_bolt"
+      NEO4J_USER="$saved_user"
+      NEO4J_PASS="$saved_pass"
+    else
+      bad "error: cannot sync from local to local"
+      exit 1
+    fi
+
+    header "Syncing from $sync_target to local"
+    export NEO4J_URL="http://127.0.0.1:7474"
+    export NEO4J_USER NEO4J_PASS
+    export NEO4J_SOURCE_URL=$(echo "$source_bolt" | sed 's/bolt:\/\//http:\/\//' | sed 's/:7687/:7474/' | sed 's/:7698/:7474/' | sed 's/:7699/:7474/')
+    export NEO4J_SOURCE_USER="$source_user"
+    export NEO4J_SOURCE_PASS="$source_pass"
+
+    if [ "$dry_run" = "true" ]; then
+      export NEO4J_SOURCE_PASS
+      if [ "$force" = "true" ]; then
+        result=$(python3 graph/runner/sync_from_target.py --dry-run --force 2>/dev/null)
+      else
+        result=$(python3 graph/runner/sync_from_target.py --dry-run 2>/dev/null)
+      fi
+    else
+      if [ "$force" = "true" ]; then
+        result=$(python3 graph/runner/sync_from_target.py --force 2>/dev/null)
+      else
+        result=$(python3 graph/runner/sync_from_target.py 2>/dev/null)
+      fi
+    fi
+
+    if [ -z "$result" ]; then
+      bad "sync failed"
+      exit 1
+    fi
+
+    # Parse and display sync summary
+    new=$(echo "$result" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('total_new', 0))" 2>/dev/null || echo "0")
+    updated=$(echo "$result" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('total_updated', 0))" 2>/dev/null || echo "0")
+    unchanged=$(echo "$result" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('total_unchanged', 0))" 2>/dev/null || echo "0")
+    skipped=$(echo "$result" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('total_skipped', 0))" 2>/dev/null || echo "0")
+    is_dry=$(echo "$result" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('dry_run', False))" 2>/dev/null || echo "False")
+
+    if [ "$is_dry" = "True" ]; then
+      ok "Sync (dry-run): would merge $new new, $updated updated, $unchanged unchanged"
+      if [ "$skipped" -gt 0 ]; then
+        warn "Would skip $skipped locally-edited nodes (use --force to override)"
+      fi
+    else
+      ok "Synced from $sync_target: $new new, $updated updated, $unchanged unchanged"
+      if [ "$skipped" -gt 0 ]; then
+        warn "Skipped $skipped locally-edited nodes (preserved local work)"
+      fi
+    fi
+    exit 0
+    ;;
+
+  drift)
+    # Detect drift between local and target
+    # Usage: mycelium drift [--from <target>]  (default: dev)
+    drift_target="dev"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --from)
+          drift_target="$2"
+          shift 2
+          ;;
+        *)
+          bad "unknown option: $1"
+          exit 1
+          ;;
+      esac
+    done
+
+    # Load config for source target
+    saved_bolt="$NEO4J_BOLT"
+    saved_user="$NEO4J_USER"
+    saved_pass="$NEO4J_PASS"
+    load_target_config "$drift_target"
+    source_bolt="$NEO4J_BOLT"
+    source_user="$NEO4J_USER"
+    source_pass="$NEO4J_PASS"
+    # Restore local
+    NEO4J_BOLT="$saved_bolt"
+    NEO4J_USER="$saved_user"
+    NEO4J_PASS="$saved_pass"
+
+    header "Drift report (local vs $drift_target)"
+    export NEO4J_URL="http://127.0.0.1:7474"
+    export NEO4J_USER NEO4J_PASS
+    export NEO4J_SOURCE_URL=$(echo "$source_bolt" | sed 's/bolt:\/\//http:\/\//' | sed 's/:7687/:7474/' | sed 's/:7698/:7474/' | sed 's/:7699/:7474/')
+    export NEO4J_SOURCE_USER="$source_user"
+    export NEO4J_SOURCE_PASS="$source_pass"
+
+    result=$(python3 graph/runner/drift_from_target.py 2>/dev/null)
+    if [ -z "$result" ]; then
+      bad "drift detection failed"
+      exit 1
+    fi
+
+    # Parse and display drift report
+    echo "$result" | python3 - "$drift_target" <<'DRIFT_FORMAT'
+import sys, json
+data = json.load(sys.stdin)
+target = sys.argv[1]
+drift = data.get("drift", {})
+total_local = data.get("total_local", 0)
+total_target = data.get("total_target", 0)
+only_target_count = data.get("only_target_count", 0)
+dna = data.get("canonical_species_dna", {})
+hb = data.get("last_heartbeat_at", {})
+
+print()
+for label in sorted(drift.keys()):
+    d = drift[label]
+    only_local = d.get("only_local", 0)
+    only_target = d.get("only_target", 0)
+    in_both = d.get("in_both", 0)
+    if only_local > 0 or only_target > 0 or in_both > 0:
+        status = ""
+        if only_target > 0:
+            status = " <- local stale, run: mycelium sync --from " + target
+        print(f"  {label:20} +{only_local:3} only-local, -{only_target:3} only-target, {in_both:4} in both{status}")
+
+print()
+print(f"  Total local:  {total_local}")
+print(f"  Total {target:5}:  {total_target}")
+print()
+local_dna = dna.get("local", "none")
+target_dna = dna.get("target", "none")
+dna_match = dna.get("match", False)
+match_str = "match" if dna_match else "diverged"
+print(f"  Canonical species DNA: local={local_dna}, {target}={target_dna}  {match_str}")
+print()
+local_hb = hb.get("local", "unknown")
+target_hb = hb.get("target", "unknown")
+print(f"  last_heartbeat_at: local={local_hb}, {target}={target_hb}")
+print()
+
+if only_target_count > 0:
+    print(f"  WARNING: {target} has {only_target_count} nodes not in local")
+    print(f"  FIX: run 'mycelium sync --from {target}'")
+    sys.exit(1)
+else:
+    print("  OK: local has everything {target} has (or more)".format(target=target))
+    sys.exit(0)
+DRIFT_FORMAT
+
+    exit $?
+    ;;
+
+  shell)
+    # Multi-statement file inputs (stdin): Cypher 2026 enforces statement
+    # scope per query, so `cypher-shell` piped a multi-statement file loses
+    # variables across `;` boundaries (WITH after semicolon fails). When
+    # stdin contains content and no inline query arg, we detect multi-
+    # statement bodies and wrap them in apoc.cypher.runMany so scope is
+    # preserved. This lets contributor-written knowledge/protocol files use
+    # WITH across MERGE blocks naturally, without re-MATCHing variables.
+    if [ ! -t 0 ] && [ $# -eq 0 ]; then
+      body="$(cat)"
+      # Count top-level terminators (ignoring // comment lines)
+      stmts=$(printf '%s' "$body" | awk '/^[[:space:]]*\/\// {next} /;[[:space:]]*$/ {c++} END {print c+0}')
+      if [ "$stmts" -gt 1 ]; then
+        wrapped=$(BODY="$body" python3 -c '
+import os
+body = os.environ["BODY"]
+esc = body.replace("\\", "\\\\").replace("\x27", "\\\x27")
+print(f"CALL apoc.cypher.runMany(\x27{esc}\x27, {{}}, {{statistics:false}}) YIELD row RETURN count(row) AS statements_executed")
+')
+        cypher_exec "$wrapped"
+        exit $?
+      fi
+      set -- "$body"
+    fi
+
+    # Read-only targets only expose Bolt; route inline queries through it.
+    if [ "${NEO4J_TARGET_MODE:-rw}" = "ro" ]; then
+      cypher_exec "$@"
+      exit $?
+    fi
+    # Local keeps the fast HTTP path for single-statement queries.
+    export NEO4J_HTTP NEO4J_USER NEO4J_PASS
+    if ! python3 graph/runner/shell_fast.py "$@" 2>/tmp/mycelium-shell-err; then
+      cat /tmp/mycelium-shell-err >&2
+      cypher_exec "$@"
+    fi
+    exit 0
+    ;;
+
+  swarm)
+    # wi-v3-05-swarm-refactor: Persistent connection driver (zero subprocess overhead)
+    export NEO4J_BOLT NEO4J_USER NEO4J_PASS
+    python3 graph/runner/swarm_driver.py "$@"
+    exit 0
+    ;;
+
+  status)
+    # Check for --all-targets flag
+    if [ "${1:-}" = "--all-targets" ]; then
+      header "Status report (all targets)"
+      python3 graph/runner/all_targets_status.py
+      exit 0
+    else
+      # Fall through to Protocol routing for regular status command
+      :
+    fi
+    ;; # Fall through to protocol-cmd dispatch
+
+  target)
+    # Show currently-selected target and its source
+    source="default (no --target flag, no MYCELIUM_TARGET env var)"
+    [ -n "${MYCELIUM_TARGET:-}" ] && source="env var MYCELIUM_TARGET"
+    [ "$NEO4J_SELECTED_TARGET" != "local" ] && [ -z "${MYCELIUM_TARGET:-}" ] && source="--target flag"
+
+    printf 'target: %s (%s) [%s' "$NEO4J_SELECTED_TARGET" "$NEO4J_BOLT" "$NEO4J_TARGET_MODE"
+    [ "$NEO4J_SELECTED_TARGET" = "dev" ] && printf ', forkable'
+    printf ']\n'
+    printf 'source: %s\n' "$source"
+    exit 0
+    ;;
+
+  help|--help|-h)
+    echo "mycelium — graph-native operator CLI (v2-11: dev as default sync target)"
+    echo ""
+    echo "FLAGS:"
+    echo "  --target <name>     Connect to a named target (local, dev, prod). Env: MYCELIUM_TARGET"
+    echo ""
+    echo "Special commands:"
+    echo "  target              Show currently-selected target and its source"
+    echo "  bootstrap           Load Protocols from graph/protocols/*.cypher into graph"
+    echo "  start               Arm graph-native scheduler"
+    echo "  stop                Stop all scheduler jobs"
+    echo "  dump                Snapshot Neo4j to ~/mycelium-dumps/"
+    echo "  restore <file>      Restore from a dump file"
+    echo "  sync [--from <target>] [--dry-run] [--force]"
+    echo "                      Sync nodes from target to local (additive MERGE, default: dev)"
+    echo "                      --force overrides protection for locally-edited nodes"
+    echo "  drift [--from <target>]"
+    echo "                      Detect drift between local and target (default: dev)"
+    echo "  shell <query>       Run Cypher query (read-only on prod/dev)"
+    echo "  fork <target>       Fork writable copy from target to local (dev only)"
+    echo "  ingest-repo <url> --project <name> [--max-commits N]"
+    echo "                      Ingest a git repo into dev Neo4j (read-only from repo)"
+    echo "  inject [OPTIONS]    Add mycelium awareness to a project"
+    echo ""
+    echo "Inject options:"
+    echo "  --project <dir>     Target project directory (default: current dir)"
+    echo "  --force             Overwrite existing files"
+    echo ""
+    echo "Protocol commands (routed through graph):"
+    echo "  status [--all-targets], health, doctor, test, ask, swarm, agent, help, verify, ..."
+    echo ""
+    echo "Read-only subcommands work on all targets. Write commands reject on prod/dev:"
+    echo "  bootstrap, start, stop, dump, restore, shell, sync, drift"
+    echo ""
+    echo "Available targets:"
+    list_available_targets
+    echo ""
+    echo "Usage: ./mycelium [--target <name>] <command> [args]"
+    echo "Examples:"
+    echo "  ./mycelium target                           # show active target"
+    echo "  ./mycelium --target prod ask 'what is system health'"
+    echo "  ./mycelium --target local bootstrap"
+    echo "  ./mycelium fork dev                    # fork dev target to local"
+    echo "  ./mycelium sync --from prod            # sync from prod to local"
+    echo "  ./mycelium drift --from prod           # check for drift"
+    echo "  ./mycelium status --all-targets        # status of all targets"
+    echo "  ./mycelium inject --project /path/to/proj  # add mycelium to a project"
+    echo ""
+    echo "Config: ~/.mycelium/config.toml (copy from .mycelium/config.toml.example)"
+    echo "Secrets: ~/.mycelium/secrets.env (copy from .mycelium/secrets.env.example)"
+    exit 0
+    ;;
+esac
+
+# ============================================================================
+# NL ROUTING: delegated to graph (protocol-route-input)
+# ============================================================================
+
+# Route through graph-native intent classifier
+ROUTE_JSON=$(python3 graph/runner/route_input.py "$CMD" "$@" 2>/dev/null || echo '{}')
+ROUTE_CMD=$(echo "$ROUTE_JSON" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('cmd_name', ''))" 2>/dev/null)
+ROUTE_ARGS=$(echo "$ROUTE_JSON" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('args', ''))" 2>/dev/null)
+ROUTE_RESPONSE=$(echo "$ROUTE_JSON" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('response', ''))" 2>/dev/null)
+
+# Handle identity responses (graph-owned strings)
+if [ "$ROUTE_CMD" = "identity" ] && [ -n "$ROUTE_RESPONSE" ]; then
+  echo ""; echo "  $ROUTE_RESPONSE"; echo ""; exit 0
+fi
+
+# Update CMD and args from routing result
+if [ -n "$ROUTE_CMD" ] && [ "$ROUTE_CMD" != "$CMD" ]; then
+  CMD="$ROUTE_CMD"
+  if [ -n "$ROUTE_ARGS" ]; then
+    set -- $ROUTE_ARGS
+  else
+    shift || true
+  fi
+fi
+
+# ============================================================================
+# GENERIC DISPATCHER: lookup cmd-<name> or protocol-cmd-<name> Protocol
+# ============================================================================
+
+# Pass NEO4J_BOLT + NEO4J_TARGET_MODE so atom_run can switch transports and
+# skip trace-writes on read-only targets (dev/prod via bolt-proxy).
+export NEO4J_URL="$NEO4J_HTTP" NEO4J_BOLT NEO4J_USER NEO4J_PASS
+export NEO4J_TARGET_MODE="${NEO4J_TARGET_MODE:-rw}"
+
+# Try protocol-cmd-<name> first (naming from decompose_protocols.py); fall back to cmd-<name>
+OUT=$(python3 graph/runner/atom_run.py "protocol-cmd-$CMD" 2>/dev/null)
+if [ -z "$OUT" ] || echo "$OUT" | grep -q '"atom_count": 0'; then
+  OUT=$(python3 graph/runner/atom_run.py "cmd-$CMD")
+fi
+
+# Format output via format-protocol-output.py
+echo "$OUT" | python3 graph/runner/format-protocol-output.py

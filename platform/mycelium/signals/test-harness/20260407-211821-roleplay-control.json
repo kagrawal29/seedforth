@@ -1,0 +1,51 @@
+{
+  "variant": "control",
+  "branch": "research/spec-to-feature",
+  "actor": "Ankit-S",
+  "turns": 4,
+  "total_cost": 1.0178636499999998,
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Can you create a document of the issues we found? I want a proper document in docs that lists the architectural issues, what needs fixing, and priority order.",
+      "turn": 1
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent]\n[Bash]\n[Glob]\n[Glob]\n[Glob]\n[Glob]\n[Bash]\n[Read]\n[Read]\n[Read]\n[Bash]\n[Read]\n[Read]\n[Bash]\n[Bash]\n[Read]\n[Read]\n[Bash]\n[Read]\n[Read]\n[Bash]\nGreat, I have all the context I need. Let me check the docs directory structure first, then create the document.\n[Bash]\n[Bash]\n[Read]\n[Read]\n[Read]\nNow I have everything I need. Let me write the document.\n[Write]\nNow let me commit it:\n[Bash]\nDone. Created and committed `docs/architecture/issues-and-priorities.md`. Here's what it covers:\n\n**\ud83d\udd34 5 Blockers** (ordered by dependency \u2014 fix in this sequence):\n1. **B-1 Database layer** \u2014 no schema, ORM, or migrations; fixtures are the \"database\"\n2. **B-2 Auth** \u2014 no user auth, sessions, or RBAC; depends on B-1 for the User model\n3. **B-4 API layer** \u2014 no REST/GraphQL endpoints; the service provider DI pattern already makes the fixture\u2192real swap clean\n4. **B-3 Real AI agents** \u2014 CopilotKit points to a mock runner; LangGraph agents are referenced but don't exist\n5. **B-5 Deployment** \u2014 no Docker, CI/CD, or staging environment\n\n**\ud83d\udfe1 3 High priority** (can run in parallel once backend exists):\n- Gmail/Calendar integration (UI built, no OAuth backend)\n- Full-text search (client-side only, won't scale)\n- SSR/hydration hardening (reactive fixes have been landing \u2014 needs a proactive audit)\n\n**\ud83d\udfe2 3 Low priority** (code hygiene, no blockers):\n- Browser API cleanup (SpeechRecognition/MediaRecorder leaks)\n- `console.log` fallback pattern\n- FSD cross-widget import monitoring (3 instances, threshold is 5)\n\nThe doc also calls out what's solid and must not regress \u2014 design system enforcement, quality gates, Storybook DoD, and the service provider pattern that makes the backend swap feasible.",
+      "turn": 1
+    },
+    {
+      "role": "user",
+      "content": "Document's committed. Does it match what you needed, or should I adjust the framing/categories?",
+      "turn": 2
+    },
+    {
+      "role": "assistant",
+      "content": "The document covers everything I surfaced from the knowledge base and recent history. A few things I'm confident about:\n\n- The **dependency chain ordering** (B-1 \u2192 B-2 \u2192 B-4 \u2192 B-3 \u2192 B-5) is correct \u2014 you genuinely can't do auth without a user model, can't do real agents without an API layer, etc.\n- The **\"what's already solid\" section** is important to have \u2014 without it, the doc reads like the project is a mess, when really the frontend quality is unusually high.\n- Tying each issue back to **evidence** (commit counts, specific files) keeps it from being vague opinion.\n\nThings I'd flag as potentially worth adjusting:\n\n1. **H-3 (SSR fragility)** \u2014 I categorised it as \"high\" but it could be argued it's a blocker depending on how rough the hydration issues still are. If you've seen regressions recently, bump it.\n\n2. **The framing assumes a single team** doing all of this sequentially. If frontend and backend work will run in parallel (different people), the ordering section needs a different shape \u2014 more of a dependency graph than a linear queue.\n\n3. **No timelines or owners** \u2014 deliberately left those out since I didn't have that context. If you want it to function as a sprint/roadmap doc rather than just an issues registry, I can add columns for owner and estimated effort.\n\nWhat's your actual use case for the doc \u2014 internal reference, something to share with stakeholders, or input into sprint planning?",
+      "turn": 2
+    },
+    {
+      "role": "user",
+      "content": "It's internal reference + sprint planning. The dependency chain is what matters most \u2014 we need to see what can't move until something else ships.\n\nDon't need stakeholder framing or timelines. The doc as-is works. What would help: **add a \"parallel workstreams\" section** that shows which issues CAN run in parallel (e.g., frontend can keep iterating while backend does B-1/B-2) and which genuinely have to wait. Keeps planning concrete.\n\nPush that one change and we're done.",
+      "turn": 3
+    },
+    {
+      "role": "assistant",
+      "content": "[Read]\n[Edit]\n[Bash]\nCommitted. The new section has three parts:\n\n- **Stream A** \u2014 the serial backend chain (B-1 \u2192 B-5), nothing can be reordered\n- **Stream B** \u2014 everything frontend can do right now without waiting on anyone\n- **Sync points** \u2014 the four specific milestones where the streams have to meet (B-4 for fixture swap, B-2 for auth UI, B-3 for live agents, B-5 for staging QA)\n\nAlso added a quick rule of thumb at the bottom: if you're touching fixtures or `ServicesProvider` you're on Stream B and safe to ship; if you're touching schema or API routes you're on Stream A and need the prior step. Should make sprint scoping faster.",
+      "turn": 3
+    },
+    {
+      "role": "user",
+      "content": "Looks good. That split clears up what people can actually work on independently.\n\nIs the doc ready to share with the team, or do you want to surface it somewhere specific first?",
+      "turn": 4
+    },
+    {
+      "role": "assistant",
+      "content": "The doc is ready as-is for internal team sharing. A couple of options worth considering for surfacing it:\n\n1. **Link it from `docs/README.md`** \u2014 if that's where the team navigates from, it's a one-line addition under an \"Architecture\" section. Easy to find without hunting.\n\n2. **Add it to the knowledge base index** (`.claude/knowledge/index.md`) \u2014 since the knowledge base is what Claude agents on this project consult before making decisions, having the issues doc indexed there means it gets pulled into context automatically when anyone's doing sprint planning or architecture work.\n\nOption 2 is the higher-leverage one given how this project works \u2014 the doc becomes active context for every agent session, not just a reference humans have to remember to read.\n\nWant me to add it to both? It's a small edit each.",
+      "turn": 4
+    }
+  ],
+  "hook_injections": [],
+  "workspace": "/tmp/roleplay-control-20260407-211352"
+}

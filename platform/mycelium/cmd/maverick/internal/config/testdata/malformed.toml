@@ -1,0 +1,5 @@
+# This TOML is intentionally malformed
+[dev
+bolt_uri = "bolt://localhost:7687"
+user = "neo4j
+password = "broken"

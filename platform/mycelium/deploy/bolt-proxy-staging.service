@@ -1,0 +1,23 @@
+[Unit]
+Description=Bolt read-only proxy (staging)
+After=network.target neo4j-staging.service
+Wants=neo4j-staging.service
+
+[Service]
+Type=simple
+User=bolt-proxy
+# Admin token stored in /etc/bolt-proxy-staging.env (PROXY_ADMIN_TOKENS=<token>, mode 0600)
+EnvironmentFile=/etc/bolt-proxy-staging.env
+# Listens on public 0.0.0.0:7700, proxies to localhost-only 127.0.0.1:7689
+# Refuses all write verbs (bolt-proxy policy enforcement)
+ExecStart=/usr/local/bin/bolt-proxy -listen 0.0.0.0:7700 -upstream 127.0.0.1:7689
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

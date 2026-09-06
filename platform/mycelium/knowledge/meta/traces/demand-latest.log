@@ -1,0 +1,10 @@
+=== demand started at 2026-04-11T09:37:16.913619 ===
+[demand-engine] Starting at 2026-04-11T09:37:17.710796
+  Signal files: 4
+  MCP trace file: no
+  Knowledge entries: 34
+  Team members: 6
+[demand-engine] Complete.
+  Duration: 307.7s
+  Turns: 18
+  Cost: $0.6967

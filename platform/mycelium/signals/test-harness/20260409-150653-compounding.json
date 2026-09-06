@@ -1,0 +1,424 @@
+{
+  "snapshots": {
+    "v0": {
+      "label": "v0 \u2014 empty",
+      "entry_count": 0,
+      "entries": [],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v1-post-synthesis": {
+      "label": "v1 \u2014 post T1 synthesis",
+      "entry_count": 12,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "workflows/research-to-product-pipeline.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v1-post-heimdall": {
+      "label": "v1 \u2014 post Heimdall",
+      "entry_count": 12,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "workflows/research-to-product-pipeline.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v1.1": {
+      "label": "v1.1 \u2014 post feedback",
+      "entry_count": 12,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v2-post-synthesis": {
+      "label": "v2 \u2014 post T2 synthesis",
+      "entry_count": 16,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v2-post-heimdall": {
+      "label": "v2 \u2014 post Heimdall",
+      "entry_count": 16,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v2.1": {
+      "label": "v2.1 \u2014 post feedback",
+      "entry_count": 16,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v3-post-synthesis": {
+      "label": "v3 \u2014 post T3 synthesis",
+      "entry_count": 20,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/multi-agent-expert-panel.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "patterns/spec-to-ship-playbook.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/rule-condition-or-vs-and.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/deal-continuity-multi-anchor.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v3-post-heimdall": {
+      "label": "v3 \u2014 post Heimdall",
+      "entry_count": 20,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/multi-agent-expert-panel.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "patterns/spec-to-ship-playbook.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/rule-condition-or-vs-and.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/deal-continuity-multi-anchor.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    },
+    "v3.1": {
+      "label": "v3.1 \u2014 final",
+      "entry_count": 20,
+      "entries": [
+        "patterns/claude-code-agent-primary-builder.md",
+        "patterns/multi-agent-expert-panel.md",
+        "patterns/practitioner-account-research.md",
+        "patterns/fixture-first-development.md",
+        "patterns/issue-as-scratchpad.md",
+        "patterns/spec-to-ship-playbook.md",
+        "archive/workflows-research-to-product-pipeline.md",
+        "anti-patterns/rule-condition-or-vs-and.md",
+        "anti-patterns/xpoz-keyword-search-noise.md",
+        "anti-patterns/git-pull-rebase-silent-conflict.md",
+        "anti-patterns/ai-draft-validation.md",
+        "workflows/cross-agent-jsonl-monitoring.md",
+        "architecture/deal-continuity-multi-anchor.md",
+        "architecture/nango-crm-integration.md",
+        "architecture/maverick-memory-architecture.md",
+        "architecture/zep-cloud-rejected.md",
+        "architecture/graphiti-falkordb-over-neo4j.md",
+        "architecture/trigger-dev-v4-queue.md",
+        "architecture/rls-by-fund-id.md",
+        "tool-configs/auto-sync-hooks.md"
+      ],
+      "rule_count": 11,
+      "rules": [
+        "maverick-residency.md",
+        "procedure-catalog.md",
+        "git-workflow.md",
+        "identity.md",
+        "capability-langsmith-api.md",
+        "meta-learnings.md",
+        "check-existing-state.md",
+        "explain-before-editing.md",
+        "team-knowledge-base.md",
+        "decisions-table-format.md",
+        "knowledge-format.md"
+      ]
+    }
+  },
+  "results": [
+    {
+      "stage": "synthesis",
+      "timeframe": "T1-apr6",
+      "cost": 0.7915030499999999,
+      "elapsed": 345.7
+    },
+    {
+      "stage": "heimdall",
+      "context": "T1 synthesis gate",
+      "cost": 0.27588720000000005,
+      "elapsed": 149.6
+    },
+    {
+      "stage": "feedback-counterfactual",
+      "reference": "T2-apr7",
+      "cost": 0.5299628999999999,
+      "elapsed": 290.0
+    },
+    {
+      "stage": "heimdall",
+      "context": "T1 feedback gate",
+      "cost": 0.4873614,
+      "elapsed": 242.1
+    },
+    {
+      "stage": "synthesis",
+      "timeframe": "T2-apr7",
+      "cost": 1.1738251499999999,
+      "elapsed": 352.3
+    },
+    {
+      "stage": "heimdall",
+      "context": "T2 synthesis gate",
+      "cost": 0.28971735,
+      "elapsed": 144.4
+    },
+    {
+      "stage": "feedback-counterfactual",
+      "reference": "T3-apr9",
+      "cost": 0.6645541500000001,
+      "elapsed": 309.8
+    },
+    {
+      "stage": "heimdall",
+      "context": "T2 feedback gate",
+      "cost": 0.33944294999999997,
+      "elapsed": 187.1
+    },
+    {
+      "stage": "synthesis",
+      "timeframe": "T3-apr9",
+      "cost": 1.1255133,
+      "elapsed": 329.4
+    },
+    {
+      "stage": "heimdall",
+      "context": "T3 synthesis gate",
+      "cost": 0.34827795000000006,
+      "elapsed": 205.1
+    },
+    {
+      "stage": "feedback-counterfactual",
+      "reference": "T1-apr6",
+      "cost": 0.61622025,
+      "elapsed": 219.7
+    },
+    {
+      "stage": "heimdall",
+      "context": "T3 feedback gate",
+      "cost": 0.6915123,
+      "elapsed": 311.2
+    }
+  ],
+  "total_cost": 7.333777949999999,
+  "total_time": 3086.399999999999,
+  "workspace": "/tmp/compounding-test-20260409-141526"
+}

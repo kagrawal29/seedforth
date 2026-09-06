@@ -1,0 +1,12 @@
+{
+  "action": "published",
+  "repository": {
+    "full_name": "Qubit-Capital/maverick"
+  },
+  "release": {
+    "tag_name": "v1.2.0",
+    "name": "Maverick v1.2.0 — Dashboard Refresh",
+    "body": "## Changelog\n- Investor dashboard v2\n- Performance improvements",
+    "published_at": "2026-04-18T18:00:00Z"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "ref": "refs/heads/main",
+  "repository": {
+    "full_name": "Qubit-Capital/maverick-marketing"
+  },
+  "commits": [
+    {
+      "id": "abc123def456",
+      "message": "feat: add landing page hero section",
+      "timestamp": "2026-04-18T12:00:00Z",
+      "url": "https://github.com/Qubit-Capital/maverick-marketing/commit/abc123def456",
+      "author": {
+        "name": "Alice Dev",
+        "email": "alice@qubit.capital",
+        "username": "alicedev"
+      }
+    },
+    {
+      "id": "def789ghi012",
+      "message": "fix: correct mobile breakpoint",
+      "timestamp": "2026-04-18T12:05:00Z",
+      "url": "https://github.com/Qubit-Capital/maverick-marketing/commit/def789ghi012",
+      "author": {
+        "name": "Bob Smith",
+        "email": "bob@qubit.capital",
+        "username": "bobsmith"
+      }
+    }
+  ]
+}

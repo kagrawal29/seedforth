@@ -1,0 +1,11 @@
+[Unit]
+Description=Run mycelium smoke every hour
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+AccuracySec=30s
+Unit=mycelium-smoke.service
+
+[Install]
+WantedBy=timers.target

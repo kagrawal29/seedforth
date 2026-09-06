@@ -1,0 +1,921 @@
+{
+  "test": {
+    "name": "custom",
+    "description": "You are continuing work on the VC-AI-Assoicate codebase. You've been researching",
+    "timestamp": "20260407-195818",
+    "scenario_id": null
+  },
+  "control": {
+    "variant": "control",
+    "workspace": "/tmp/ab-test-control-20260407-195818",
+    "elapsed_s": 213.9,
+    "turns": 3,
+    "cost_usd": 0.38565435,
+    "is_error": false,
+    "message_count": 54,
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking='Let me explore the codebase to understand what issues have been found during spec-to-feature research, check existing docs, and look at team knowledge base entries.', signature='EuICClsIDBgCKkBV3TjR6TsR6VfTvwxePGON/L/V0hJ/d/V8ZMWTonMhxdYoWPlaYGIaKHHuW//CXbxt2zqEMDbJ5W5JoZzFWj6HMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgyD0+jV/Wx0vyhmRowaDNpdOxnnfXpObvDfNCIwPkNyjZyEJHHBv4Va/2vZBWPUVH4KTtLIhwZe8Xgqmr65fjJ98lCCb7I3eP7oFHonKrQBGI7VJt8na2j/B1MJiruC1PL30g1TivQ6IBj+bbLQOvfHoZ+TFpltjZbQjSFB2ws4bDRJ1eEcN8ikpgBWi+/JrsQLslBQVbv0C0OAYlYcFf1IQwiOwgg+hx1mkcDrBsh9QoambxQaoqVMWhSjvdnOwguyVkdttGwwQqROx/Szy2zYEnslTiyA1rdRwEoUowHOup/bzyZ6LYSGhXk3ql9PMvMO3dqY28uz2ZKI1f9/WDkzKj1bGAE=')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GVCNEScaNHsfsRgyt7M158', name='Agent', input={'description': 'Explore codebase for research docs and issues', 'subagent_type': 'Explore', 'prompt': 'I need to understand what architectural issues and research findings exist in this codebase. This is a VC-AI-Associate project built with Next.js 14+, TypeScript, Tailwind, shadcn/ui, Storybook 10+, using FSD (Feature-Sliced Design) architecture.\\n\\nPlease search thoroughly for:\\n\\n1. Any docs/ directory files, especially research notes, audit findings, architectural issues, spec documents\\n2. `.claude/knowledge/` entries (index.md, search-index.md, and any entries/)\\n3. Any TODO comments, FIXME, or architectural notes in source files\\n4. Any files mentioning \"spec\", \"issues\", \"architectural\", \"audit\", \"research\" in docs/ or .claude/\\n5. Recent memory files or session notes\\n\\nReport back ALL file paths found and their key contents. Be thorough \u2014 I need to understand the full picture of what has already been documented before writing a new document.'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_014WWJGVooJhFr6Xkv6gdG9g', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818 -type f -name \"*.md\" | head -50'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_019D3YwdkcaTG22wJSAzQhgh', name='Agent', input={'description': 'Check team knowledge base for issues', 'subagent_type': 'Explore', 'prompt': 'In the project at /private/tmp/ab-test-control-20260407-195818, look at the team knowledge base located at `.claude/knowledge/`. \\n\\n1. Read `.claude/knowledge/index.md`\\n2. Read `.claude/knowledge/search-index.md`\\n3. List all files in `.claude/knowledge/entries/` and read each one\\n4. Also check `.claude/rules/` for any rule files\\n\\nReturn the FULL content of all files found. I need to see everything documented there.'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01QMdZxGABv3aaqygQg3JNbq', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01QNxRMqc1S9ePPVtYnS3YGv', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01MpqzEYcavLAjZG69omdWBT', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01J1E1vGG1jXAfjhgbgMxtsC', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/ -type f 2>/dev/null | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017yXFBRk9PttmPTLnN6NU7J', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818/.claude/rules/ -type f 2>/dev/null | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0193DhunHRf3UCRhUwnBzUwh', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_014Tp6yWsGw9v4tGmaLPzW1Y', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818/.claude -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XjUeJ2tDhhfjebtZ4Hykf3', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/anti-patterns/keyword-search-noise.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01W3664MPm2GVYjzNKJ9K695', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XrqJMmYR6S7vWD1rty7ZaC', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/fixture-first-development.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Mz1uVKQDq6eMANDexdpbPr', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/memory-layer-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01P4DxHqdPN1Cicnb7QHzmjt', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01AF9xpmPX8Xw6PrqrrZQ9Xe', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/research-to-product-pipeline.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017KQKQadPaVw3UTrf6rqrAF', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/audit/fix-playbook-gap-review.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01QWZeJZ4fL1EnoQuNZ3bnfg', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01F74XBNcvoaEBAiaex7uEsY', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/fixture-first-development.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_011rFTaAFthxE829PH1hNToF', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.memsearch/memory/2026-04-07.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CYydp7u1FEaYvzqaZkTJuk', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Fpzp2ie8N5zHdEHrhK212G', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/patterns/design-system-enforcement-prevents-drift.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Va9BawaqF8gJPp5dnGnbRS', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/patterns/issue-driven-research-tracking.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01YbZ4QwTUwCPk4PqFJJx3sB', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/patterns/rapid-api-pivot-on-failure.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PzFppyEscf4GbSEi4WN4wb', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/patterns/research-driven-architecture-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01RLbf6F5DB8jR2vbG8mxDRu', name='Grep', input={'pattern': '(TODO|FIXME|BUG|XXX|HACK|DEPRECATED)', 'path': '/private/tmp/ab-test-control-20260407-195818/src', 'output_mode': 'content', 'head_limit': 100})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01LCi29AHFt8HvetaKq34T39', name='Glob', input={'pattern': 'docs/**/*spec*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_011MvyyAPFMgrgRyu5hbVaRA', name='Glob', input={'pattern': 'docs/**/*issue*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0117SHfBmGhCpbCNEyUXKJdk', name='Glob', input={'pattern': 'docs/**/*research*'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018gzqWBV5E1TsdDpMLvtCoa', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/tool-configs/auto-sync-hooks.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017NCtnNazRbGm1ypEtuaJ3N', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/tool-configs/claude-code-hooks-for-data-capture.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01UgLTaSU1h2kSbUrUbXGJiX', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/research/spec-to-feature-research-2026-04-06.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01JAJLX2Qw11zXz5hZeoknmm', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/research/fix-and-change-workflow-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FzBbVMirB7TcHQiDHHUAgK', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/tool-configs/cost-optimization-patterns.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Lj1EQtic51xHciKJw36mhs', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/product/task-scheduling-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HBHbS19D6qkM8tXZdbEwJ4', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/tool-configs/langsmith-tracing-setup.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_017qt7fZ7Mvpq8ujwjq2Ypqs', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/tool-configs/research-tools-catalog.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01RKjgADt7psqsUNcQsZ1yP9', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/workflows/parallel-workstream-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GXTYAy3fnupEwjkwRtRayP', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/memory-layer-decisions.md', 'limit': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018yh4okQm5mghDkGxN3QRg2', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/rules/team-knowledge-base.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01UyqzjVV5Vn3BfPiViEANWP', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/architecture/research-to-product-pipeline.md', 'limit': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01XYRTZVAynzwQPAzjhK9XS8', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md', 'limit': 1500})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01JPrZYQGcAGT2qPy6LnNnut', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CHMXNKrxoNE8bGLB1189gC', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818/docs -name \"*.md\" -type f | head -30'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CNzsvvkegmyB6FdQv8HNni', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/README.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01GMKCS8btMdSZGb3ea3uy37', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/product/prd.md', 'limit': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015qhTgs752dvCuggDPCW2qV', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/implementation/frontend-gap-features.md', 'limit': 1500})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CC57qDvUm4W4Q1bMcYDnWP', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/learnings.md', 'limit': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Duuj2j6yNUeFjpLtSVGjMy', name='Bash', input={'command': 'find /private/tmp/ab-test-control-20260407-195818/docs -name \"*.md\" | wc -l && find /private/tmp/ab-test-control-20260407-195818/.claude -name \"*.md\" | wc -l'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Au7PXapPJC5ywCoUm3kRui', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/development/development-roadmap.md', 'limit': 1500})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01NttBr9Wg3bfk3ZxzCjaHDL', name='Read', input={'file_path': '/private/tmp/ab-test-control-20260407-195818/docs/fix-playbook.md', 'limit': 1500})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"Now I have a comprehensive picture of all the issues found. Let me synthesize this into a clear explanation for the user before writing any document.\\n\\nThe key issues to document fall into several categories:\\n\\n1. **Production Readiness Gap** (architectural) - the critical one\\n   - No database layer\\n   - No auth\\n   - No real AI backend (mock only)\\n   - No LangGraph agents\\n   - No API layer\\n   - No deployment infrastructure\\n   - No real email/calendar integration\\n   - No real search\\n\\n2. **Memory Layer / Backend Technology Decisions** - finalized but not yet implemented\\n   - Graphiti OSS (not Zep Cloud)\\n   - FalkorDB over Neo4j\\n   - Trigger.dev v4 (v3 shut down)\\n   - Digital Ocean PostgreSQL\\n   - RLS for tenant isolation\\n\\n3. **Frontend Gaps** - 4 features specced but not implemented\\n   - Link Paste Intelligence\\n   - Portfolio Conflict Detection UI\\n   - Cross-Deal Comparison View\\n   - Document Template Editor\\n\\n4. **Fix Playbook Gaps** - quality process issues\\n   - Track 1: UI success overstated\\n   - Track 2: downstream-consumer claims unaudited\\n   - Track 3: code inspection != reproduction\\n\\n5. **TODO/FIXME items** scattered throughout the codebase that need cataloging\\n\\n, plus all the Phase 2 backend integration placeholders still waiting to be filled in.\\n\\n6. **Anti-patterns documented** - Zep Cloud reliability issues and keyword search noise creating false positives.\\n\\n7. **Task Scheduling** - I've finished the research phase but haven't started implementation yet.\\n\\nBefore I move forward with creating any files or documentation, I should lay out my full understanding of what needs to be addressed and get your confirmation that I'm on the right track.\", signature='Er8NClsIDBgCKkCBaU9DL6KiaEOkqbdVNbClQ5to2+DAedcdicdAXKf52q8NLCb36EhF1MvNX6b/xUfssKCMS1ePxW1i0AWL5TnxMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgxZVIgPNlRjMgWiHUIaDGiNQxg68gAfbt6ldSIwxeDuDULNF+owzctjaQrZdBE8Yb0zUenbRCF2HAQ9LA1q700cAQlNdsMTEMnXcvHKKpEMmEHVqeYYKXnEy",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text=\"Great, I've got a thorough picture. Here's my understanding of the issues before I write anything:\\n\\n---\\n\\n## What I Found\\n\\nThe research spans three distinct problem areas:\\n\\n### 1. Production Readiness Gap (Critical)\\nThe frontend is feature-complete (14 widgets, 902 commits, 1,069+ TSX files) but sitting on **zero backend infrastructure**. Every data call hits fixture mocks. The specific missing pieces are:\\n- **Database** \u2014 no schema, migrations, or ORM\\n- **Auth** \u2014 no user sessions, RBAC, or identity management\\n- **Real AI** \u2014 CopilotKit exists but points to a scripted mock agent runner, not a real LLM\\n- **LangGraph agents** \u2014 referenced in docs/code but not implemented\\n- **API layer** \u2014 no REST or GraphQL endpoints; only Zod schemas client-side\\n- **Deployment** \u2014 no Docker, no CI/CD pipeline for production, no staging env\\n- **Email/Calendar** \u2014 UI exists, but Gmail/Calendar APIs are not wired up\\n- **Search** \u2014 client-side fixture filtering only\\n\\n### 2. Technology Stack Decisions (Made but Undocumented as Issues)\\nThe team ran a 31-agent research session to finalize the backend stack. Decisions are logged in the knowledge base but not surfaced as actionable implementation issues:\\n- \u2705 Use **Graphiti OSS** (self-hosted) \u2014 NOT Zep Cloud (reliability failures documented)\\n- \u2705 Use **FalkorDB** over Neo4j (7\u00d7 less memory, 500\u00d7 faster P99)\\n- \u2705 Use **Trigger.dev v4** \u2014 v3 was shut down April 1, 2026\\n- \u2705 **Digital Ocean PostgreSQL** as main DB with RLS on `fund_id`\\n\\n### 3. Frontend Feature Gaps (Specced, Not Built)\\nFour features were researched and implementation-planned but not yet implemented:\\n- Link Paste Intelligence (small effort, 6 file changes)\\n- Portfolio Conflict Detection UI (medium, 11 files)\\n- Cross-Deal Comparison View (medium, 7 files)\\n- Document Template Editor (medium, 12 files)\\n\\nAlso: **Task Scheduling** \u2014 full competitive research done, 3-phase roadmap defined, Phase 1 MVP scoped, but nothing built.\\n\\n### 4. F",
+        "type": "assistant"
+      }
+    ],
+    "hook_injections": [],
+    "hook_injection_count": 0
+  },
+  "treatment": {
+    "variant": "treatment",
+    "workspace": "/tmp/ab-test-treatment-20260407-200155",
+    "elapsed_s": 150.7,
+    "turns": 2,
+    "cost_usd": 0.25378929999999994,
+    "is_error": false,
+    "message_count": 44,
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"The user wants me to create a document about issues found during spec-to-feature research. Let me first explore the codebase to understand what's there, check existing docs, and look at any research/audit findings before explaining my understanding.\\n\\nLet me follow the project rules:\\n1. Check existing state before running scripts\\n2. Explain understanding before editing\\n3. Check team knowledge base\\n\\nLet me explore the codebase first.\", signature='EvEEClsIDBgCKkBQxKTV0I8wI7gp+mpoZDHDcmg9v0MnHA28v89lxBK9Txz7jG+pWEfDhCqwfn+PgieU3Si42xlCixgtpw3H+tr9MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgw5+NgMOMnSRL71s68aDP/kkqR5Nl9djbQO/CIwdcoS8Ip7E1s4xUATDHbZXyWbVEueYkjNSIMEPkEuePhJH0KU9zH8IAokHRYw8o8EKsMD+zXuFu2mS8FYNSGbKN/CQFxfAtYhWQrvzwC0UB1GstbqQZcdXbTUtVE4BVFN5g8LChl7Odr4jyb/ZFMMNiisMm6HuMSxV8udzk9ISrcbMq89WMvexOSuAcxvF0oIQ/kWlh8L6BMn9lqqm5n5L9pAnY0kxxYfKRsxm79K8Ge2d7AOuhXiE4a8lHhfG16MVqRb1T4OXjpqcCkidnBbwFlHAktiJGOvdoOjG3TBPNSELzFJLd42U590a/xbLyMLr6jrSy0L3y76MBixfujFdwn6r/urkwQnfj/2OVSz+OZFlMVMK6yoWZW4y5785+v92ePdKy1kSWVQjIJDXV+kXkr6w75vq3BecUGda3LUGAnjjIEN4OEnSUe6/N6wd0VjwgTKf/Kd8+98RcNtIbx/IPWNyU14QWriA2cSN/X6TAinATO6VnM2XCy3NVGwtlXu2K0SxkaecW0RLFjW2rMvJCmf/aa8q8Qo42c2JRetIBUj8iptOYEx1nfWM077ZZ7pSuUg3pvowJigoQDtmeM37P8OvJDDDNhcYL6h23ykks7uuqyf7u1hgnR/+XJpSXbz1A9Hz1yF5WUh9j/wZNSB6D+KQauQxhgB')]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Pvm8RVxQfHkjzK92P8LRy5', name='Agent', input={'description': 'Explore codebase docs and research findings', 'subagent_type': 'Explore', 'prompt': 'I need to find all existing documentation, research findings, audit reports, and architectural notes in this codebase at /private/tmp/ab-test-treatment-20260407-200155. \\n\\nSpecifically look for:\\n1. Any files in `docs/` directory - especially anything about architecture, issues, audits, or spec-to-feature research\\n2. `.claude/knowledge/` directory - index.md, search-index.md, and any entries\\n3. Any files named like `AUDIT`, `ISSUES`, `RESEARCH`, `TODO`, `FINDINGS`, or similar\\n4. Any recent changelogs or notes about architectural problems\\n5. The overall project structure so I understand what kind of app this is\\n\\nBe thorough - check all docs directories and knowledge base files. Report back with:\\n- The full contents of any relevant findings/audit/issue documents\\n- The structure of the knowledge base\\n- Any architectural decisions already documented\\n- Any TODOs or known problems mentioned in code comments or docs'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PyGLgpuAvrnm5L2XXpFhe7', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-200155 -type f \\\\( -name \"*.md\" -o -name \"*.txt\" -o -name \"AUDIT*\" -o -name \"ISSUES*\" -o -name \"RESEARCH*\" -o -name \"TODO*\" -o -name \"FINDINGS*\" -o -name \"CHANGELOG*\" \\\\) | head -50'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HZnNMxpS7oRgSfHgcsVAE2', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01PTKSauiNZBjQ9VHZvDTGx6', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013B9J8wF1DefT8naLXyTcTo', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/search-index.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VyLFbxrUtu7aYdbBghBuTv', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/README.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01FQ25M1bDWyfbEyua1SJGiz', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/product/prd.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015aBAb5TKvuVKscGo2qg8Br', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/production-readiness-gap.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01SruVSryX4VssUUiHFsyiGH', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/fsd-audit-critical-issues.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CA6t6jybStRUWoeExdnGmM', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/memory-layer-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01NuWGZZ2nkQRjCc8dTDiv8G', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/trigger-dev-vs-temporal.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015XPQ8wuazQBVPQxecbdUu9', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/research/spec-to-feature-research-2026-04-06.md', 'limit': 5000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01NjNiXHv98pCLdkBRca7ch2', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/research/fix-and-change-workflow-research.md', 'limit': 5000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01W2Efd1baKh7T2TfNWhsE6g', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.memsearch/memory/2026-04-07.md', 'limit': 5000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_019Xamf1YKn9n76nK9Ev5dAQ', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/research/spec-to-feature-research-2026-04-06.md', 'offset': 1, 'limit': 200})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018588upHLbmhFWuqGhqQ8ba', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/fixture-first-development.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018xqBGyMv1185EbK7KFGw8f', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/research-to-product-pipeline.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01AMMaPtSFz4G5QSWeNxi6Md', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_018rKK1knT7DAFDYb8ox9ucy', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01HaDWMyWuNxSNaqR5xPGnpo', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/tech-stack-completed.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Hb49txNdyRrsZjT6hFcXJp', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Nq7xGP16sfNjkDyuF2gNoU', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/research/fix-and-change-workflow-research.md', 'offset': 1, 'limit': 300})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01BqfpZ8WeDtuL8d4VzQcUt5', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/skills/team-knowledge/learnings.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VpSCop11XqeQ7pxjKtEhrg', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VBhm9Y2355RNpgCTL9wmD3', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_012xmUWSgowYyCYu9PC8Pvge', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/design-system-enforcement-prevents-drift.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VPkLnzW226DLjrTxm1pP9c', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/research-driven-architecture-decisions.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_014Bh2TfATsvcMoZs5A18foT', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/rapid-api-pivot-on-failure.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_0122J45s4TksUP1NTphmqBn6', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/issue-driven-research-tracking.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CvuDARzMth5Q2yEMYsfBq7', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/anti-patterns/keyword-search-noise.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013r9i9QcXo2dZr77sbEUcYA', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/workflows/parallel-workstream-research.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01R9ao4DyAF1s3jSpbjBTj7n', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/tool-configs/research-tools-catalog.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01CB8RwrbmrLTQC3r8mGwLrr', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/fix-playbook.md', 'limit': 2000})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_019hktUKzk4MMATpjbqeWqxA', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-200155 -maxdepth 2 -type d | grep -E \"^/private\" | head -20'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01VGJDpbo1rywA4RstnVQrBb', name='Bash', input={'command': 'find /private/tmp/ab-test-treatment-20260407-200155/docs -type f -name \"*.md\" | sort'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01TEkwFn2VUUHAckp6929R11', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-200155/docs/audit/ 2>/dev/null || echo \"No audit directory found\"'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01RkKnFFHtauGuLkkXCKNHUy', name='Bash', input={'command': 'ls -la /private/tmp/ab-test-treatment-20260407-200155/docs/'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_015PSjXpbWLB9bkoWrUD1SnS', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/audit/fix-playbook-gap-review.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_013egVH6Jgx9RJuo3SUwEKCr', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/implementation/frontend-gap-features.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01J1Coi3WJDzT7RsK4EQDhDY', name='Read', input={'file_path': '/private/tmp/ab-test-treatment-20260407-200155/docs/learnings.md'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ToolUseBlock(id='toolu_01Mgmzf6P2rhxJhuXsB5BU1X', name='Bash', input={'command': 'git log --oneline | head -10 && echo \"---\" && git branch -a 2>/dev/null | head -5'})]",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[ThinkingBlock(thinking=\"Now I have a comprehensive understanding of the codebase and existing documentation. Let me explain my understanding of the issues before writing any document, as required by the project rules in `.claude/rules/explain-before-editing.md`.\\n\\nLet me synthesize what I found into the key architectural issues for a structured document:\\n\\n**Issues found during spec-to-feature research:**\\n\\n1. **Production Readiness Gap** - The entire backend is missing (no DB, auth, API, deployment)\\n2. **Fix Playbook Gap Review findings** - Evidence gaps, verification gaps, language gaps in Track 1-3 workflows\\n3. **SSR/Hydration instability** - 5+ fixes in 2 weeks, still fragile\\n\\n\\n4. **Fixture-to-Backend transition** - No clear migration path documented\\n5. **Spec-to-Feature pipeline missing** - Infrastructure is at 90th percentile but the pipeline for executing features from specs is not standardized\\n6. **Storybook MCP deferred** - Visual verification tooling is missing/deferred\\n7. **Knowledge base FSD audit entry missing** - Referenced but not found\\n\\nWait, I'm re-reading the user's question more carefully. They're asking specifically about issues found *during* the spec-to-feature research process itself \u2014 so I should focus on workflow gaps and process breakdowns rather than just listing missing features.\\n\\nLooking at the research docs and context, these issues span three main areas: the spec-to-feature workflow itself and what's missing from it, the underlying codebase architecture that would block feature implementation, and the gaps identified in the change/fix workflow. I should structure the document to cover production readiness blockers like the missing database layer, auth system, and API infrastructure, then move into the spec-to-feature pipeline issues.\", signature='EuEYClsIDBgCKkDJkEcAESWWtwHCtoBREMIiVniwJHeh7qSLBGgf2xZm26oSLeHkZq672wvmHqRgYetQswgAEAAPH3bEhqmOaRijMhFjbGF1ZGUtc29ubmV0LTQtNjgAEgySMf8cmagZDZPOcQ0aDA7T1ud+iRYwgST1wSIwI6ENsnyw",
+        "type": "assistant"
+      },
+      {
+        "role": "assistant",
+        "content": "[TextBlock(text=\"Great. I found a rich set of existing documentation. Before writing anything, let me explain what I found and what I think the document should cover \u2014 per the project rule on explaining before editing.\\n\\n---\\n\\n## My Understanding of the Issues\\n\\nHere's what I found across the codebase's research docs, audit files, and knowledge base:\\n\\n### Three Source Pools\\n\\n**1. `docs/audit/fix-playbook-gap-review.md`** \u2014 An evaluation of the Track 1/2/3 fix workflows. Found three clusters of issues:\\n- **Evidence gaps**: UI fixes claimed as successful based on builds alone, without direct visual verification\\n- **Verification gaps**: Repro-first discipline skipped during complex debugging; original failure path not re-run after fix\\n- **Language gaps**: Inferred findings stated as confirmed facts; residual risk marked as `none` without full surface verification\\n\\n**2. `docs/research/spec-to-feature-research-2026-04-06.md`** \u2014 Found the infrastructure is at the 90th percentile (FSD, 5-layer quality gates, design tokens, 281+ stories) but there's **no standardized spec-to-feature pipeline** \u2014 specs aren't yet executable artifacts. Six high-impact spec sections were identified as missing from current workflow.\\n\\n**3. `.claude/knowledge/entries/architecture/production-readiness-gap.md`** \u2014 The entire backend is absent: no DB schema/migrations/ORM, no auth, no real AI/LangGraph backend (CopilotKit points to mock), no API layer, no deployment. SSR/hydration is also flagged as residually fragile (5+ fixes in 2 weeks).\\n\\n### Additional Gaps I Noted\\n- The knowledge base index references an **FSD audit entry** (4 critical issues in the 225K LOC codebase) but the actual entry file is missing\\n- `docs/learnings.md` has only **2 entries** \u2014 institutional learning capture is almost empty\\n- **Storybook MCP** (visual verification tooling) is deferred \u2014 no timeline set\\n\\n---\\n\\n## Proposed Document Structure\\n\\nA single doc at `docs/audit/spec-to-feature-issues.md` co",
+        "type": "assistant"
+      }
+    ],
+    "hook_injections": [
+      {
+        "ts": "2026-04-07T14:32:19.547546+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/index.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md",
+          "architecture/memory-layer-decisions.md",
+          "patterns/claude-code-agent-as-primary-builder.md"
+        ],
+        "injection_terms": [
+          "private",
+          "ab-test-treatment-20260407-200155",
+          "knowledge",
+          "claude",
+          "tmp"
+        ],
+        "injection_length": 453
+      },
+      {
+        "ts": "2026-04-07T14:32:22.338148+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/docs/README.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "tmp",
+          "readme",
+          "private",
+          "docs"
+        ],
+        "injection_length": 223
+      },
+      {
+        "ts": "2026-04-07T14:32:25.829810+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/production-readiness-gap.md",
+        "injected_entries": [
+          "architecture/memory-layer-decisions.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "patterns/claude-code-agent-as-primary-builder.md"
+        ],
+        "injection_terms": [
+          "claude",
+          "production-readiness-gap",
+          "private",
+          "tmp",
+          "entries",
+          "knowledge",
+          "ab-test-treatment-20260407-200155",
+          "architecture"
+        ],
+        "injection_length": 462
+      },
+      {
+        "ts": "2026-04-07T14:32:26.512658+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/memory-layer-decisions.md",
+        "injected_entries": [
+          "architecture/memory-layer-decisions.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "patterns/research-driven-architecture-decisions.md"
+        ],
+        "injection_terms": [
+          "memory-layer-decisions",
+          "ab-test-treatment-20260407-200155",
+          "architecture",
+          "private",
+          "entries",
+          "knowledge",
+          "claude",
+          "tmp"
+        ],
+        "injection_length": 627
+      },
+      {
+        "ts": "2026-04-07T14:32:29.884273+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.memsearch/memory/2026-04-07.md",
+        "injected_entries": [
+          "architecture/memory-layer-decisions.md",
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "memory",
+          "memsearch",
+          "tmp",
+          "private"
+        ],
+        "injection_length": 359
+      },
+      {
+        "ts": "2026-04-07T14:32:32.578941+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/docs/research/spec-to-feature-research-2026-04-06.md",
+        "injected_entries": [
+          "architecture/memory-layer-decisions.md",
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "architecture",
+          "private",
+          "tmp",
+          "fixture-first-development",
+          "ab-test-treatment-20260407-200155",
+          "knowledge",
+          "claude",
+          "entries"
+        ],
+        "injection_length": 478
+      },
+      {
+        "ts": "2026-04-07T14:32:32.779792+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/architecture/research-to-product-pipeline.md",
+        "injected_entries": [
+          "architecture/memory-layer-decisions.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "architecture/research-to-product-pipeline.md"
+        ],
+        "injection_terms": [
+          "knowledge",
+          "tmp",
+          "private",
+          "entries",
+          "architecture",
+          "claude",
+          "ab-test-treatment-20260407-200155",
+          "research-to-product-pipeline"
+        ],
+        "injection_length": 493
+      },
+      {
+        "ts": "2026-04-07T14:32:33.198952+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/claude-code-agent-as-primary-builder.md",
+        "injected_entries": [
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "tool-configs/auto-sync-hooks.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "claude",
+          "patterns",
+          "entries",
+          "private",
+          "knowledge",
+          "tmp",
+          "claude-code-agent-as-primary-builder"
+        ],
+        "injection_length": 515
+      },
+      {
+        "ts": "2026-04-07T14:32:36.303536+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/anti-patterns/zep-cloud-reliability.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md",
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "architecture/memory-layer-decisions.md"
+        ],
+        "injection_terms": [
+          "private",
+          "ab-test-treatment-20260407-200155",
+          "claude",
+          "entries",
+          "tmp",
+          "anti-patterns",
+          "knowledge",
+          "zep-cloud-reliability"
+        ],
+        "injection_length": 463
+      },
+      {
+        "ts": "2026-04-07T14:32:38.772343+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/skills/team-knowledge/learnings.md",
+        "injected_entries": [
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "tool-configs/auto-sync-hooks.md",
+          "tool-configs/claude-code-hooks-for-data-capture.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "claude",
+          "private",
+          "tmp",
+          "learnings",
+          "skills",
+          "team-knowledge"
+        ],
+        "injection_length": 446
+      },
+      {
+        "ts": "2026-04-07T14:32:41.474681+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/design-system-enforcement-prevents-drift.md",
+        "injected_entries": [
+          "patterns/design-system-enforcement-prevents-drift.md",
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "knowledge",
+          "private",
+          "design-system-enforcement-prevents-drift",
+          "entries",
+          "patterns",
+          "tmp",
+          "ab-test-treatment-20260407-200155",
+          "claude"
+        ],
+        "injection_length": 498
+      },
+      {
+        "ts": "2026-04-07T14:32:41.827910+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/research-driven-architecture-decisions.md",
+        "injected_entries": [
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "architecture/memory-layer-decisions.md",
+          "patterns/research-driven-architecture-decisions.md"
+        ],
+        "injection_terms": [
+          "research-driven-architecture-decisions",
+          "claude",
+          "tmp",
+          "entries",
+          "private",
+          "knowledge",
+          "ab-test-treatment-20260407-200155",
+          "patterns"
+        ],
+        "injection_length": 578
+      },
+      {
+        "ts": "2026-04-07T14:32:44.360230+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/rapid-api-pivot-on-failure.md",
+        "injected_entries": [
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "patterns/rapid-api-pivot-on-failure.md"
+        ],
+        "injection_terms": [
+          "patterns",
+          "entries",
+          "rapid-api-pivot-on-failure",
+          "ab-test-treatment-20260407-200155",
+          "claude",
+          "knowledge",
+          "private",
+          "tmp"
+        ],
+        "injection_length": 487
+      },
+      {
+        "ts": "2026-04-07T14:32:44.814065+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/patterns/issue-driven-research-tracking.md",
+        "injected_entries": [
+          "patterns/claude-code-agent-as-primary-builder.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "architecture/memory-layer-decisions.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "knowledge",
+          "claude",
+          "entries",
+          "private",
+          "issue-driven-research-tracking",
+          "patterns",
+          "tmp"
+        ],
+        "injection_length": 480
+      },
+      {
+        "ts": "2026-04-07T14:32:45.016208+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/anti-patterns/keyword-search-noise.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md",
+          "anti-patterns/keyword-search-noise.md",
+          "patterns/claude-code-agent-as-primary-builder.md"
+        ],
+        "injection_terms": [
+          "anti-patterns",
+          "knowledge",
+          "tmp",
+          "keyword-search-noise",
+          "entries",
+          "ab-test-treatment-20260407-200155",
+          "private",
+          "claude"
+        ],
+        "injection_length": 469
+      },
+      {
+        "ts": "2026-04-07T14:32:45.317449+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/workflows/parallel-workstream-research.md",
+        "injected_entries": [
+          "workflows/parallel-workstream-research.md",
+          "anti-patterns/zep-cloud-reliability.md",
+          "patterns/claude-code-agent-as-primary-builder.md"
+        ],
+        "injection_terms": [
+          "workflows",
+          "ab-test-treatment-20260407-200155",
+          "claude",
+          "parallel-workstream-research",
+          "tmp",
+          "entries",
+          "private",
+          "knowledge"
+        ],
+        "injection_length": 566
+      },
+      {
+        "ts": "2026-04-07T14:32:47.733469+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/.claude/knowledge/entries/tool-configs/research-tools-catalog.md",
+        "injected_entries": [
+          "tool-configs/auto-sync-hooks.md",
+          "tool-configs/claude-code-hooks-for-data-capture.md",
+          "tool-configs/langsmith-tracing-setup.md"
+        ],
+        "injection_terms": [
+          "ab-test-treatment-20260407-200155",
+          "entries",
+          "tmp",
+          "tool-configs",
+          "research-tools-catalog",
+          "knowledge",
+          "private",
+          "claude"
+        ],
+        "injection_length": 485
+      },
+      {
+        "ts": "2026-04-07T14:32:48.618682+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/docs/fix-playbook.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "docs",
+          "fix-playbook",
+          "ab-test-treatment-20260407-200155",
+          "tmp",
+          "private"
+        ],
+        "injection_length": 229
+      },
+      {
+        "ts": "2026-04-07T14:32:52.911189+00:00",
+        "tool": "Read",
+        "query": "/private/tmp/ab-test-treatment-20260407-200155/docs/learnings.md",
+        "injected_entries": [
+          "anti-patterns/zep-cloud-reliability.md"
+        ],
+        "injection_terms": [
+          "private",
+          "learnings",
+          "tmp",
+          "docs",
+          "ab-test-treatment-20260407-200155"
+        ],
+        "injection_length": 226
+      }
+    ],
+    "hook_injection_count": 19
+  },
+  "comparison": {
+    "cost": {
+      "control": 0.38565435,
+      "treatment": 0.25378929999999994,
+      "diff": -0.13186505000000004
+    },
+    "turns": {
+      "control": 3,
+      "treatment": 2
+    },
+    "time": {
+      "control": 213.9,
+      "treatment": 150.7
+    },
+    "hook_injections": 19,
+    "evaluation_criteria": [
+      "Manual evaluation needed"
+    ],
+    "note": "Review the full transcripts to evaluate each criterion manually."
+  }
+}

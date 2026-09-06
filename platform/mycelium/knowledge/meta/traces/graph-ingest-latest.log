@@ -1,0 +1,7 @@
+=== graph-ingest started at 2026-04-11T09:33:21.200648 ===
+[ingest-to-graph] Direct graph ingestion — zero LLM
+  Traces ingested: 169
+  Commits ingested: 45
+  Issues ingested: 60
+  WorkItems synced: 49
+[ingest-to-graph] Done: 274 nodes ingested, $0 LLM cost

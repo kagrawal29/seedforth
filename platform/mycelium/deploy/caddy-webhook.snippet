@@ -1,0 +1,23 @@
+# Caddy route snippet for the maverick autodeploy webhook.
+#
+# Drop-in location on pulse-server: add inside the existing site block
+# (pulse-caddy container's Caddyfile). Path-based routing — only the
+# autodeploy hook path is forwarded; everything else on the host is
+# unchanged.
+#
+# The receiver validates the HMAC signature itself; Caddy does TLS + path
+# routing only. No extra auth layer needed.
+
+handle /hooks/maverick-autodeploy {
+    reverse_proxy 127.0.0.1:9091 {
+        transport http {
+            read_timeout 10s
+            write_timeout 10s
+        }
+    }
+}
+
+# Optional health probe (keep behind Caddy so it gets TLS too):
+# handle /hooks/maverick-autodeploy/health {
+#     reverse_proxy 127.0.0.1:9091
+# }

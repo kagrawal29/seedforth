@@ -1,0 +1,17 @@
+# Asgard Graph MCP Server — minimal image
+# Exposes the team's knowledge graph via MCP (SSE + Streamable HTTP transports)
+
+FROM python:3.12-slim
+
+RUN pip install --no-cache-dir \
+    falkordb \
+    redis \
+    mcp \
+    uvicorn
+
+WORKDIR /app
+COPY scripts/ /app/scripts/
+
+EXPOSE 6381
+
+CMD ["python3", "scripts/asgard-mcp-server.py", "--port", "6381"]

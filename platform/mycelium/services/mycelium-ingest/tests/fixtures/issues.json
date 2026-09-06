@@ -1,0 +1,17 @@
+{
+  "action": "opened",
+  "repository": {
+    "full_name": "Qubit-Capital/VC-AI-Assoicate"
+  },
+  "issue": {
+    "number": 7,
+    "title": "Ingest fails on empty commit list",
+    "body": "When a push arrives with zero commits the normalizer crashes.",
+    "state": "open",
+    "html_url": "https://github.com/Qubit-Capital/VC-AI-Assoicate/issues/7",
+    "created_at": "2026-04-18T09:00:00Z",
+    "user": {
+      "login": "bobsmith"
+    }
+  }
+}

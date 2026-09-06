@@ -1,0 +1,4 @@
+[targets.dev]
+user = "neo4j"
+password = "devpass123"
+# Missing bolt_uri

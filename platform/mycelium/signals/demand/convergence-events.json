@@ -1,0 +1,146 @@
+{
+  "computed_at": "2026-04-11T04:09:47.159719+00:00",
+  "threshold": {
+    "min_intents": 3,
+    "min_persons": 2
+  },
+  "events": [
+    {
+      "convergence_id": "region-meta-intelligence-system",
+      "type": "region_cluster",
+      "graph_region": "Meta Intelligence System",
+      "intent_count": 6,
+      "person_count": 3,
+      "persons": [
+        "Birch",
+        "Mycelium",
+        "Oak"
+      ],
+      "total_recurrence": 22.0,
+      "intents": [
+        {
+          "person": "Birch",
+          "intent_id": "autonomous-cross-session-coordination",
+          "label": "Ankit-S wants autonomous parallel execution \u2014 one agent watching another agent's progress via JSONL file polling \u2014 so he can hand off cross-session coordination to the system itself rather than manua",
+          "domain": "tooling",
+          "recurrence": 5
+        },
+        {
+          "person": "Mycelium",
+          "intent_id": "meta-system-staged-deployment-governance",
+          "label": "Kshitiz has an explicit staged governance model: the meta-system must demonstrate correct self-operation before it is allowed to influence other people's work. The real question is not 'is it ready?",
+          "domain": "process",
+          "recurrence": 4
+        },
+        {
+          "person": "Mycelium",
+          "intent_id": "v1-implementation-vs-design-intent-delta",
+          "label": "Kshitiz is checking whether v1 (what was implemented) diverged from the living systems design in issues #16-#20 \u2014 specifically whether 'structural coupling' (every query modifies the graph) was impl",
+          "domain": "architecture",
+          "recurrence": 4
+        },
+        {
+          "person": "Mycelium",
+          "intent_id": "autosync-rebase-safety-verification",
+          "label": "What happens to the auto-sync hook when two people push to the same branch, and how do we handle rebase conflicts safely?",
+          "domain": "tooling",
+          "recurrence": 2
+        },
+        {
+          "person": "Mycelium",
+          "intent_id": "cycle-output-completeness-ledger",
+          "label": "Kshitiz is building a delta map of what the system has captured vs what is actually happening across repos, to identify knowledge blind spots before expanding to the full team. The 'I only see one Gi",
+          "domain": "process",
+          "recurrence": 3
+        },
+        {
+          "person": "Oak",
+          "intent_id": "meta-system-personal-observability",
+          "label": "Pranav expected the LangSmith setup to give him personal dashboard access \u2014 a self-service view of his own traced work. The setup is asymmetric: the meta-system sees his work, but he can't see what t",
+          "domain": "tooling",
+          "recurrence": 4
+        }
+      ],
+      "strength": 23.0
+    },
+    {
+      "convergence_id": "region-product-architecture-&-fund-configuration",
+      "type": "region_cluster",
+      "graph_region": "Product Architecture & Fund Configuration",
+      "intent_count": 3,
+      "person_count": 2,
+      "persons": [
+        "Birch",
+        "Sequoia"
+      ],
+      "total_recurrence": 17.0,
+      "intents": [
+        {
+          "person": "Sequoia",
+          "intent_id": "api-gateway-pricing-cliff-detection",
+          "label": "Abhishek is checking whether Zuplo creates a pricing cliff \u2014 specifically whether SSE streaming (the delivery mechanism for AI agent responses) requires Enterprise tier ($1,000+/mo) from day one, whic",
+          "domain": "architecture",
+          "recurrence": 7
+        },
+        {
+          "person": "Birch",
+          "intent_id": "spec-to-ship-workflow-validation",
+          "label": "Ankit-S is using channel preferences as a deliberate workflow probe \u2014 testing whether the spec-to-ship playbook v7 (which he just updated with reading guide rules) holds together end-to-end before it ",
+          "domain": "workflow",
+          "recurrence": 5
+        },
+        {
+          "person": "Birch",
+          "intent_id": "workflow-stress-test-via-feature-selection",
+          "label": "Ankit-S is selecting features as workflow stress tests \u2014 he needs sufficient complexity to expose spec-to-ship weaknesses. The feature choice is a means of creating a challenging test environment, not",
+          "domain": "workflow",
+          "recurrence": 5
+        }
+      ],
+      "strength": 15.5
+    },
+    {
+      "convergence_id": "region-security-stack-&-infrastructure",
+      "type": "region_cluster",
+      "graph_region": "Security Stack & Infrastructure",
+      "intent_count": 3,
+      "person_count": 2,
+      "persons": [
+        "Oak",
+        "Sequoia"
+      ],
+      "total_recurrence": 13.0,
+      "intents": [
+        {
+          "person": "Sequoia",
+          "intent_id": "security-stack-external-validation",
+          "label": "Have we validated the security scanning stack (Infisical, Semgrep, Trivy, Coraza) through expert review?",
+          "domain": "architecture",
+          "recurrence": 5
+        },
+        {
+          "person": "Sequoia",
+          "intent_id": "nango-abstraction-depth-assessment",
+          "label": "Abhishek is evaluating whether Nango provides sufficient abstraction depth to eliminate CRM-specific integration code \u2014 or whether the team will end up building around its gaps anyway. The compliance ",
+          "domain": "integration",
+          "recurrence": 4
+        },
+        {
+          "person": "Oak",
+          "intent_id": "staging-deploy-reliable-workflow",
+          "label": "How do we branch, fix, and deploy to staging with CI gates in a reliable workflow?",
+          "domain": "workflow",
+          "recurrence": 4
+        }
+      ],
+      "strength": 13.5
+    }
+  ],
+  "summary": {
+    "total_events": 3,
+    "total_intents_analyzed": 12,
+    "persons_analyzed": 4,
+    "strongest_region": "Meta Intelligence System",
+    "strongest_strength": 23.0
+  }
+}

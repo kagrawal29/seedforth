@@ -1,0 +1,20 @@
+=== sync-layers started at 2026-04-11T09:48:18.903435 ===
+[sync-layers] Syncing demand/intent/convergence/phase to FalkorDB...
+  Demand clusters: 25
+  Cross-person demands: 7
+  Intents: 33
+  Convergence events: 3
+  Snapshot: 17 nodes archived to layer-snapshots/
+  Synced 25 demand nodes, 7 cross-person edges
+  Synced 33 intent nodes
+  Synced 3 convergence nodes
+  [phase] Macro: specification | Dispersion: 0.5 | 6 people, 3 micro-phases
+    Abhishek: specification(Product Architecture & Fund Co), specification(Security Stack & Infrastructur), specification(Security Stack & Infrastructur), specification(Architecture Validation & Rese), specification(Knowledge Management & Researc), tooling-setup(Security Stack & Infrastructur)
+    Ankit-S: specification(Product Architecture & Fund Co), specification(Knowledge Management & Researc), tooling-setup(Meta Intelligence System), specification(Frontend Quality & Design Syst), tooling-setup(Frontend Quality & Design Syst)
+    Kshitiz: specification(Meta Intelligence System), specification(Meta Intelligence System), tooling-setup(Meta Intelligence System)
+    Pranav: trust-repair(Rule Builder, Marketing Resear), tooling-setup(Meta Intelligence System), specification(Security Stack & Infrastructur), specification(Rule Builder, Marketing Resear)
+    Sahil: specification(Memory, Continuity & Workflow ), tooling-setup(Knowledge Management & Researc), specification(Knowledge Management & Researc)
+    Sahiram: specification(Knowledge Management & Researc), trust-repair(Product Architecture & Fund Co)
+  Phase nodes: 1
+  Community propagation: 66 nodes assigned
+[sync-layers] Done: 62 nodes synced to graph

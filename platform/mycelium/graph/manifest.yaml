@@ -1,0 +1,79 @@
+# graph/manifest.yaml
+# Declarative apply order for the maverick graph.
+# Consumed by: maverick-dev apply-manifest (post wi-gs-02)
+#              maverick-autodeploy-dev.service (idempotent-reapply on heartbeat)
+#              CI graph-gate (scratch Neo4j per PR, wi-gs-05)
+#
+# Every .cypher file listed here MUST:
+#   - Use MERGE with stable node_id (never CREATE)
+#   - Use SET for mutable properties
+#   - Be idempotent — re-applying produces identical graph state
+# Enforcement lives in wi-gs-01's integrity_check.
+
+version: 1
+
+apply_order:
+  # Schemas (constraints + indexes) apply before any data writes
+  - path: graph/schemas/*.cypher
+    phase: schema
+    required: false   # schemas are accumulating; optional until wi-gs-01 backfills
+
+  # Invariants define correctness rules; protocols reference them by name
+  - path: graph/invariants/*.cypher
+    phase: invariants
+    required: false
+
+  # Protocols (including scheduled ones via APOC)
+  - path: graph/protocols/*.cypher
+    phase: protocols
+    required: false
+
+  # Plans (roadmaps + work items)
+  - path: graph/plans/*.cypher
+    phase: plans
+    required: true    # v1.1 plan is authoritative now
+
+  # Contributor-facing guides (ContributorGuide, UXJourney, etc.)
+  - path: graph/guides/*.cypher
+    phase: guides
+    required: false
+
+  # Curated knowledge (project facts, decisions, glossary)
+  - path: graph/knowledge/*.cypher
+    phase: knowledge
+    required: false
+
+  # UX journeys as graph data (cross-references into tests via :UXStep.cmd)
+  - path: graph/ux/*.cypher
+    phase: ux
+    required: false
+
+  # Amendments — append-only tweaks to existing nodes (:WorkItem.amendments,
+  # :Track.amendments, :Invariant.amendments, etc). Applied last so they
+  # act on post-seeded state. One atomic tweak per file; never edited after
+  # landing. File naming: YYYY-MM-DD-<target-id>-<slug>.cypher
+  - path: graph/amendments/*.cypher
+    phase: amendments
+    required: false
+
+integrity_check:
+  fail_on_missing_idempotency_key: true    # every MERGE must pin to a stable node_id or constraint-enforced key
+  fail_on_create_without_merge: true       # CREATE (:X {...}) is rejected; use MERGE
+  fail_on_detach_delete_unguarded: true    # DETACH DELETE requires a WHERE clause narrower than label-only
+
+apply_semantics:
+  # When autodeploy runs, it:
+  #   1. Snapshots graph state (APOC export)
+  #   2. Applies every file in declared order
+  #   3. Compares post-state vs pre-state; writes :DriftEvent for any diffs that came from outside this manifest
+  #   4. Rolls back if any file fails (wrapped in transactions per phase)
+  transaction_per_phase: true
+  write_drift_events: true
+  rollback_on_failure: true
+
+# Targets this manifest is authoritative for:
+targets:
+  - maverick-dev
+  - maverick-prod
+  # maverick-local is user-managed; manifest applied during bootstrap + sync, not continuously
+  # maverick-staging uses this manifest via CI scratch instance (wi-gs-05)

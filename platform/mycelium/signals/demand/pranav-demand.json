@@ -1,0 +1,142 @@
+{
+  "person": "Pranav",
+  "computed_at": "2026-04-11T09:37:17Z",
+  "question_clusters": [
+    {
+      "id": "rule-logic-or-and-groups",
+      "representative_question": "What is the correct OR/AND group logic for rule conditions, especially for equals vs not_equals conditions across single-value fields?",
+      "all_questions": [
+        "So, you motherfucker, no categories, no thread will have two categories at once. It will always have one category, so does that not make all other rules also broken?",
+        "Now again, you have been moving away from your statement and being a hypocrite. Analyze all the three rules.",
+        "Rule one is not looking for two categories at once. It is just looking if any of these categories are in the thread.",
+        "So basically, from the very first place, when I had created all rules, they were correct, and you fucked it up by confusing"
+      ],
+      "frequency": 4,
+      "frustration": "high",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-07",
+      "domain": "rule-builder",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-rule-builder-group-logic",
+          "coverage_score": 0.9,
+          "gap": "Fully documents the within-group=OR / across-groups=AND pattern with clear examples for equals and not_equals rules. Minor remaining gap: no testing checklist to verify rule logic before deploying to staging."
+        }
+      ],
+      "gap_signal": false
+    },
+    {
+      "id": "rule-testing-real-data",
+      "representative_question": "How can I test all rules against real data in a way where Claude is not forcing them to pass, but actually analyzing the whole system?",
+      "all_questions": [
+        "Now tell me how you can help me test all of these rules where you are not forcing things to make them pass. We are actually able to analyze the whole system.",
+        "Now check all four rules again. Do not fucking mess with my head; just tell me in as few words as possible if all of the rules are correct or not.",
+        "Okay, then please download all the data of these two clients... Let's get the first step; let's get every data source here, and then we'll continue and discuss how to actually go forward."
+      ],
+      "frequency": 3,
+      "frustration": "high",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-09",
+      "domain": "rule-builder",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-rule-builder-group-logic",
+          "coverage_score": 0.2,
+          "gap": "Covers OR/AND group logic for rule conditions. Does not address rule testing methodology \u2014 how to source real production data for test cases, how to run rules against thread data without auto-forcing pass, how to detect zero-match rules vs correctly-skipped rules. No entry documents test data migration pattern (prod-to-staging) for rule validation."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "rule-category-system-vs-org",
+      "representative_question": "Why do system categories appear in the org category dropdown when creating rules \u2014 only organization categories should show.",
+      "all_questions": [
+        "You are doing it wrong! System categories are excluded. Give list from organization categories only.",
+        "While creating rules, organization categories should only show org categories, not system categories. Currently shows both.",
+        "In AI Auto Categories, you only had to mention the excluded categories and Auto Draft [specific categories listed]",
+        "Why is 'not interested' and 'not a fit' included in call schedule, but 'excluded' is excluded?"
+      ],
+      "frequency": 4,
+      "frustration": "high",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-07",
+      "domain": "rule-builder",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-rule-builder-group-logic",
+          "coverage_score": 0.1,
+          "gap": "Covers condition logic within groups. Does not address the system-vs-org category distinction bug \u2014 the root cause (rule builder UI showing both category types), how it manifests, or the fix (filter to org-only categories in the rule condition dropdown). This is a known recurring bug pattern worth documenting."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "asgard-graph-understanding",
+      "representative_question": "What is Asgard graph and how does it serve the team?",
+      "all_questions": [
+        "what is asgard graph",
+        "whats up with maverick",
+        "asgard_graph_demand (querying team demand signals)"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-10",
+      "domain": "meta-system",
+      "matched_entries": [
+        {
+          "entry_id": "architecture-phase1-decisions-settled",
+          "coverage_score": 0.3,
+          "gap": "Phase 1 decisions cover the product stack, not the meta-system. Asgard graph / Mycelium is documented in CLAUDE.md rules but not as a searchable knowledge entry. Team members who haven't seen the meta-system design have no way to discover it through knowledge search."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "trust-repair-claude-bad-advice",
+      "representative_question": "How do I ensure Claude does not repeat incorrect advice about rule logic or other decisions it has previously gotten wrong?",
+      "all_questions": [
+        "Forget the rules, tell me about process and copilot; rules we'll get built when infra which creates rules is fixed",
+        "Check staging database for logs on copilot-ket-chats. Actions it took, the rules it created, what user has requested. Not happy with the work."
+      ],
+      "frequency": 2,
+      "frustration": "high",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-07",
+      "domain": "rule-builder",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-rule-builder-group-logic",
+          "coverage_score": 0.3,
+          "gap": "Documents correct rule logic preventing repeat confusion, but does not address how to audit copilot-created rules (staging DB log query patterns), how to validate copilot-created rules against stated intent, or patterns for trust repair after repeated AI mistakes."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "quality-standards-visualization",
+      "representative_question": "Can you convert quality scoring dimensions into an interactive graph visualization?",
+      "all_questions": [
+        "i want to visualise this can you convert this into a graph for me - # Scoring Dimensions Catalog",
+        "you are on a shroom trip and yes go ahead"
+      ],
+      "frequency": 2,
+      "frustration": "low",
+      "first_asked": "2026-04-10",
+      "last_asked": "2026-04-11",
+      "domain": "visualization",
+      "matched_entries": [],
+      "gap_signal": false
+    }
+  ],
+  "summary": {
+    "total_questions": 18,
+    "gaps": 4,
+    "highest_frustration_domain": "rule-builder",
+    "cross_person_connections": [
+      "Abhishek (both working on spec format and process quality \u2014 Pranav testing rules against data, Abhishek managing spec dependency overlap)",
+      "Kshitiz (both asking about Asgard graph \u2014 Pranav as new user, Kshitiz as builder of the meta-system)",
+      "Sahil (both hit the category/rule-filtering issue in different contexts \u2014 Pranav in rule builder UI, Sahil in competitive research categorization)"
+    ]
+  }
+}

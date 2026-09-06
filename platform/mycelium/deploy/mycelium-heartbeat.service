@@ -1,0 +1,21 @@
+[Unit]
+Description=Mycelium Heartbeat — keeps the graph alive
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=tetrahedron
+WorkingDirectory=/opt/mycelium
+Environment=CADENCE_SECONDS=60
+Environment=NEO4J_CONTAINER=mycelium-neo4j-local
+Environment=NEO4J_USER=neo4j
+Environment=NEO4J_PASS=localtest12
+ExecStart=/bin/bash /opt/mycelium/graph/runner/heartbeat-loop.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

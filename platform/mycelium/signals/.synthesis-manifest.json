@@ -1,0 +1,150 @@
+{
+  "last_cycle_ts": "2026-04-11T09:55:26.315001+00:00",
+  "processed_files": [
+    {
+      "path": "signals/artifacts/2026-04-07-auto.md",
+      "sha256": "2050c0f4056a40ea31189e738cee9d76826ca77c24d675cd1625d25f5407627f",
+      "processed_at": "2026-04-09T08:13:45.279566+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/artifacts/2026-04-09-auto.md",
+      "sha256": "46daa4f371d85ca856c7ea4da18a6ac0674d9d7fac4b18e045a2c44b9f8f4117",
+      "processed_at": "2026-04-09T08:13:45.279664+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/github/2026-04-06-deep-ingest.md",
+      "sha256": "adb0d51e59b6a15f8cd7599e49fe7f5eecb6e684bd1f695bd759b5e05c2bc218",
+      "processed_at": "2026-04-09T08:13:45.279666+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/github/2026-04-06-delta-2.md",
+      "sha256": "9ee355343df0904139c86149aaa983580dbc80c59df3ba473518997d996fcbce",
+      "processed_at": "2026-04-09T08:13:45.279667+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/github/2026-04-06.md",
+      "sha256": "d0412a6eda769e07ff0c756202b1c12b17abd40f72f0dc93bbc2788d10199636",
+      "processed_at": "2026-04-09T08:13:45.279668+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/github/2026-04-07-auto.md",
+      "sha256": "06124fdd6840b570ba818d840d5ab41c288db3e45490ce378e3cd37316c45a8a",
+      "processed_at": "2026-04-09T08:13:45.279669+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/github/2026-04-09-auto.md",
+      "sha256": "32e991c49ee9ae1e08ab9353ad48901c5006094999af3749526a02f6336d32b6",
+      "processed_at": "2026-04-09T08:13:45.279670+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/langsmith/2026-04-06-cycle2.md",
+      "sha256": "ef985d66f007a8e26850121d097a84cb932f7284312f9d1698800b6ee31f82f1",
+      "processed_at": "2026-04-09T08:13:45.279672+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/langsmith/2026-04-07-auto.md",
+      "sha256": "86c6ed70517a0d20a06b0652b32d005d78ee6bb54c9a7d8cd65b6aa622c6f034",
+      "processed_at": "2026-04-09T08:13:45.279674+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/langsmith/2026-04-09-auto.md",
+      "sha256": "079a0e2c52faf6469321a1328e143bbf2918237edd6554066a3b7b504a9e51e5",
+      "processed_at": "2026-04-09T08:13:45.279675+00:00",
+      "entries_created": [
+        "seeded-on-deploy"
+      ]
+    },
+    {
+      "path": "signals/artifacts/2026-04-10-auto.md",
+      "sha256": "a70ed4f931a1ce333b3f6428130d56fc32b118062c76b19b9e520042299a17a7",
+      "processed_at": "2026-04-11T09:55:06.920665+00:00"
+    },
+    {
+      "path": "signals/delivery/2026-04-10.md",
+      "sha256": "dd8ec42675dd0789e34f11cb47a64d54e38042ca81828cdd19f1774c82f7d65d",
+      "processed_at": "2026-04-11T09:55:06.921097+00:00"
+    },
+    {
+      "path": "signals/github/2026-04-10-auto.md",
+      "sha256": "b23f3dd48650a3b82838716b27f23bb152840d6a6be1b38674ebad190d41e456",
+      "processed_at": "2026-04-11T09:55:06.921138+00:00"
+    },
+    {
+      "path": "signals/langsmith/2026-04-10-auto.md",
+      "sha256": "2e5ed2c08860bd256000e0d9d849050e2ee226b38072e611ce2bc3ee997218f6",
+      "processed_at": "2026-04-11T09:55:06.921208+00:00"
+    },
+    {
+      "path": "signals/artifacts/2026-04-11-auto.md",
+      "sha256": "cad9eb6d942eb1d737f9b1c24fe09e98474ae477eba826cac8736a5d88ed898e",
+      "processed_at": "2026-04-11T09:55:06.920703+00:00"
+    },
+    {
+      "path": "signals/artifacts/research-docs/emerging-manager-playbook.md",
+      "sha256": "f7d1f0a4885cf4c88daeb8789c9c5074bb9d1a313ba237f42269024d6394aa95",
+      "processed_at": "2026-04-11T09:55:06.920774+00:00"
+    },
+    {
+      "path": "signals/artifacts/research-docs/lp-reporting-workflow.md",
+      "sha256": "b91a1e1c1c85b4586c6aec869cfb412cc61d736870aba99a80def065fa76f0d6",
+      "processed_at": "2026-04-11T09:55:06.920891+00:00"
+    },
+    {
+      "path": "signals/artifacts/research-docs/pain-desire-analysis.md",
+      "sha256": "113f8b52746e4e160116822426145cde55ca8fe88a621d0f9e5db72f8ca4c243",
+      "processed_at": "2026-04-11T09:55:06.920981+00:00"
+    },
+    {
+      "path": "signals/artifacts/research-docs/post-investment-pain.md",
+      "sha256": "c4415897bce0e80cc25b290dea17e033266a1853ea4c9108ce1e3a5f1d76f38f",
+      "processed_at": "2026-04-11T09:55:06.921021+00:00"
+    },
+    {
+      "path": "signals/artifacts/research-docs/vc-ground-truth.md",
+      "sha256": "ad7dd6c02ddaf73b25c42cac1ae4376f3d15c1b4baf6a23c21a2f55f7e767fe1",
+      "processed_at": "2026-04-11T09:55:06.921079+00:00"
+    },
+    {
+      "path": "signals/delivery/2026-04-11.md",
+      "sha256": "2e01f4babd1dfa316abe2bd5d77d5584e2188fe8440b11937753332aa97b974e",
+      "processed_at": "2026-04-11T09:55:06.921110+00:00"
+    },
+    {
+      "path": "signals/github/2026-04-11-auto.md",
+      "sha256": "65155f8b748ee58662d695f2c2ca53d4943a3f7724a1337fbac941dcf41eff8b",
+      "processed_at": "2026-04-11T09:55:06.921155+00:00"
+    },
+    {
+      "path": "signals/langsmith/2026-04-11-auto.md",
+      "sha256": "3e528a280cdf7db941af181781b1031f8fabe6c2a07902362ed813705e596996",
+      "processed_at": "2026-04-11T09:55:06.921241+00:00"
+    }
+  ]
+}

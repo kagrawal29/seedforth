@@ -1,0 +1,50 @@
+{
+  "person": "Pranav",
+  "computed_at": "2026-04-10T18:32:04Z",
+  "intents": [
+    {
+      "intent_id": "claude-collaboration-trust-repair",
+      "source_cluster_id": "rule-builder-or-and-group-logic",
+      "surface_question": "Why do rules with multiple category conditions fail when put in separate groups, and how does OR vs AND logic work in the rule builder?",
+      "underlying_intent": "Pranav's rules were correct from the start. Claude gave bad advice that broke them. The real question beneath the technical one is: can Claude be trusted not to introduce errors when helping with rule logic? His frustration is about a collaboration failure — he trusted the system and it burned him.",
+      "intent_domain": "debugging",
+      "evidence": "'From the very first place, when I had created all rules, they were correct, and you fucked it up by confusing' — this is not a technical diagnosis, it is a relationship statement. The escalating profanity, 'hypocrite' accusation, and 'do not fucking mess with my head' all indicate that the frustration source is broken trust in Claude as a reliable collaborator, not confusion about OR/AND logic (which he understood correctly all along). He had to spend multiple turns getting Claude to admit the original rules were right.",
+      "frustration_driver": "Claude introduced errors into logic Pranav had correct, then gave contradictory explanations across multiple turns before acknowledging the mistake.",
+      "recurrence_count": 8,
+      "graph_region": "Rule Builder, Marketing Research & Tracking"
+    },
+    {
+      "intent_id": "copilot-infrastructure-root-cause-assessment",
+      "source_cluster_id": "copilot-process-vs-rules-content",
+      "surface_question": "How does the copilot actually work (the process) separate from the specific rules content it creates?",
+      "underlying_intent": "Pranav has tactically disengaged from fixing the current rule content and is doing infrastructure-level triage — assessing whether the copilot's rule-creation process needs debugging or rebuilding. The pivot from rules to process is a strategic escalation.",
+      "intent_domain": "debugging",
+      "evidence": "'Forget the rules, tell me about process and copilot; rules we'll get built when infra which creates rules is fixed' — this is an explicit triage decision. He then checked the staging database logs directly to audit copilot behavior session-by-session. 'Not happy with the work' as a log-review outcome confirms he was assessing quality at the infrastructure level, not the content level. He's not asking what the rules should be; he's asking whether the system that creates them can be trusted.",
+      "frustration_driver": "Medium — the copilot's rule-creation output quality was unsatisfactory; Pranav disengaged from content-level fixes to investigate the process.",
+      "recurrence_count": 3,
+      "graph_region": "Rule Builder, Marketing Research & Tracking"
+    },
+    {
+      "intent_id": "meta-system-personal-observability",
+      "source_cluster_id": "langsmith-tracing-setup-verification",
+      "surface_question": "How do I verify that LangSmith traces are flowing from my Claude Code session to the project?",
+      "underlying_intent": "Pranav expected the LangSmith setup to give him personal dashboard access — a self-service view of his own traced work. The setup is asymmetric: the meta-system sees his work, but he can't see what the meta-system sees. He wants agency over his own observability, not dependency on Claude to check for him.",
+      "intent_domain": "tooling",
+      "evidence": "'You have the API key, right? Can't you just check yourself, you fucking idiot?' — he assumed the checking capability was available without his involvement. 'Can you give me a URL to access the dashboard myself?' — he wanted direct personal access, not mediated access. 'I don't see any org and don't even see myself as a part of any org' — the setup gave him tracing without visibility, which felt like being monitored without consent.",
+      "frustration_driver": "High — the observability setup is one-directional: the meta-system captures his work, but he has no self-service access to what was captured.",
+      "recurrence_count": 4,
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "intent_id": "staging-deploy-reliable-workflow",
+      "source_cluster_id": "staging-deploy-ci-workflow",
+      "surface_question": "How do we branch, fix, and deploy to staging with CI gates in a reliable workflow?",
+      "underlying_intent": null,
+      "intent_domain": "workflow",
+      "evidence": "Pranav followed a clear procedural workflow: fresh branch from staging, commit and push, CI gates, PR to merge, trigger deploy. This is operational work, not a deeper need. The surface question is the real question.",
+      "frustration_driver": null,
+      "recurrence_count": 4,
+      "graph_region": "Security Stack & Infrastructure"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "variant": "control",
+  "branch": "research/spec-to-feature",
+  "actor": "Ankit-S",
+  "turns": 4,
+  "total_cost": 1.9459472999999998,
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Can you create a document of the issues we found? I want a proper document in docs that lists the architectural issues, what needs fixing, and priority order.",
+      "turn": 1
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent]\n[Bash]\n[Agent]\n[Read]\n[Bash]\n[Bash]\n[Read]\n[Glob]\n[Grep]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Read]\n[Bash]\n[Bash]\n[Bash]\n[Read]\n[Bash]\n[Read]\n[Bash]\n[Bash]\n[Bash]\n[Read]\n[Read]\n[Read]\n[Bash]\n[Bash]\n[Bash]\n[Read]\nI have everything I need. Let me create the document now.\n[Write]\nCreated `docs/architectural-issues.md`. Here's what's in it:\n\n---\n\n**P0 \u2014 Chat UI Consistency** *(unblocked, 6\u20138 hrs)*\n`AIChatPanel` and `ConversationArea` render chat messages completely differently \u2014 conflicting layout, alignment, and feature support. ~200 lines of duplicated logic. Needs a shared `<ChatThread>` component extracted into `shared/ui/`.\n\n**P1 \u2014 No Backend Infrastructure** *(large, cross-cutting)*\nThe entire app runs on fixtures. No API contracts, no DB, no auth, no real agent calls. Blocks everything below it.\n\n**P1 \u2014 4 Fixture \u2192 API TODOs** *(blocked on backend)*\nSpread across `contacts/page.tsx`, `HomePage.tsx`, and `PipelineBoard.tsx` (notes + deal edits). Straightforward swaps once the backend exists.\n\n**P2 \u2014 CopilotKit Integration is Stubbed** *(blocked on backend + agents)*\n`use-deal-copilot-context.ts` has a placeholder where real CopilotKit hooks should go.\n\n**P2 \u2014 216 ESLint Warnings** *(ongoing)*\nNon-blocking but historically drifts upward if ignored. Recommendation is triage weekly.\n\nThe doc also includes a **recommended fix order** and a table of things that are already enforced and don't need attention.",
+      "turn": 1
+    },
+    {
+      "role": "user",
+      "content": "Looks good. Clean priorities, blocked dependencies are clear, and the P0 is unblocked so we can start there. Push it to a branch and I'll review the full doc.",
+      "turn": 2
+    },
+    {
+      "role": "assistant",
+      "content": "[Bash]\n[Bash]\n[Bash]\n[Bash]\nThe project directory at `/private/tmp/roleplay-control-20260407-211216` isn't a git repository \u2014 it only contains the `docs/` folder we just created, with no `.git` history. It looks like this is a scratch/temp location rather than the actual checked-out repo.\n\nCould you point me to the real repo path on your machine? Once I have that, I'll move the doc over, create the branch, and push it.",
+      "turn": 2
+    },
+    {
+      "role": "user",
+      "content": "It's in `/Users/kshitiz/Desktop/vc-ai-associate` \u2014 that's the actual repo. The temp directory was from the test harness. Move the doc over there, create a branch `docs/architectural-issues`, commit it, and push.",
+      "turn": 3
+    },
+    {
+      "role": "assistant",
+      "content": "[Bash]\n[Bash]\nNo `vc-ai-associate` there. I can see `maverick-meta` and a `Code Directory` \u2014 let me check those.\n[Bash]\n[Bash]\nFound it \u2014 `maverick-meta/VC-AI-Assoicate`. Let me move the doc in and push.\n[Bash]\n[Bash]\n[Bash]\nPushed. The doc landed at `docs/architecture/architectural-issues.md` to keep it alongside the other architecture docs in that folder.\n\n**Branch:** `docs/architectural-issues`  \n**PR:** https://github.com/Qubit-Capital/VC-AI-Assoicate/pull/new/docs/architectural-issues\n\nWhen you're ready to move on to the P0 chat UI refactor, just say the word.",
+      "turn": 3
+    },
+    {
+      "role": "user",
+      "content": "Start the P0 refactor. Extract `<ChatThread>` first \u2014 make it work in `ConversationArea`, then swap `ChatPanel` over. Keep the API surface minimal until we know what both components actually need. Don't add props you think they'll need.\n\nAnd before you edit \u2014 show me the component signature and where each component uses it now. I want to make sure the extraction doesn't paper over a design problem.",
+      "turn": 4
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent]\n[Glob]\n[Glob]\n[Grep]\n[Read]\n[Read]\n[Glob]\n[Glob]\n[Bash]\n[Bash]\n[Read]\n[Read]\n[Bash]\n[Read]\n[Read]\n[Read]\n[Read]\n[Read]\n[Read]\n[Read]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Bash]\n[Read]\n[Read]\nNow I have everything I need. Here's what I actually see \u2014 and there's a design problem worth flagging before we touch anything.\n\n---\n\n**Component signatures:**\n\n```ts\n// ConversationArea \u2014 CONTROLLED (316 lines)\n// src/widgets/home/ui/ConversationArea.tsx\ninterface ConversationAreaProps {\n  messages: ChatMessage[];\n  onSendMessage: (message: string, attachments?: FileAttachment[]) => void;  // \u2190 void\n  isLoading?: boolean;\n  isEmpty?: boolean;\n  starterPrompts?: StarterPrompt[];\n  notificationContext?: NotificationContext;\n  onDismissContext?: (id: string) => void;\n  className?: string;\n  // Dead surface \u2014 declared but never used (prefixed _ in destructure):\n  onHistoryToggle?: () => void;\n  isHistoryOpen?: boolean;\n  onNewChat?: () => void;\n  now?: Date;\n}\n```\n\n```ts\n// AIChatPanel \u2014 SELF-MANAGING (1146 lines)\n// src/widgets/ai-chat/ui/AIChatPanel.tsx\ninterface AIChatPanelProps {\n  initialMessages?: ChatMessage[];\n  onSendMessage: (message: string, attachments?: FileAttachment[]) => Promise<ChatMessage>; // \u2190 Promise\n  starterPrompts?: StarterPrompt[];\n  className?: string;\n  mode?: \"full\" | \"history-only\";\n  userName?: string;\n  notificationContext?: NotificationContext;\n  onDismissContext?: (id: string) => void;\n  // + 8 history management props\n}\n// + AIChatPanelHandle (imperative ref: clearMessages, toggleHistory, updateMessage, sendMessage)\n```\n\n---\n\n**The design problem:**\n\nThese two aren't just visually different \u2014 they have opposite ownership models.\n\n`ConversationArea` is **controlled**: the parent owns `messages[]`, calls `onSendMessage \u2192 void`, and decides what to append. It's a pure render surface.\n\n`AIChatPanel` is **self-managing**: it owns its own `messages` state internally, calls `onSendMessage \u2192 Promise<ChatMessage>` and appends the result itself, and exposes an imperative handle so the parent can poke it.\n\nA `<ChatThread>` extraction would have to pick one model or the other. If you extract around the self-managing pattern, `ConversationArea`'s parent has to give up control it currently has. If you extract around the controlled pattern, `AIChatPanel`'s history management breaks because it depends on owning that state.\n\n**What's actually duplicated:**\n\nThe real duplication isn't message rendering \u2014 both already delegate that to `<MessageList>` with identical props. What's copied verbatim is the **file attachment machinery**: `pendingAttachments` state, `handleFilesSelected`, `handleRemoveAttachment`, attachment URL cleanup, and `useFileDrop` setup. That's ~80 lines of identical code in both files.\n\nThe layouts are genuinely different and should stay separate:\n- `ConversationArea`: centered column, `max-w-3xl`, framer-motion animated empty\u2192active transition, input floats to bottom as conversation starts\n- `AIChatPanel`: side panel, no max-width, no animation, input always pinned to bottom\n\n---\n\n**My read before we start:**\n\nThe extraction that removes real duplication is a `useAttachments()` hook, not `<ChatThread>`. That unifies ~80 lines of identical logic without forcing a layout merge or an ownership model decision.\n\nIf you still want `<ChatThread>`, we need to agree upfront: controlled or self-managing? Because making it work for both would require either a render-prop escape hatch or two variants, and that's more complexity than what we're removing.\n\nWhat's your call \u2014 `useAttachments()` hook first, or do you want to push forward with `<ChatThread>` and pick an ownership model?",
+      "turn": 4
+    }
+  ],
+  "hook_injections": [],
+  "workspace": "/tmp/roleplay-control-20260407-211216"
+}

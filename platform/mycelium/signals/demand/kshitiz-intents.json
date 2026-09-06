@@ -1,0 +1,50 @@
+{
+  "person": "Kshitiz",
+  "computed_at": "2026-04-10T18:32:04Z",
+  "intents": [
+    {
+      "intent_id": "meta-system-staged-deployment-governance",
+      "source_cluster_id": "meta-system-full-cycle-readiness",
+      "surface_question": "Is the meta intelligence system fully ready to run a complete cycle before shipping to the team?",
+      "underlying_intent": "Kshitiz has an explicit staged governance model: the meta-system must demonstrate correct self-operation before it is allowed to influence other people's work. The real question is not 'is it ready?' but 'what is the verifiable definition of ready, and who decides when that threshold is crossed?'",
+      "intent_domain": "process",
+      "evidence": "'We don't want to ship anything to team yet — first test ourselves before shipping to team' appears as both a direct conversation message AND as a forwarded transcript to a sub-agent — he enforced this governance rule across at least two separate sessions. He created a GitHub issue to track readiness as a checklist, not just a judgment call. The concern about Heimdall's feedback loop ('feedback agent ALSO changes the state') shows he is auditing the cycle for unintended side effects before broader exposure.",
+      "frustration_driver": null,
+      "recurrence_count": 4,
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "intent_id": "v1-implementation-vs-design-intent-delta",
+      "source_cluster_id": "mycelium-living-system-architecture",
+      "surface_question": "What is the full design of Mycelium as a living system, and what should we build next?",
+      "underlying_intent": "Kshitiz is checking whether v1 (what was implemented) diverged from the living systems design in issues #16-#20 — specifically whether 'structural coupling' (every query modifies the graph) was implemented or just described. If the implementation only runs an ingest pipeline without leaving graph traces, v1's operational metrics don't validate the autopoietic design.",
+      "intent_domain": "architecture",
+      "evidence": "He read all 14 phases of design evolution and received a v1-vs-v2 comparison. Then he asked 'in the ingest, did we not actually go through the conversation logs using telemetry, what insights we gathered?' — this is a completeness audit of v1's actual behavior against design intent, not a design question. He also noted 'v1 is a pipeline...it has a mouth, a stomach, a gatekeeper' — a description that reveals the divergence from the living system design was already apparent to him.",
+      "frustration_driver": null,
+      "recurrence_count": 4,
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "intent_id": "autosync-rebase-safety-verification",
+      "source_cluster_id": "autosync-rebase-conflict-fix",
+      "surface_question": "What happens to the auto-sync hook when two people push to the same branch, and how do we handle rebase conflicts safely?",
+      "underlying_intent": null,
+      "intent_domain": "tooling",
+      "evidence": "A specific technical risk was raised (concurrent push scenario), investigated, confirmed as real, and fixed. The question was the real question. No deeper intent layer — Kshitiz found the bug via a teammate's concern and verified the fix worked.",
+      "frustration_driver": null,
+      "recurrence_count": 2,
+      "graph_region": "Meta Intelligence System"
+    },
+    {
+      "intent_id": "cycle-output-completeness-ledger",
+      "source_cluster_id": "full-cycle-actual-operation",
+      "surface_question": "What did a full cycle produce and what are the gaps in what we actually ingested vs what exists in repos?",
+      "underlying_intent": "Kshitiz is building a delta map of what the system has captured vs what is actually happening across repos, to identify knowledge blind spots before expanding to the full team. The 'I only see one GitHub issue on VC AI Associate — is that correct?' question is a completeness check, not a curiosity.",
+      "intent_domain": "process",
+      "evidence": "He uses GitHub Issues explicitly as 'writing pad' (persistent working memory across agent sessions). The cycle completeness question follows the same pattern: he wants an authoritative ledger of what each cycle produced, so he can audit gaps. The expectation of 'more issues' on VC AI Associate shows he has a mental model of what 'complete ingestion' should look like and is checking actuals against it.",
+      "frustration_driver": null,
+      "recurrence_count": 3,
+      "graph_region": "Meta Intelligence System"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Inject embedded credentials
+        env:
+          MAVERICK_CREDS_TOML: ${{ secrets.MAVERICK_CREDS_TOML }}
+        run: |
+          if [ -z "$MAVERICK_CREDS_TOML" ]; then
+            echo "::error::MAVERICK_CREDS_TOML secret not set — release aborted"
+            exit 1
+          fi
+          mkdir -p cmd/maverick/internal/embedded
+          printf '%s' "$MAVERICK_CREDS_TOML" > cmd/maverick/internal/embedded/credentials.toml
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Verify embedded package compiles
+        working-directory: cmd/maverick
+        run: |
+          go mod tidy
+          go build ./...
+          go test ./internal/embedded/... -v
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

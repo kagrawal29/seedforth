@@ -1,0 +1,101 @@
+{
+  "person": "Abhishek",
+  "computed_at": "2026-04-11T09:37:17Z",
+  "question_clusters": [
+    {
+      "id": "nango-crm-integration-coverage",
+      "representative_question": "Does Nango provide pre-built connectors for every API including contacts, lead data from Salesforce and HubSpot, or just standard CRUD endpoints?",
+      "all_questions": [
+        "Nango also gives integration with Salesforce HubSpot pre-built. Does it provide every API? I want to call contacts data, ease data, etc.",
+        "Email integration discussion \u2014 direct API vs OAuth flow, platform considerations",
+        "NILAs vs on-prem; NILA compliance discussion"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-07",
+      "last_asked": "2026-04-07",
+      "domain": "api-integrations",
+      "matched_entries": [
+        {
+          "entry_id": "architecture-api-gateway-exploration",
+          "coverage_score": 0.2,
+          "gap": "api-gateway-exploration covers API gateway architecture patterns. Does not cover Nango specifically \u2014 what endpoints are pre-built vs custom, whether Nango's connector library covers all CRM API surface (contacts, leads, activities), or how to evaluate third-party integration coverage against Maverick's data needs."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "spec-dependency-overlap-management",
+      "representative_question": "When 10 specs exist for a single product, how do they reference shared concepts without cross-contaminating or overwriting each other?",
+      "all_questions": [
+        "Ok, how does each spec, for example, I have ten specs created for a single product, reference that one spec? Doesn't cross-reference or overwrite something which is already covered in other specs. How do we manage that?",
+        "So in each section, you don't have to completely rely on the recommendations which are already on their doc here. What we are doing is going section by section with your own recommendations based on product knowledge."
+      ],
+      "frequency": 2,
+      "frustration": "medium",
+      "first_asked": "2026-04-09",
+      "last_asked": "2026-04-10",
+      "domain": "spec-management",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-spec-reading-guides",
+          "coverage_score": 0.1,
+          "gap": "spec-reading-guides covers reading guide format within a single spec. Does not address multi-spec dependency management \u2014 how 10+ specs reference shared concepts, Out of Scope boundary conventions, cross-spec overlap detection, or spec dependency ordering for multi-feature products."
+        }
+      ],
+      "gap_signal": true
+    },
+    {
+      "id": "expert-panel-tech-stack-validation",
+      "representative_question": "Should we run an expert panel to validate our tech stack decisions, and how do we scope it to tooling only (not processes)?",
+      "all_questions": [
+        "Before closing this section, I want you to plan a team of agents who are experts in these fields and have a group discussion between them regarding the tools we have finalized and whether they work perfectly for maverick.",
+        "So I wanted their opinion just on the tech stack and not regarding the processes. The discussion was only around tech stack decisions.",
+        "Lets go through each one of them one by one and tell me what did the agents find"
+      ],
+      "frequency": 3,
+      "frustration": "low",
+      "first_asked": "2026-04-09",
+      "last_asked": "2026-04-09",
+      "domain": "architecture-validation",
+      "matched_entries": [
+        {
+          "entry_id": "patterns-expert-panel-validation",
+          "coverage_score": 0.7,
+          "gap": "expert-panel-validation documents the multi-agent review pattern. Remaining gap: does not specify how to scope expert panels to tooling-only (vs. process) questions, or how to set up role specialization for security + devops expert panels specifically."
+        }
+      ],
+      "gap_signal": false
+    },
+    {
+      "id": "ci-workflow-management",
+      "representative_question": "How can I disable CI tests on GitHub without touching local hooks, and re-enable when needed?",
+      "all_questions": [
+        "can we disable all CI tests?",
+        "so they are disabled on remote also or will I have to commit and then push and then it will be live?"
+      ],
+      "frequency": 2,
+      "frustration": "low",
+      "first_asked": "2026-04-09",
+      "last_asked": "2026-04-09",
+      "domain": "devops",
+      "matched_entries": [
+        {
+          "entry_id": "architecture-security-scanning-stack",
+          "coverage_score": 0.2,
+          "gap": "security-scanning-stack defines the CI tooling but not how to temporarily disable/enable GitHub Actions workflows via gh CLI. No entry covers the gh workflow disable pattern or when it's appropriate to bypass CI gates."
+        }
+      ],
+      "gap_signal": true
+    }
+  ],
+  "summary": {
+    "total_questions": 10,
+    "gaps": 3,
+    "highest_frustration_domain": "spec-management",
+    "cross_person_connections": [
+      "Ankit-S (both deeply working on spec format \u2014 Abhishek asking about multi-spec dependency overlap, Ankit-S building spec-to-ship playbook v7/v8 with reading guides)",
+      "Sahil (both evaluating third-party integrations \u2014 Abhishek asking about Nango CRM coverage, Sahil researching agent harness options including CASDK)"
+    ]
+  }
+}

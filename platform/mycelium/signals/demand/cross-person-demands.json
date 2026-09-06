@@ -1,0 +1,82 @@
+{
+  "computed_at": "2026-04-11T09:37:17Z",
+  "cross_demands": [
+    {
+      "persons": [
+        "Pranav",
+        "Abhishek"
+      ],
+      "shared_concept": "spec-workflow-quality",
+      "person1_question": "How do I test rules against real data without Claude forcing them to pass?",
+      "person2_question": "How do 10 specs reference a shared concept without cross-contaminating each other?",
+      "connection": "Both are hitting quality-enforcement problems in workflow artifacts \u2014 Pranav needs a test harness for rule correctness, Abhishek needs dependency boundaries in multi-spec products; both reduce to 'how do we verify AI-generated workflow artifacts are correct before using them?'",
+      "knowledge_bridge": null
+    },
+    {
+      "persons": [
+        "Abhishek",
+        "Ankit-S"
+      ],
+      "shared_concept": "spec-format-and-structure",
+      "person1_question": "How do multiple specs reference shared concepts without cross-contamination?",
+      "person2_question": "Should superpowers skills be embedded into spec-to-ship playbook phases?",
+      "connection": "Both are actively shaping the spec writing and execution workflow \u2014 Abhishek asking how specs relate to each other (product architecture), Ankit-S building the spec-to-ship playbook v8 that will govern how those specs are written and executed; they should be coordinating.",
+      "knowledge_bridge": "patterns-spec-reading-guides"
+    },
+    {
+      "persons": [
+        "Sahil",
+        "Ankit-S"
+      ],
+      "shared_concept": "skill-plugin-architecture",
+      "person1_question": "Is there a way to build the agent harness with significantly less custom surface area?",
+      "person2_question": "Should we create a skill for each phase of the playbook, or embed logic as rules?",
+      "connection": "Both are working on the same abstraction question from different angles: when does a pattern warrant an explicit skill/plugin vs. absorbed into existing workflow; Sahil at the harness level (CASDK plugin format), Ankit-S at the playbook level (skills vs playbook rules).",
+      "knowledge_bridge": "patterns-claude-code-agent-as-primary-builder"
+    },
+    {
+      "persons": [
+        "Sahil",
+        "Kshitiz"
+      ],
+      "shared_concept": "ai-generated-content-trust",
+      "person1_question": "Most documentation was AI-generated \u2014 how do we validate it's actually correct?",
+      "person2_question": "How do we verify the meta-intelligence system is fully functional before distributing to the team?",
+      "connection": "Both are raising the same meta-concern: AI-generated work (docs, system components) may be plausible but wrong; Sahil questioning audit doc quality, Kshitiz enforcing TDD and staged testing before team deployment; both point to a missing validation framework for AI-produced artifacts.",
+      "knowledge_bridge": null
+    },
+    {
+      "persons": [
+        "Pranav",
+        "Kshitiz"
+      ],
+      "shared_concept": "asgard-graph-meta-system",
+      "person1_question": "What is Asgard graph and how does it serve the team?",
+      "person2_question": "How do we make the intelligence pipeline itself a graph structure with zero LLM cost?",
+      "connection": "Pranav is a consumer of the graph asking basic orientation questions; Kshitiz is the builder pushing the graph into graph-native pipeline topology; connecting these two creates an opportunity for Kshitiz to ensure Pranav (and other consumers) understand what they have access to.",
+      "knowledge_bridge": null
+    },
+    {
+      "persons": [
+        "Sahiram",
+        "Abhishek"
+      ],
+      "shared_concept": "spec-methodology-conventions",
+      "person1_question": "Is 'no technical detail in specs' a universal standard or just for SRS \u2014 what's our team's position?",
+      "person2_question": "When 10 specs exist, how do they reference shared concepts without overwriting?",
+      "connection": "Both are resolving foundational spec-writing conventions \u2014 what goes in a spec (Sahiram) and how specs relate to each other (Abhishek); both questions need a settled team position that new members can discover.",
+      "knowledge_bridge": "patterns-spec-reading-guides"
+    },
+    {
+      "persons": [
+        "Sahil",
+        "Pranav"
+      ],
+      "shared_concept": "memory-continuity-and-rules",
+      "person1_question": "How does the memory model handle discussions spanning multiple deals or funds?",
+      "person2_question": "How can I test rules against real production thread data without auto-forcing results?",
+      "connection": "Both are working on the system's ability to correctly categorize and remember context across entity boundaries \u2014 Sahil at the memory layer (multi-entity continuity contexts), Pranav at the rules layer (rules that fire on categorized threads); thread categorization is the bridge between them.",
+      "knowledge_bridge": "architecture-cross-channel-continuity-model"
+    }
+  ]
+}
