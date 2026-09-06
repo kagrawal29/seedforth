@@ -46,7 +46,9 @@ copied. The file mode was hardened in place from `777` to `600`, preserving the
 live path and owner. Because the file is tracked in the product repository
 (and may therefore exist in repository history), the product owner must rotate
 the token and scrub the product repository history before that checkout can be
-called deployment-clean.
+called deployment-clean. GitHub secret scanning is currently disabled for the
+private repository; this is recorded as a structured security exception in
+`registry/repositories.json`.
 
 ## Next safe actions
 
