@@ -638,149 +638,6 @@ def _finalize_project(name: str, project_dir: str, data_dir: str,
 
     return info
 
-    # ---------------------------------------------------------------
-    # ---------------------------------------------------------------
-
-    # Copy hooks directory into project
-    import shutil
-    hooks_src = Path(__file__).parent.parent / "project-template" / "hooks"
-    hooks_dst = Path(project_dir) / "hooks"
-    if hooks_src.exists():
-        if hooks_dst.exists():
-            shutil.rmtree(hooks_dst)
-        shutil.copytree(hooks_src, hooks_dst)
-        hook_script = hooks_dst / "progress_hook.py"
-        if hook_script.exists():
-            hook_script.chmod(0o755)
-
-    # Write project-level .claude/settings.json with PostToolUse hook
-    claude_settings_dir = Path(project_dir) / ".claude"
-    claude_settings_dir.mkdir(parents=True, exist_ok=True)
-    claude_settings = {
-        "hooks": {
-            "PostToolUse": [
-                {
-                    "matcher": "",
-                    "hooks": [
-                        {
-                            "type": "command",
-                            "command": f"python3 {project_dir}/hooks/progress_hook.py",
-                            "async": True,
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-    (claude_settings_dir / "settings.json").write_text(json.dumps(claude_settings, indent=2))
-
-    # Pre-accept Claude Code trust dialog for this project directory.
-    if username:
-        home = f"/home/{username}"
-        claude_json_path = Path(home) / ".claude.json"
-        try:
-            if claude_json_path.exists():
-                claude_config = json.loads(claude_json_path.read_text())
-            else:
-                claude_config = {}
-            projects = claude_config.setdefault("projects", {})
-            projects[project_dir] = {
-                "allowedTools": [],
-                "hasTrustDialogAccepted": True,
-                "hasCompletedProjectOnboarding": True,
-            }
-            claude_config["hasCompletedOnboarding"] = True
-            claude_json_path.write_text(json.dumps(claude_config, indent=2))
-            import subprocess as _sp
-            _sp.run(["sudo", "chown", f"{username}:", str(claude_json_path)],
-                    capture_output=True, text=True)
-        except Exception as e:
-            logger.warning(f"Could not pre-accept trust dialog: {e}")
-
-    # Fix file ownership and make initial git commit
-    if username:
-        import subprocess as _sp
-        for fname in ["CLAUDE.md", ".gitignore"]:
-            fpath = Path(project_dir) / fname
-            if fpath.exists():
-                _sp.run(["sudo", "chown", f"{username}:", str(fpath)],
-                        capture_output=True, text=True)
-        if hooks_dst.exists():
-            _sp.run(["sudo", "chown", "-R", f"{username}:", str(hooks_dst)],
-                    capture_output=True, text=True)
-        if claude_settings_dir.exists():
-            _sp.run(["sudo", "chown", "-R", f"{username}:", str(claude_settings_dir)],
-                    capture_output=True, text=True)
-        from delta.isolation import run_as_user
-        run_as_user(username, f"git -C {project_dir} add -A")
-        run_as_user(username, f'git -C {project_dir} commit -m "Initial project setup"')
-    else:
-        import subprocess as _sp
-        _sp.run(["git", "-C", project_dir, "add", "-A"],
-                capture_output=True, text=True)
-        _sp.run(["git", "-C", project_dir, "commit", "-m", "Initial project setup"],
-                capture_output=True, text=True)
-
-    # Set up GitHub repo in Seedforth org and push initial commit
-    seedforth_repo = _setup_github_repo(name, project_dir, username, github_repo)
-    if seedforth_repo and username:
-        from delta.isolation import run_as_user
-        branch = "master"
-        run_as_user(username, f"git -C {project_dir} push -u origin {branch} 2>/dev/null || true")
-        logger.info(f"Pushed initial commit to {seedforth_repo}")
-    elif seedforth_repo:
-        import subprocess as _sp
-        _sp.run(["git", "-C", project_dir, "push", "-u", "origin", "master"],
-                capture_output=True, text=True)
-
-    # Clean up old .mcp.json BEFORE registering (claude mcp add-json writes
-    # to .mcp.json, so deleting after would nuke the new config)
-    old_mcp = Path(project_dir) / ".mcp.json"
-    if old_mcp.exists():
-        old_mcp.unlink()
-        logger.info(f"Removed old .mcp.json from {project_dir}")
-
-    # Register Rube MCP via claude mcp add-json
-    _register_rube_mcp(project_dir, username)
-
-    # Create tmux session + start Claude Code
-    logger.info(f"Creating tmux session {tmux_session}")
-    create_tmux_session(tmux_session)
-
-    logger.info(f"Starting Claude Code in {tmux_pane}")
-    extra_env: dict = {}
-    if project_type == "linkedin" and unipile_account_id:
-        extra_env["UNIPILE_ACCOUNT_ID"] = unipile_account_id
-        for key in ("UNIPILE_DSN", "UNIPILE_API_KEY"):
-            val = os.environ.get(key, "")
-            if val:
-                extra_env[key] = val
-    start_claude_code(project_dir, tmux_pane,
-                      linux_user=username if username else None,
-                      extra_env=extra_env if extra_env else None)
-
-    # Start per-project web terminal (port allocated earlier for CLAUDE.md)
-    start_ttyd(name, tmux_session, port)
-
-    # Register
-    info = ProjectInfo(
-        name=name,
-        project_dir=project_dir,
-        data_dir=data_dir,
-        tmux_session=tmux_session,
-        tmux_lead_pane=tmux_pane,
-        nudge_prefix="delta-config/inbox",
-        github_repo=seedforth_repo or github_repo,
-        linux_user=username,
-        discord_channel_id=discord_channel_id,
-        owner_discord_id=owner_discord_id,
-        is_dream_space=is_dream_space,
-        ttyd_port=port,
-        project_type=project_type,
-    )
-    registry.add(info)
-
-    return info
 
 
 async def provision(name: str, registry: Registry, discord_bot, guild,
@@ -793,7 +650,8 @@ async def provision(name: str, registry: Registry, discord_bot, guild,
                     runtime: str = "opencode") -> ProjectInfo:
     """Provision a new project end-to-end.
 
-    Creates a new Discord channel, sets up project files, launches Claude Code.
+    Creates a new Discord channel, sets up project files, and launches the
+    configured opencode agent through supervisor.
     In LOCAL_MODE (Mac): skips Linux user creation, uses local project dir.
     In server mode: full Linux user isolation.
 

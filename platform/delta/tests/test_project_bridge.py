@@ -24,43 +24,46 @@ class TestCheckAuthError:
     """Tests for ProjectBridge.check_auth_error."""
 
     def test_returns_none_when_no_error(self, bridge):
-        with patch.object(bridge, "capture_tmux_scrollback", return_value="Normal output\n> ready"):
-            assert bridge.check_auth_error() is None
+        assert bridge.check_auth_error() is None
 
     def test_detects_401(self, bridge):
-        scrollback = "Error: API returned 401 Unauthorized\nPlease re-authenticate"
-        with patch.object(bridge, "capture_tmux_scrollback", return_value=scrollback):
-            result = bridge.check_auth_error()
-            assert result is not None
-            assert "401" in result
+        (bridge.data_dir / "errors").mkdir()
+        (bridge.data_dir / "errors" / "auth.json").write_text(
+            json.dumps({"type": "auth_error", "message": "401 Unauthorized"})
+        )
+        result = bridge.check_auth_error()
+        assert result is not None
+        assert "401" in result
 
     def test_detects_oauth_token_expired(self, bridge):
-        scrollback = "OAuth token has expired. Please login again."
-        with patch.object(bridge, "capture_tmux_scrollback", return_value=scrollback):
-            result = bridge.check_auth_error()
-            assert result is not None
-            assert "expired" in result.lower()
+        (bridge.data_dir / "errors").mkdir()
+        (bridge.data_dir / "errors" / "auth.json").write_text(
+            json.dumps({"type": "auth_error", "message": "OAuth token expired"})
+        )
+        result = bridge.check_auth_error()
+        assert result is not None
+        assert "expired" in result.lower()
 
     def test_detects_case_insensitive(self, bridge):
-        scrollback = "AUTHENTICATION FAILED for user"
-        with patch.object(bridge, "capture_tmux_scrollback", return_value=scrollback):
-            result = bridge.check_auth_error()
-            assert result is not None
+        (bridge.data_dir / "errors").mkdir()
+        (bridge.data_dir / "errors" / "auth.json").write_text(
+            json.dumps({"type": "auth_error", "message": "AUTHENTICATION FAILED"})
+        )
+        assert bridge.check_auth_error() == "AUTHENTICATION FAILED"
 
     def test_returns_none_on_tmux_error(self, bridge):
-        with patch.object(bridge, "capture_tmux_scrollback", return_value="(tmux error: no session)"):
-            assert bridge.check_auth_error() is None
+        assert bridge.check_auth_error() is None
 
     def test_returns_none_on_capture_failure(self, bridge):
-        with patch.object(bridge, "capture_tmux_scrollback", return_value="(could not capture pane: error)"):
-            assert bridge.check_auth_error() is None
+        assert bridge.check_auth_error() is None
 
     def test_truncates_long_error_line(self, bridge):
-        long_line = "Unauthorized " + "x" * 300
-        with patch.object(bridge, "capture_tmux_scrollback", return_value=long_line):
-            result = bridge.check_auth_error()
-            assert result is not None
-            assert len(result) <= 200
+        (bridge.data_dir / "errors").mkdir()
+        long_message = "Unauthorized " + "x" * 300
+        (bridge.data_dir / "errors" / "auth.json").write_text(
+            json.dumps({"type": "auth_error", "message": long_message})
+        )
+        assert bridge.check_auth_error() == long_message
 
 
 class TestWriteInbox:
