@@ -11,9 +11,15 @@ The imported Delta source contains a mixed state:
 - `delta/project_bridge.py` still exposes legacy tmux-named compatibility methods.
 - `delta/app.py` and `delta/provisioner.py` retain legacy Claude/tmux references.
 - Several operator documents and behavior specifications still describe tmux/Claude as current.
-- The test suite currently fails during collection because `test_agent_runner.py` imports the removed `ClaudeCodeRunner`.
+- The imported test tree includes legacy lifecycle assumptions and optional
+  Discord/async dependencies that are not installed in the local environment.
 
-The runner contract has now been corrected in the platform copy and 44 focused registry/runner/router/command tests pass. Full collection still stops on four legacy or undeclared dependency modules, so the platform test gate remains open.
+The runner contract has now been corrected in the platform copy and 44 focused
+registry/runner/router/command tests pass. Collection is now explicit about
+the legacy `delta.lifecycle` module and skips optional modules when their
+declared dependencies are absent. The full suite still has broad failures
+because many tests instantiate the old tmux/Claude contract; this remains a
+release blocker, not a reason to treat the focused suite as complete.
 
 This is not a platform-repository import failure. It is evidence that the Delta migration to opencode was operationally completed before the code/test/documentation contract was fully normalized.
 
@@ -37,6 +43,15 @@ The initial Mycelium working-tree snapshot is intentionally uncommitted because 
 - historical and runtime artifacts that need classification.
 
 The separate Mycelium repository remains the source/reference checkout until the snapshot is classified and a safe import boundary is committed.
+
+## Credential cleanup debt
+
+The known exact Neo4j credential literal has been removed from active Delta
+provisioning, bridge, tool, and heartbeat paths. Some imported local-development
+helpers still mention the historical `localtest12` default, and those paths
+must be converted to runtime environment configuration or moved under an
+explicit historical boundary before public release. Test fixtures may retain
+test-only credentials when they are isolated and clearly labeled.
 
 ## Cutover rule
 

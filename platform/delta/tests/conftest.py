@@ -1,8 +1,21 @@
 """Shared fixtures for delta tests."""
 
 import os
+import importlib.util
 import pytest
 from pathlib import Path
+
+
+# The imported test tree contains one pre-opencode lifecycle test module whose
+# implementation (`delta.lifecycle`) no longer exists. Keep it visible in the
+# repository as migration evidence, but do not let it break collection of the
+# active suite. Optional integration modules are collected whenever their
+# declared dependencies are installed (requirements.txt covers CI/server).
+collect_ignore = ["test_lifecycle.py"]
+if importlib.util.find_spec("discord") is None:
+    collect_ignore.extend(["test_dm_persistent_routing.py", "test_last_fired.py"])
+if importlib.util.find_spec("pytest_asyncio") is None:
+    collect_ignore.append("test_teardown_cleanup.py")
 
 
 @pytest.fixture
