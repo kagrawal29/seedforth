@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/config"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/flags"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/config"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/flags"
 )
 
 const VersionStamp = "dev"
@@ -34,8 +34,8 @@ func TestCmdVersion(t *testing.T) {
 	}
 
 	output := stdout.String()
-	if !strings.Contains(output, "maverick") {
-		t.Errorf("version output missing 'maverick', got: %s", output)
+	if !strings.Contains(output, "mycelium") {
+		t.Errorf("version output missing 'mycelium', got: %s", output)
 	}
 	if !strings.Contains(output, VersionStamp) {
 		t.Errorf("version output missing VersionStamp '%s', got: %s", VersionStamp, output)
@@ -471,20 +471,20 @@ func TestCmdExportGuide(t *testing.T) {
 		{
 			name:      "golden_test_two_sections",
 			outPath:   filepath.Join(t.TempDir(), "CONTRIBUTING.md"),
-			guideName: "maverick",
+			guideName: "mycelium",
 			sections: []map[string]any{
 				{
-					"title":   "Welcome",
-					"slug":    "welcome",
-					"order":   int64(1),
-					"body_md": "Thank you for contributing.",
+					"title":      "Welcome",
+					"slug":       "welcome",
+					"order":      int64(1),
+					"body_md":    "Thank you for contributing.",
 					"amendments": []any{}, // empty amendments
 				},
 				{
-					"title":   "Local Setup",
-					"slug":    "local-setup",
-					"order":   int64(2),
-					"body_md": "Run `maverick local bootstrap` to get started.",
+					"title":      "Local Setup",
+					"slug":       "local-setup",
+					"order":      int64(2),
+					"body_md":    "Run `mycelium local bootstrap` to get started.",
 					"amendments": []any{}, // empty amendments
 				},
 			},
@@ -494,19 +494,19 @@ func TestCmdExportGuide(t *testing.T) {
 				"## Welcome",
 				"Thank you for contributing.",
 				"## Local Setup",
-				"Run `maverick local bootstrap` to get started.",
+				"Run `mycelium local bootstrap` to get started.",
 			},
 			expectFile: true,
 		},
 		{
 			name:      "sections_with_amendments",
 			outPath:   filepath.Join(t.TempDir(), "CONTRIBUTING.md"),
-			guideName: "maverick",
+			guideName: "mycelium",
 			sections: []map[string]any{
 				{
-					"title": "Workflow",
-					"slug":  "workflow",
-					"order": int64(1),
+					"title":   "Workflow",
+					"slug":    "workflow",
+					"order":   int64(1),
 					"body_md": "Follow the graph-first approach.",
 					"amendments": []any{
 						map[string]any{
@@ -534,7 +534,7 @@ func TestCmdExportGuide(t *testing.T) {
 			drv := NewMockDriver()
 
 			// Mock query: returns guide sections in order
-			const guideSectionsQuery = "MATCH (g:ContributorGuide {name: 'maverick'})-[:HAS_SECTION]->(s:GuideSection) RETURN s.title AS title, s.slug AS slug, s.order AS order, s.body_md AS body_md, coalesce(s.amendments, []) AS amendments ORDER BY s.order"
+			const guideSectionsQuery = "MATCH (g:ContributorGuide {name: 'mycelium'})-[:HAS_SECTION]->(s:GuideSection) RETURN s.title AS title, s.slug AS slug, s.order AS order, s.body_md AS body_md, coalesce(s.amendments, []) AS amendments ORDER BY s.order"
 			drv.SetupResponse(guideSectionsQuery, tt.sections)
 
 			stdout := &bytes.Buffer{}

@@ -1,4 +1,4 @@
-module github.com/Qubit-Capital/maverick/cmd/maverick
+module github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium
 
 go 1.22
 

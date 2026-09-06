@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/commands"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/config"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/flags"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/commands"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/config"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/flags"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -228,8 +228,8 @@ func statusFixture() string {
 // healthFixture returns a valid health JSON conforming to the schema.
 func healthFixture() string {
 	data := map[string]any{
-		"invariants_pass": 30,
-		"invariants_fail": 3,
+		"invariants_pass":  30,
+		"invariants_fail":  3,
 		"autonomous_score": 0.95,
 	}
 	b, _ := json.Marshal(data)
@@ -239,8 +239,8 @@ func healthFixture() string {
 // shellFixture returns a valid shell JSON conforming to the schema.
 func shellFixture() string {
 	data := map[string]any{
-		"rows":      []map[string]any{{"value": 1}},
-		"row_count": 1,
+		"rows":       []map[string]any{{"value": 1}},
+		"row_count":  1,
 		"elapsed_ms": 10,
 	}
 	b, _ := json.Marshal(data)

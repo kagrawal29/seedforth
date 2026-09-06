@@ -1,10 +1,10 @@
 // Regression test for issue #40: autodeploy fork-bomb on pulse-server.
 //
-// Scenario: the maverick-dev shim re-invokes the same Go binary. Without a
+// Scenario: the mycelium-dev shim re-invokes the same Go binary. Without a
 // guard, each bootstrap call fork-bombs until the systemd service cgroup hits
 // TasksMax and fork returns EAGAIN. Autodeploy sits broken for days.
 //
-// Guard: MAVERICK_SHELLOUT_DEPTH is incremented every time the binary execs
+// Guard: MYCELIUM_SHELLOUT_DEPTH is incremented every time the binary execs
 // a dev shim. If the binary is re-entered with depth >= 1, it refuses.
 package main
 
@@ -16,13 +16,13 @@ import (
 )
 
 // TestRunShellOut_RefusesRecursion asserts that when the binary is re-entered
-// with MAVERICK_SHELLOUT_DEPTH already set, runShellOut refuses instead of
+// with MYCELIUM_SHELLOUT_DEPTH already set, runShellOut refuses instead of
 // forking into another shim.
 func TestRunShellOut_RefusesRecursion(t *testing.T) {
 	t.Setenv(shelloutDepthEnv, "1")
 	// Even with a path env pointing nowhere, we should short-circuit before
 	// the exec attempt — the recursion guard fires first.
-	t.Setenv("MAVERICK_DEV_PATH", "/nonexistent/does-not-matter")
+	t.Setenv("MYCELIUM_DEV_PATH", "/nonexistent/does-not-matter")
 
 	var stdout, stderr bytes.Buffer
 	code := runShellOut("bootstrap", []string{}, &stdout, &stderr)
@@ -45,9 +45,9 @@ func TestRunShellOut_RefusesRecursion(t *testing.T) {
 func TestRunShellOut_NoRecursionWhenDepthUnset(t *testing.T) {
 	// Ensure neither the depth sentinel nor any dev-shim pointer is set.
 	os.Unsetenv(shelloutDepthEnv)
-	t.Setenv("MAVERICK_DEV_PATH", "")
 	t.Setenv("MYCELIUM_DEV_PATH", "")
-	// Scrub PATH so LookPath("maverick-dev") / LookPath("mycelium-dev") fail.
+	t.Setenv("MYCELIUM_DEV_PATH", "")
+	// Scrub PATH so LookPath("mycelium-dev") / LookPath("mycelium-dev") fail.
 	t.Setenv("PATH", t.TempDir())
 
 	var stdout, stderr bytes.Buffer

@@ -1,9 +1,9 @@
-// Package dispatch routes maverick subcommands to either native Go handlers
-// or to the maverick-dev bash shim for write/orchestration verbs.
+// Package dispatch routes mycelium subcommands to either native Go handlers
+// or to the mycelium-dev bash shim for write/orchestration verbs.
 //
-// The single-binary unified interface means teammates only ever type `maverick`.
+// The single-binary unified interface means teammates only ever type `mycelium`.
 // Read verbs run natively (fast, no toolchain). Write verbs shell out to
-// maverick-dev so the same command line works end-to-end — the user never
+// mycelium-dev so the same command line works end-to-end — the user never
 // has to learn two CLIs.
 package dispatch
 
@@ -30,14 +30,14 @@ type Route struct {
 
 var nativeRoutes = []Route{
 	{"ask", KindNative, "semantic search against the graph (hosted embed endpoint)", false},
-	{"config", KindNative, "show or init the maverick config file", false},
+	{"config", KindNative, "show or init the mycelium config file", false},
 	{"doctor", KindNative, "ping the graph, surface connection errors", false},
 	{"export-guide", KindNative, "render :ContributorGuide sections to CONTRIBUTING.md", false},
 	{"health", KindNative, "invariant + autonomous-score summary", false},
 	{"help", KindNative, "print help text", false},
 	{"shell", KindNative, "run a read-only Cypher query (write verbs refused)", false},
 	{"status", KindNative, "graph vitals (Being count, target, timestamp)", false},
-	{"uninstall", KindNative, "remove all maverick global Claude Code changes", false},
+	{"uninstall", KindNative, "remove all mycelium global Claude Code changes", false},
 	{"version", KindNative, "print binary version + build time", false},
 }
 
@@ -46,7 +46,7 @@ var shellOutRoutes = []Route{
 	{"drift", KindShellOut, "report drift between local and a remote target", true},
 	{"dream", KindShellOut, "run a dream round — cross-scale pattern discovery", true},
 	{"dump", KindShellOut, "snapshot the graph to a .dump file", true},
-	{"fork", KindShellOut, "fork maverick-dev into maverick-local with APOC export/import", true},
+	{"fork", KindShellOut, "fork mycelium-dev into mycelium-local with APOC export/import", true},
 	{"ingest-repo", KindShellOut, "ingest a git repo history as :Commit/:Author/:File nodes", true},
 	{"inject", KindShellOut, "inject a protocol or signal into the graph", true},
 	{"migrate", KindShellOut, "apply a migration plan", true},
@@ -88,25 +88,21 @@ func Registry() []Route {
 	return out
 }
 
-// FindMaverickDev locates the maverick-dev executable.
-// Precedence: MAVERICK_DEV_PATH env var, then PATH lookup.
-// Falls back to MYCELIUM_DEV_PATH for backwards compat.
-func FindMaverickDev() string {
-	if p := os.Getenv("MAVERICK_DEV_PATH"); p != "" {
-		if info, err := os.Stat(p); err == nil && !info.IsDir() {
-			return p
-		}
-	}
-	// Backwards compat: check MYCELIUM_DEV_PATH
+// FindMyceliumDev locates the mycelium-dev executable.
+// Precedence: MYCELIUM_DEV_PATH env var, then PATH lookup.
+// Falls back to the legacy MAVERICK_DEV_PATH for backwards compatibility.
+func FindMyceliumDev() string {
 	if p := os.Getenv("MYCELIUM_DEV_PATH"); p != "" {
 		if info, err := os.Stat(p); err == nil && !info.IsDir() {
 			return p
 		}
 	}
-	if p, err := exec.LookPath("maverick-dev"); err == nil {
-		return p
+	// Backwards compat: check the old variable.
+	if p := os.Getenv("MAVERICK_DEV_PATH"); p != "" {
+		if info, err := os.Stat(p); err == nil && !info.IsDir() {
+			return p
+		}
 	}
-	// Backwards compat: try mycelium-dev if maverick-dev not found
 	if p, err := exec.LookPath("mycelium-dev"); err == nil {
 		return p
 	}

@@ -1,5 +1,5 @@
 # Core repos (cloned separately)
-maverick-market-research/
+mycelium-market-research/
 VC-AI-Assoicate/
 
 # OS
@@ -54,12 +54,9 @@ swarm_diagnosis.txt
 test_output.txt
 cmd/mycelium/mycelium
 cmd/mycelium/*.exe
-cmd/maverick/maverick
-cmd/maverick/*.exe
 
 # Embedded creds (never commit actual creds file)
 cmd/mycelium/internal/embedded/credentials.toml
-cmd/maverick/internal/embedded/credentials.toml
 
 # Goreleaser output
 dist/

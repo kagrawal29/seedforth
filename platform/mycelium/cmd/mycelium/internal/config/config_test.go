@@ -256,10 +256,10 @@ func TestConfigStruct(t *testing.T) {
 	}
 }
 
-// Test i. MAVERICK_TARGET env var override.
-// Set MAVERICK_TARGET=dev, call Resolve("") (empty string = use env).
+// Test i. MYCELIUM_TARGET env var override.
+// Set MYCELIUM_TARGET=dev, call Resolve("") (empty string = use env).
 // Should resolve to dev target.
-func TestMaverickEnvVarOverride(t *testing.T) {
+func TestMyceliumEnvVarOverride(t *testing.T) {
 	cfgPath := filepath.Join("testdata", "nested.toml")
 	cfg, err := Load(cfgPath)
 	if err != nil {
@@ -267,14 +267,14 @@ func TestMaverickEnvVarOverride(t *testing.T) {
 	}
 
 	// Set the new environment variable
-	t.Setenv("MAVERICK_TARGET", "dev")
-	t.Setenv("MYCELIUM_TARGET", "")
+	t.Setenv("MYCELIUM_TARGET", "dev")
+	t.Setenv("MAVERICK_TARGET", "")
 
 	// Call with empty string - should use env var
 	target, err := cfg.Resolve("")
 
 	if err != nil {
-		t.Fatalf("Resolve(\"\") with MAVERICK_TARGET=dev failed: %v", err)
+		t.Fatalf("Resolve(\"\") with MYCELIUM_TARGET=dev failed: %v", err)
 	}
 
 	if target == nil {
@@ -288,7 +288,7 @@ func TestMaverickEnvVarOverride(t *testing.T) {
 }
 
 // Test j. Backcompat: MYCELIUM_TARGET still works but returns deprecation warning.
-// Set MYCELIUM_TARGET=dev and no MAVERICK_TARGET, call Resolve("").
+// Set MYCELIUM_TARGET=dev and no MYCELIUM_TARGET, call Resolve("").
 // Should resolve to dev AND print deprecation warning to stderr.
 func TestBackcompatMyceliumEnvVar(t *testing.T) {
 	cfgPath := filepath.Join("testdata", "nested.toml")
@@ -298,8 +298,8 @@ func TestBackcompatMyceliumEnvVar(t *testing.T) {
 	}
 
 	// Set old env var, clear new one
-	t.Setenv("MYCELIUM_TARGET", "dev")
-	t.Setenv("MAVERICK_TARGET", "")
+	t.Setenv("MAVERICK_TARGET", "dev")
+	t.Setenv("MYCELIUM_TARGET", "")
 
 	// Resolve should work
 	target, err := cfg.Resolve("")
@@ -318,9 +318,9 @@ func TestBackcompatMyceliumEnvVar(t *testing.T) {
 	}
 }
 
-// Test k. MAVERICK_TARGET takes precedence over MYCELIUM_TARGET.
-// Set both, MAVERICK_TARGET should win.
-func TestMaverickPrecedenceOverMycelium(t *testing.T) {
+// Test k. MYCELIUM_TARGET takes precedence over MYCELIUM_TARGET.
+// Set both, MYCELIUM_TARGET should win.
+func TestMyceliumPrecedenceOverMycelium(t *testing.T) {
 	cfgPath := filepath.Join("testdata", "nested.toml")
 	cfg, err := Load(cfgPath)
 	if err != nil {
@@ -328,8 +328,8 @@ func TestMaverickPrecedenceOverMycelium(t *testing.T) {
 	}
 
 	// Set both vars, but with different targets
-	t.Setenv("MAVERICK_TARGET", "dev")
-	t.Setenv("MYCELIUM_TARGET", "prod")
+	t.Setenv("MYCELIUM_TARGET", "dev")
+	t.Setenv("MAVERICK_TARGET", "prod")
 
 	target, err := cfg.Resolve("")
 
@@ -341,9 +341,9 @@ func TestMaverickPrecedenceOverMycelium(t *testing.T) {
 		t.Fatal("Resolve(\"\") returned nil Target")
 	}
 
-	// Should resolve to dev (MAVERICK_TARGET), not prod (MYCELIUM_TARGET)
+	// Should resolve to dev (MYCELIUM_TARGET), not prod (MAVERICK_TARGET)
 	expectedURI := "bolt://localhost:7687"
 	if target.BoltURI != expectedURI {
-		t.Errorf("BoltURI = %q, want %q (MAVERICK_TARGET should win)", target.BoltURI, expectedURI)
+		t.Errorf("BoltURI = %q, want %q (MYCELIUM_TARGET should win)", target.BoltURI, expectedURI)
 	}
 }

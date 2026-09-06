@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/bolt"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/commands"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/config"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/flags"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/bolt"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/commands"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/config"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/flags"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -34,8 +34,8 @@ func TestMain(m *testing.M) {
 		Image:        "neo4j:5",
 		ExposedPorts: []string{"7687/tcp"},
 		Env: map[string]string{
-			"NEO4J_AUTH":            "neo4j/localtest12",
-			"NEO4J_PLUGINS":         "[\"APOC\"]",
+			"NEO4J_AUTH":    "neo4j/localtest12",
+			"NEO4J_PLUGINS": "[\"APOC\"]",
 			"NEO4J_dbms_security_procedures_allowlist": "apoc.cypher.*,apoc.periodic.*,apoc.path.*",
 		},
 		WaitingFor: wait.ForLog("started"),

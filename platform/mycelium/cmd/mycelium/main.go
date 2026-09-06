@@ -1,7 +1,7 @@
-// maverick — unified team CLI.
+// mycelium — unified team CLI.
 //
 // Reads (status/shell/ask/health/doctor/version/config) run natively.
-// Writes (bootstrap/start/swarm/dream/ingest-repo/...) dispatch to maverick-dev.
+// Writes (bootstrap/start/swarm/dream/ingest-repo/...) dispatch to mycelium-dev.
 // Teammates see one binary, one help output, one consistent command line.
 package main
 
@@ -12,19 +12,19 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/bolt"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/commands"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/dispatch"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/embedded"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/flags"
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/help"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/bolt"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/commands"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/dispatch"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/embedded"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/flags"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/help"
 )
 
 // shelloutDepthEnv tracks nested shellouts so we refuse recursion when the
-// resolved maverick-dev shim re-invokes this same binary (issue #40: the old
+// resolved mycelium-dev shim re-invokes this same binary (issue #40: the old
 // pulse deployment ships a /usr/local/bin/mycelium-dev wrapper whose `./mycelium`
 // is the Go binary itself, producing a fork bomb that exhausts TasksMax).
-const shelloutDepthEnv = "MAVERICK_SHELLOUT_DEPTH"
+const shelloutDepthEnv = "MYCELIUM_SHELLOUT_DEPTH"
 
 // maxShelloutDepth is the highest depth we allow. One legitimate shellout =
 // depth 1 inside the child. Anything ≥ shelloutRecursionThreshold on entry
@@ -56,7 +56,7 @@ func run(argv []string, stdout, stderr io.Writer) int {
 
 	parsed, err := flags.Parse(argv)
 	if err != nil {
-		fmt.Fprintf(stderr, "maverick: %v\n", err)
+		fmt.Fprintf(stderr, "mycelium: %v\n", err)
 		return 2
 	}
 	verb := parsed.Subcommand
@@ -72,7 +72,7 @@ func run(argv []string, stdout, stderr io.Writer) int {
 	case dispatch.KindShellOut:
 		return runShellOut(verb, argv, stdout, stderr)
 	case dispatch.KindUnknown:
-		fmt.Fprintf(stderr, "maverick: unknown command %q\n\n", verb)
+		fmt.Fprintf(stderr, "mycelium: unknown command %q\n\n", verb)
 		fmt.Fprint(stderr, help.Text())
 		return 2
 	}
@@ -82,7 +82,7 @@ func run(argv []string, stdout, stderr io.Writer) int {
 func runNative(verb string, parsed *flags.Parsed, stdout, stderr io.Writer) int {
 	switch verb {
 	case "version":
-		fmt.Fprintf(stdout, "maverick %s\n", versionStamp())
+		fmt.Fprintf(stdout, "mycelium %s\n", versionStamp())
 		return 0
 	case "help":
 		fmt.Fprint(stdout, help.Text())
@@ -117,7 +117,7 @@ func runNative(verb string, parsed *flags.Parsed, stdout, stderr io.Writer) int 
 	// Everything else needs a live graph connection from embedded creds.
 	creds, err := embedded.Load()
 	if err != nil {
-		fmt.Fprintf(stderr, "maverick: %v\n", err)
+		fmt.Fprintf(stderr, "mycelium: %v\n", err)
 		return 1
 	}
 	target := parsed.Target
@@ -126,12 +126,12 @@ func runNative(verb string, parsed *flags.Parsed, stdout, stderr io.Writer) int 
 	}
 	uri, user, pass := resolveCreds(creds, target)
 	if uri == "" {
-		fmt.Fprintf(stderr, "maverick: target %q has no embedded credentials\n", target)
+		fmt.Fprintf(stderr, "mycelium: target %q has no embedded credentials\n", target)
 		return 1
 	}
 	drv, err := bolt.NewBoltDriver(uri, user, pass)
 	if err != nil {
-		fmt.Fprintf(stderr, "maverick: connect: %v\n", err)
+		fmt.Fprintf(stderr, "mycelium: connect: %v\n", err)
 		return 1
 	}
 	defer drv.Close()
@@ -151,17 +151,17 @@ func runNative(verb string, parsed *flags.Parsed, stdout, stderr io.Writer) int 
 	case "export-guide":
 		return surfaceErr(stderr, commands.CmdExportGuide(deps))
 	default:
-		fmt.Fprintf(stderr, "maverick: native verb %q has no handler\n", verb)
+		fmt.Fprintf(stderr, "mycelium: native verb %q has no handler\n", verb)
 		return 2
 	}
 }
 
-// getEmbedEndpoint returns MAVERICK_EMBED_ENDPOINT or falls back to MYCELIUM_EMBED_ENDPOINT.
+// getEmbedEndpoint returns the canonical endpoint or the legacy variable.
 func getEmbedEndpoint() string {
-	if ep := os.Getenv("MAVERICK_EMBED_ENDPOINT"); ep != "" {
+	if ep := os.Getenv("MYCELIUM_EMBED_ENDPOINT"); ep != "" {
 		return ep
 	}
-	return os.Getenv("MYCELIUM_EMBED_ENDPOINT")
+	return os.Getenv("MAVERICK_EMBED_ENDPOINT")
 }
 
 func resolveCreds(c *embedded.EmbeddedCreds, target string) (uri, user, pass string) {
@@ -178,7 +178,7 @@ func resolveCreds(c *embedded.EmbeddedCreds, target string) (uri, user, pass str
 
 func surfaceErr(stderr io.Writer, err error) int {
 	if err != nil {
-		fmt.Fprintf(stderr, "maverick: %v\n", err)
+		fmt.Fprintf(stderr, "mycelium: %v\n", err)
 		return 1
 	}
 	return 0
@@ -187,24 +187,24 @@ func surfaceErr(stderr io.Writer, err error) int {
 func runShellOut(verb string, args []string, stdout, stderr io.Writer) int {
 	depth, _ := strconv.Atoi(os.Getenv(shelloutDepthEnv))
 	if depth >= shelloutRecursionThreshold {
-		dev := dispatch.FindMaverickDev()
+		dev := dispatch.FindMyceliumDev()
 		fmt.Fprintf(stderr,
-			"maverick: refusing to shell out — recursion detected (depth=%d).\n"+
-				"The resolved maverick-dev shim at %q re-invokes this same binary,\n"+
+			"mycelium: refusing to shell out — recursion detected (depth=%d).\n"+
+				"The resolved mycelium-dev shim at %q re-invokes this same binary,\n"+
 				"which would fork-bomb the host. See issue #40.\n"+
-				"Fix: point the shim's ./maverick (or ./mycelium) at the bash\n"+
-				"dispatcher in the maverick repo root, or unset MAVERICK_DEV_PATH /\n"+
+				"Fix: point the shim's ./mycelium (or ./mycelium) at the bash\n"+
+				"dispatcher in the mycelium repo root, or unset MYCELIUM_DEV_PATH /\n"+
 				"MYCELIUM_DEV_PATH so the binary runs the verb natively.\n",
 			depth, dev)
 		return 1
 	}
 
-	dev := dispatch.FindMaverickDev()
+	dev := dispatch.FindMyceliumDev()
 	if dev == "" {
 		fmt.Fprintf(stderr,
-			"maverick: %q requires the contributor toolchain (maverick-dev).\n"+
-				"Install: see docs/contributor-setup.md in the maverick repo,\n"+
-				"or set MAVERICK_DEV_PATH=/path/to/maverick-dev if you already have it.\n",
+			"mycelium: %q requires the contributor toolchain (mycelium-dev).\n"+
+				"Install: see docs/contributor-setup.md in the mycelium repo,\n"+
+				"or set MYCELIUM_DEV_PATH=/path/to/mycelium-dev if you already have it.\n",
 			verb)
 		return 127
 	}
@@ -220,7 +220,7 @@ func runShellOut(verb string, args []string, stdout, stderr io.Writer) int {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			return exitErr.ExitCode()
 		}
-		fmt.Fprintf(stderr, "maverick: failed to invoke maverick-dev: %v\n", err)
+		fmt.Fprintf(stderr, "mycelium: failed to invoke mycelium-dev: %v\n", err)
 		return 1
 	}
 	return 0

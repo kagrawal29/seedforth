@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Qubit-Capital/maverick/cmd/maverick/internal/flags"
+	"github.com/kagraw29/seedforth/platform/mycelium/cmd/mycelium/internal/flags"
 )
 
 // TestCmdUninstall_IdempotentOnFresh tests that running uninstall on a fresh HOME
-// (no maverick setup) produces no errors and is a no-op.
+// (no mycelium setup) produces no errors and is a no-op.
 func TestCmdUninstall_IdempotentOnFresh(t *testing.T) {
 	tmpHome := t.TempDir()
 	claudePath := filepath.Join(tmpHome, ".claude")
@@ -43,7 +43,7 @@ func TestCmdUninstall_IdempotentOnFresh(t *testing.T) {
 	}
 }
 
-// TestCmdUninstall_RemovesCLAUDEMDBlock tests that uninstall removes the maverick-delimited
+// TestCmdUninstall_RemovesCLAUDEMDBlock tests that uninstall removes the mycelium-delimited
 // block from ~/.claude/CLAUDE.md while preserving other content.
 func TestCmdUninstall_RemovesCLAUDEMDBlock(t *testing.T) {
 	tmpHome := t.TempDir()
@@ -53,18 +53,18 @@ func TestCmdUninstall_RemovesCLAUDEMDBlock(t *testing.T) {
 	claudeMDPath := filepath.Join(claudePath, "CLAUDE.md")
 	claudeContent := `# My CLAUDE.md
 
-## Before Maverick
+## Before Mycelium
 
 Some important stuff here.
 
-<!-- BEGIN MAVERICK MANAGED BLOCK -->
-## Maverick
+<!-- BEGIN MYCELIUM MANAGED BLOCK -->
+## Mycelium
 
-This section is managed by maverick install/uninstall.
-Anything here will be removed when you run: maverick uninstall
-<!-- END MAVERICK MANAGED BLOCK -->
+This section is managed by mycelium install/uninstall.
+Anything here will be removed when you run: mycelium uninstall
+<!-- END MYCELIUM MANAGED BLOCK -->
 
-## After Maverick
+## After Mycelium
 
 More important stuff.
 `
@@ -100,39 +100,39 @@ More important stuff.
 	newStr := string(newContent)
 
 	// The marker block should be gone
-	if strings.Contains(newStr, "BEGIN MAVERICK") {
-		t.Errorf("BEGIN MAVERICK marker still present after uninstall")
+	if strings.Contains(newStr, "BEGIN MYCELIUM") {
+		t.Errorf("BEGIN MYCELIUM marker still present after uninstall")
 	}
-	if strings.Contains(newStr, "END MAVERICK") {
-		t.Errorf("END MAVERICK marker still present after uninstall")
+	if strings.Contains(newStr, "END MYCELIUM") {
+		t.Errorf("END MYCELIUM marker still present after uninstall")
 	}
 
 	// But other content should remain
-	if !strings.Contains(newStr, "Before Maverick") {
-		t.Errorf("'Before Maverick' section was deleted (should be preserved)")
+	if !strings.Contains(newStr, "Before Mycelium") {
+		t.Errorf("'Before Mycelium' section was deleted (should be preserved)")
 	}
-	if !strings.Contains(newStr, "After Maverick") {
-		t.Errorf("'After Maverick' section was deleted (should be preserved)")
+	if !strings.Contains(newStr, "After Mycelium") {
+		t.Errorf("'After Mycelium' section was deleted (should be preserved)")
 	}
 	if !strings.Contains(newStr, "My CLAUDE.md") {
 		t.Errorf("heading 'My CLAUDE.md' was deleted (should be preserved)")
 	}
 }
 
-// TestCmdUninstall_RemovesMaverickSkillsDir tests that uninstall removes ~/.claude/skills/maverick/
+// TestCmdUninstall_RemovesMyceliumSkillsDir tests that uninstall removes ~/.claude/skills/mycelium/
 // if it exists, while leaving other skills untouched.
-func TestCmdUninstall_RemovesMaverickSkillsDir(t *testing.T) {
+func TestCmdUninstall_RemovesMyceliumSkillsDir(t *testing.T) {
 	tmpHome := t.TempDir()
 	claudePath := filepath.Join(tmpHome, ".claude")
 	skillsPath := filepath.Join(claudePath, "skills")
-	maverickSkillPath := filepath.Join(skillsPath, "maverick")
+	myceliumSkillPath := filepath.Join(skillsPath, "mycelium")
 	otherSkillPath := filepath.Join(skillsPath, "other-skill")
 
-	os.MkdirAll(maverickSkillPath, 0700)
+	os.MkdirAll(myceliumSkillPath, 0700)
 	os.MkdirAll(otherSkillPath, 0700)
 
 	// Create some files in the skill directories
-	if err := os.WriteFile(filepath.Join(maverickSkillPath, "README.md"), []byte("maverick skill"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(myceliumSkillPath, "README.md"), []byte("mycelium skill"), 0600); err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(otherSkillPath, "README.md"), []byte("other skill"), 0600); err != nil {
@@ -157,9 +157,9 @@ func TestCmdUninstall_RemovesMaverickSkillsDir(t *testing.T) {
 		t.Fatalf("CmdUninstall failed: %v", err)
 	}
 
-	// maverick skill dir should be gone
-	if _, err := os.Stat(maverickSkillPath); err == nil {
-		t.Errorf("maverick skill directory still exists after uninstall")
+	// mycelium skill dir should be gone
+	if _, err := os.Stat(myceliumSkillPath); err == nil {
+		t.Errorf("mycelium skill directory still exists after uninstall")
 	}
 
 	// other skill dir should still be there
@@ -171,8 +171,8 @@ func TestCmdUninstall_RemovesMaverickSkillsDir(t *testing.T) {
 	}
 }
 
-// TestCmdUninstall_RemovesSettingsJSONPerms tests that uninstall removes maverick-managed
-// permissions and the _maverickManagedSince key from ~/.claude/settings.json,
+// TestCmdUninstall_RemovesSettingsJSONPerms tests that uninstall removes mycelium-managed
+// permissions and the _myceliumManagedSince key from ~/.claude/settings.json,
 // while preserving other permissions and keys.
 func TestCmdUninstall_RemovesSettingsJSONPerms(t *testing.T) {
 	tmpHome := t.TempDir()
@@ -184,12 +184,12 @@ func TestCmdUninstall_RemovesSettingsJSONPerms(t *testing.T) {
   "permissions": {
     "allow_bash": ["echo", "cat", "ls"],
     "allow_mcp": {
-      "maverick_ask": true,
-      "maverick_shell": true,
+      "mycelium_ask": true,
+      "mycelium_shell": true,
       "other_tool": true
     }
   },
-  "_maverickManagedSince": "2026-04-20T12:00:00Z",
+  "_myceliumManagedSince": "2026-04-20T12:00:00Z",
   "model": "claude-opus",
   "theme": "dark"
 }
@@ -225,17 +225,17 @@ func TestCmdUninstall_RemovesSettingsJSONPerms(t *testing.T) {
 
 	newStr := string(newContent)
 
-	// The _maverickManagedSince key should be gone
-	if strings.Contains(newStr, "_maverickManagedSince") {
-		t.Errorf("_maverickManagedSince key still present after uninstall")
+	// The _myceliumManagedSince key should be gone
+	if strings.Contains(newStr, "_myceliumManagedSince") {
+		t.Errorf("_myceliumManagedSince key still present after uninstall")
 	}
 
-	// Maverick permissions should be gone
-	if strings.Contains(newStr, "maverick_ask") {
-		t.Errorf("maverick_ask permission still present after uninstall")
+	// Mycelium permissions should be gone
+	if strings.Contains(newStr, "mycelium_ask") {
+		t.Errorf("mycelium_ask permission still present after uninstall")
 	}
-	if strings.Contains(newStr, "maverick_shell") {
-		t.Errorf("maverick_shell permission still present after uninstall")
+	if strings.Contains(newStr, "mycelium_shell") {
+		t.Errorf("mycelium_shell permission still present after uninstall")
 	}
 
 	// But other permissions and keys should remain
@@ -260,10 +260,10 @@ func TestCmdUninstall_PromptsForBinaryRemoval(t *testing.T) {
 	claudePath := filepath.Join(tmpHome, ".claude")
 	os.MkdirAll(claudePath, 0700)
 
-	maverickHome := filepath.Join(tmpHome, ".maverick")
-	binDir := filepath.Join(maverickHome, "bin")
+	myceliumHome := filepath.Join(tmpHome, ".mycelium")
+	binDir := filepath.Join(myceliumHome, "bin")
 	os.MkdirAll(binDir, 0700)
-	binaryPath := filepath.Join(binDir, "maverick")
+	binaryPath := filepath.Join(binDir, "mycelium")
 	if err := os.WriteFile(binaryPath, []byte("fake binary"), 0755); err != nil {
 		t.Fatalf("failed to create fake binary: %v", err)
 	}
@@ -293,7 +293,7 @@ func TestCmdUninstall_PromptsForBinaryRemoval(t *testing.T) {
 
 	// Output should mention that user needs to manually remove it
 	output := stdout.String() + stderr.String()
-	if !strings.Contains(output, "rm -rf") && !strings.Contains(output, ".maverick") {
+	if !strings.Contains(output, "rm -rf") && !strings.Contains(output, ".mycelium") {
 		t.Logf("warning: output doesn't mention manual binary removal, got: %s", output)
 	}
 }
@@ -309,11 +309,11 @@ func TestCmdUninstall_IdempotentAfterInstall(t *testing.T) {
 	claudeMDPath := filepath.Join(claudePath, "CLAUDE.md")
 	claudeContent := `# My Project CLAUDE.md
 
-<!-- BEGIN MAVERICK MANAGED BLOCK -->
-## Maverick
+<!-- BEGIN MYCELIUM MANAGED BLOCK -->
+## Mycelium
 
 Installed on 2026-04-20.
-<!-- END MAVERICK MANAGED BLOCK -->
+<!-- END MYCELIUM MANAGED BLOCK -->
 
 Real project content.
 `
@@ -322,7 +322,7 @@ Real project content.
 		t.Fatalf("failed to write CLAUDE.md: %v", err)
 	}
 
-	skillPath := filepath.Join(claudePath, "skills", "maverick")
+	skillPath := filepath.Join(claudePath, "skills", "mycelium")
 	os.MkdirAll(skillPath, 0700)
 	if err := os.WriteFile(filepath.Join(skillPath, "SKILL.md"), []byte("skill"), 0600); err != nil {
 		t.Fatalf("failed to create skill: %v", err)
@@ -332,10 +332,10 @@ Real project content.
 	settingsContent := `{
   "permissions": {
     "allow_mcp": {
-      "maverick_ask": true
+      "mycelium_ask": true
     }
   },
-  "_maverickManagedSince": "2026-04-20T00:00:00Z"
+  "_myceliumManagedSince": "2026-04-20T00:00:00Z"
 }
 `
 	if err := os.WriteFile(settingsPath, []byte(settingsContent), 0600); err != nil {
@@ -374,19 +374,19 @@ Real project content.
 	if err != nil {
 		t.Fatalf("CLAUDE.md not readable after second uninstall: %v", err)
 	}
-	if strings.Contains(string(claudeBytes), "BEGIN MAVERICK") {
-		t.Errorf("CLAUDE.md still has MAVERICK block after second uninstall")
+	if strings.Contains(string(claudeBytes), "BEGIN MYCELIUM") {
+		t.Errorf("CLAUDE.md still has MYCELIUM block after second uninstall")
 	}
 
 	if _, err := os.Stat(skillPath); err == nil {
-		t.Errorf("maverick skill dir not removed after second uninstall")
+		t.Errorf("mycelium skill dir not removed after second uninstall")
 	}
 
 	settingsBytes, err := os.ReadFile(settingsPath)
 	if err != nil {
 		t.Fatalf("settings.json not readable after second uninstall: %v", err)
 	}
-	if strings.Contains(string(settingsBytes), "_maverickManagedSince") {
-		t.Errorf("_maverickManagedSince still present after second uninstall")
+	if strings.Contains(string(settingsBytes), "_myceliumManagedSince") {
+		t.Errorf("_myceliumManagedSince still present after second uninstall")
 	}
 }

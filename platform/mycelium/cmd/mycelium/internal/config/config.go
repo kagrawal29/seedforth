@@ -2,18 +2,18 @@ package config
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
-	"io"
 
 	"github.com/BurntSushi/toml"
 )
 
-// warnDeprecatedEnv logs a deprecation warning if MYCELIUM_TARGET is set.
+// CheckDeprecatedEnv logs a deprecation warning if the legacy variable is set.
 // Call this after Resolve to emit the warning to stderr.
 func CheckDeprecatedEnv(stderr io.Writer) {
-	if os.Getenv("MYCELIUM_TARGET") != "" && os.Getenv("MAVERICK_TARGET") == "" {
-		fmt.Fprintf(stderr, "warning: MYCELIUM_TARGET is deprecated, use MAVERICK_TARGET instead\n")
+	if os.Getenv("MAVERICK_TARGET") != "" {
+		fmt.Fprintf(stderr, "warning: MAVERICK_TARGET is deprecated, use MYCELIUM_TARGET instead\n")
 	}
 }
 
@@ -110,17 +110,17 @@ func Load(path string) (*Config, error) {
 }
 
 // Resolve returns the Target for a given name.
-// If name is empty, uses MAVERICK_TARGET environment variable.
-// Falls back to MYCELIUM_TARGET for backcompat (with deprecation noted).
+// If name is empty, uses MYCELIUM_TARGET environment variable.
+// Falls back to the legacy MAVERICK_TARGET for backcompat.
 // Returns error if target not found or required fields are missing.
 func (c *Config) Resolve(targetName string) (*Target, error) {
 	// If empty, consult environment variables
 	if targetName == "" {
-		// Prefer MAVERICK_TARGET
-		if target := os.Getenv("MAVERICK_TARGET"); target != "" {
+		// Prefer the canonical variable.
+		if target := os.Getenv("MYCELIUM_TARGET"); target != "" {
 			targetName = target
-		} else if target := os.Getenv("MYCELIUM_TARGET"); target != "" {
-			// Backcompat: accept MYCELIUM_TARGET but log deprecation
+		} else if target := os.Getenv("MAVERICK_TARGET"); target != "" {
+			// Backcompat: accept MAVERICK_TARGET; the caller may emit the warning.
 			// Note: logging to stderr happens at the caller level (main.go)
 			targetName = target
 		}

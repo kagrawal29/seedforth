@@ -1,32 +1,32 @@
-maverick dev — the team's living knowledge graph
+mycelium dev — the team's living knowledge graph
 
 USAGE
-  maverick [FLAGS] <command> [args...]
+  mycelium [FLAGS] <command> [args...]
 
 FLAGS
-  --target <dev|staging|prod>  target environment (default: from MAVERICK_TARGET or config)
+  --target <dev|staging|prod>  target environment (default: from MYCELIUM_TARGET or config)
   --json                        emit JSON (for scripting)
   --timeout <duration>          command timeout (default: 30s)
   --quiet                       suppress decor
 
 READ COMMANDS (native, no toolchain needed)
   ask          semantic search against the graph (hosted embed endpoint)
-  config       show or init the maverick config file
+  config       show or init the mycelium config file
   doctor       ping the graph, surface connection errors
   export-guide render :ContributorGuide sections to CONTRIBUTING.md
   health       invariant + autonomous-score summary
   help         print help text
   shell        run a read-only Cypher query (write verbs refused)
   status       graph vitals (Being count, target, timestamp)
-  uninstall    remove all maverick global Claude Code changes
+  uninstall    remove all mycelium global Claude Code changes
   version      print binary version + build time
 
-WRITE / ORCHESTRATION COMMANDS (require maverick-dev on PATH)
+WRITE / ORCHESTRATION COMMANDS (require mycelium-dev on PATH)
   bootstrap    load Protocol cypher files into graph (writer)
   dream        run a dream round — cross-scale pattern discovery
   drift        report drift between local and a remote target
   dump         snapshot the graph to a .dump file
-  fork         fork maverick-dev into maverick-local with APOC export/import
+  fork         fork mycelium-dev into mycelium-local with APOC export/import
   ingest-repo  ingest a git repo history as :Commit/:Author/:File nodes
   inject       inject a protocol or signal into the graph
   migrate      apply a migration plan
@@ -38,6 +38,6 @@ WRITE / ORCHESTRATION COMMANDS (require maverick-dev on PATH)
   target       switch or list configured targets
 
 For contributor setup (needed only for the write commands), see
-docs/contributor-setup.md in the maverick repo.
+docs/contributor-setup.md in the mycelium repo.
 
 VersionStamp: dev

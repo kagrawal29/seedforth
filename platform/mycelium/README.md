@@ -1,6 +1,18 @@
-# Mycelium — the team's living knowledge graph
+# Mycelium — SeedForth graph control plane
 
-Mycelium is a Neo4j-based graph the team thinks through. It holds decisions, code structure, market intelligence, protocols, and the relationships between them. Every teammate reads from it; everyone proposes changes via pull request. The graph runs continuously on a shared server and can be mirrored to your laptop on demand.
+This is the Mycelium component of the SeedForth platform repository. The
+platform architecture, repository topology, runtime topology, and sync rules
+live in the parent directory; start with
+[`../../SEEDFORTH-PLATFORM-PLAN.md`](../../SEEDFORTH-PLATFORM-PLAN.md).
+
+Mycelium is a Neo4j-based graph the SeedForth platform thinks through. It
+holds decisions, code structure, project state, protocols, and relationships.
+The live graph runs in `mycelium-neo4j` on `185.192.96.100`; source-controlled
+Cypher and protocols define reviewed behavior.
+
+This directory is an initial sanitized import. See [`MIGRATION.md`](MIGRATION.md)
+for its provenance, exclusions, and cutover gates. Legacy Maverick/Pulse
+material is reference-only.
 
 This repo is the team distribution. Clone it, run one script, and you're in.
 

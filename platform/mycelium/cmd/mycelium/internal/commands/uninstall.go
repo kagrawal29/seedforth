@@ -9,14 +9,14 @@ import (
 	"strings"
 )
 
-// CmdUninstall removes all maverick-managed global Claude Code changes:
+// CmdUninstall removes all mycelium-managed global Claude Code changes:
 // 1. Removes the marker-delimited block from ~/.claude/CLAUDE.md
-// 2. Removes ~/.claude/skills/maverick/ directory
-// 3. Removes maverick-managed permissions from ~/.claude/settings.json
-// and the _maverickManagedSince key
+// 2. Removes ~/.claude/skills/mycelium/ directory
+// 3. Removes mycelium-managed permissions from ~/.claude/settings.json
+// and the _myceliumManagedSince key
 //
-// Does NOT remove the binary (~/.maverick); user must manually remove it.
-// Preserves all non-maverick content in those files.
+// Does NOT remove the binary (~/.mycelium); user must manually remove it.
+// Preserves all non-mycelium content in those files.
 // Idempotent: safe to run multiple times.
 func CmdUninstall(d *CmdDeps) error {
 	home, err := os.UserHomeDir()
@@ -26,37 +26,37 @@ func CmdUninstall(d *CmdDeps) error {
 
 	claudeDir := filepath.Join(home, ".claude")
 
-	// Step 1: Remove maverick block from CLAUDE.md
+	// Step 1: Remove mycelium block from CLAUDE.md
 	claudeMDPath := filepath.Join(claudeDir, "CLAUDE.md")
-	if err := removeMaverickBlockFromCLAUDEMD(claudeMDPath); err != nil {
+	if err := removeMyceliumBlockFromCLAUDEMD(claudeMDPath); err != nil {
 		return fmt.Errorf("failed to clean CLAUDE.md: %w", err)
 	}
 
-	// Step 2: Remove ~/.claude/skills/maverick directory
-	maverickSkillPath := filepath.Join(claudeDir, "skills", "maverick")
-	if err := removeMaverickSkillDir(maverickSkillPath); err != nil {
-		return fmt.Errorf("failed to remove maverick skills: %w", err)
+	// Step 2: Remove ~/.claude/skills/mycelium directory
+	myceliumSkillPath := filepath.Join(claudeDir, "skills", "mycelium")
+	if err := removeMyceliumSkillDir(myceliumSkillPath); err != nil {
+		return fmt.Errorf("failed to remove mycelium skills: %w", err)
 	}
 
-	// Step 3: Remove maverick permissions from settings.json
+	// Step 3: Remove mycelium permissions from settings.json
 	settingsPath := filepath.Join(claudeDir, "settings.json")
 	if err := cleanSettingsJSON(settingsPath); err != nil {
 		return fmt.Errorf("failed to clean settings.json: %w", err)
 	}
 
 	// Print success message and instructions
-	fmt.Fprintf(d.Stdout, "maverick uninstalled successfully.\n")
+	fmt.Fprintf(d.Stdout, "mycelium uninstalled successfully.\n")
 	fmt.Fprintf(d.Stdout, "\nTo fully clean up, remove the binary directory:\n")
-	fmt.Fprintf(d.Stdout, "  rm -rf ~/.maverick\n")
+	fmt.Fprintf(d.Stdout, "  rm -rf ~/.mycelium\n")
 	fmt.Fprintf(d.Stdout, "\nTo remove the symlink if it exists:\n")
-	fmt.Fprintf(d.Stdout, "  sudo rm -f /usr/local/bin/maverick\n")
+	fmt.Fprintf(d.Stdout, "  sudo rm -f /usr/local/bin/mycelium\n")
 
 	return nil
 }
 
-// removeMaverickBlockFromCLAUDEMD removes the marker-delimited block from CLAUDE.md,
+// removeMyceliumBlockFromCLAUDEMD removes the marker-delimited block from CLAUDE.md,
 // preserving all other content. If the file doesn't exist, this is a no-op.
-func removeMaverickBlockFromCLAUDEMD(path string) error {
+func removeMyceliumBlockFromCLAUDEMD(path string) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -66,10 +66,10 @@ func removeMaverickBlockFromCLAUDEMD(path string) error {
 		return err
 	}
 
-	// Remove the block delimited by <!-- BEGIN MAVERICK MANAGED BLOCK --> and <!-- END MAVERICK MANAGED BLOCK -->
+	// Remove the block delimited by <!-- BEGIN MYCELIUM MANAGED BLOCK --> and <!-- END MYCELIUM MANAGED BLOCK -->
 	// We use a regex with (?s) flag (dotall) to match across newlines.
 	blockRegex := regexp.MustCompile(
-		`(?s)<!--\s*BEGIN\s+MAVERICK\s+MANAGED\s+BLOCK\s*-->.*?<!--\s*END\s+MAVERICK\s+MANAGED\s+BLOCK\s*-->`,
+		`(?s)<!--\s*BEGIN\s+MYCELIUM\s+MANAGED\s+BLOCK\s*-->.*?<!--\s*END\s+MYCELIUM\s+MANAGED\s+BLOCK\s*-->`,
 	)
 
 	newContent := blockRegex.ReplaceAllString(string(content), "")
@@ -84,16 +84,16 @@ func removeMaverickBlockFromCLAUDEMD(path string) error {
 	return nil
 }
 
-// removeMaverickSkillDir removes the ~/.claude/skills/maverick directory if it exists.
+// removeMyceliumSkillDir removes the ~/.claude/skills/mycelium directory if it exists.
 // If it doesn't exist, this is a no-op.
-func removeMaverickSkillDir(path string) error {
+func removeMyceliumSkillDir(path string) error {
 	if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	return nil
 }
 
-// cleanSettingsJSON removes maverick-managed permissions and the _maverickManagedSince key
+// cleanSettingsJSON removes mycelium-managed permissions and the _myceliumManagedSince key
 // from ~/.claude/settings.json, preserving all other content.
 // If the file doesn't exist, this is a no-op.
 func cleanSettingsJSON(path string) error {
@@ -113,15 +113,15 @@ func cleanSettingsJSON(path string) error {
 		return nil
 	}
 
-	// Remove the _maverickManagedSince key at the top level
-	delete(obj, "_maverickManagedSince")
+	// Remove the _myceliumManagedSince key at the top level
+	delete(obj, "_myceliumManagedSince")
 
-	// Remove maverick-managed permissions from permissions.allow_mcp
+	// Remove mycelium-managed permissions from permissions.allow_mcp
 	if perms, ok := obj["permissions"].(map[string]interface{}); ok {
 		if allowMCP, ok := perms["allow_mcp"].(map[string]interface{}); ok {
-			// Remove all maverick_* keys from allow_mcp
+			// Remove all mycelium_* keys from allow_mcp
 			for key := range allowMCP {
-				if strings.HasPrefix(key, "maverick_") {
+				if strings.HasPrefix(key, "mycelium_") {
 					delete(allowMCP, key)
 				}
 			}

@@ -71,27 +71,27 @@ func TestRegistry_AllHaveDescription(t *testing.T) {
 	}
 }
 
-func TestFindMaverickDev_RespectsNewEnvVar(t *testing.T) {
-	// Create a temporary file to act as maverick-dev
+func TestFindMyceliumDev_RespectsNewEnvVar(t *testing.T) {
+	// Create a temporary file to act as mycelium-dev
 	tmpDir := t.TempDir()
-	fakeExe := filepath.Join(tmpDir, "maverick-dev")
+	fakeExe := filepath.Join(tmpDir, "mycelium-dev")
 	if err := os.WriteFile(fakeExe, []byte("#!/bin/sh\n"), 0755); err != nil {
-		t.Fatalf("failed to create fake maverick-dev: %v", err)
+		t.Fatalf("failed to create fake mycelium-dev: %v", err)
 	}
 
 	// Set the new env var
-	t.Setenv("MAVERICK_DEV_PATH", fakeExe)
-	t.Setenv("MYCELIUM_DEV_PATH", "")
+	t.Setenv("MYCELIUM_DEV_PATH", fakeExe)
+	t.Setenv("MAVERICK_DEV_PATH", "")
 
-	result := FindMaverickDev()
+	result := FindMyceliumDev()
 	if result != fakeExe {
-		t.Errorf("FindMaverickDev() with MAVERICK_DEV_PATH=%q returned %q, want %q",
+		t.Errorf("FindMyceliumDev() with MYCELIUM_DEV_PATH=%q returned %q, want %q",
 			fakeExe, result, fakeExe)
 	}
 }
 
-func TestFindMaverickDev_BackcompatOldEnvVar(t *testing.T) {
-	// Create a temporary file to act as maverick-dev (using old name)
+func TestFindMyceliumDev_BackcompatOldEnvVar(t *testing.T) {
+	// Create a temporary file to act as mycelium-dev (using old name)
 	tmpDir := t.TempDir()
 	fakeExe := filepath.Join(tmpDir, "mycelium-dev")
 	if err := os.WriteFile(fakeExe, []byte("#!/bin/sh\n"), 0755); err != nil {
@@ -99,49 +99,49 @@ func TestFindMaverickDev_BackcompatOldEnvVar(t *testing.T) {
 	}
 
 	// Set the old env var
-	t.Setenv("MYCELIUM_DEV_PATH", fakeExe)
-	t.Setenv("MAVERICK_DEV_PATH", "")
+	t.Setenv("MAVERICK_DEV_PATH", fakeExe)
+	t.Setenv("MYCELIUM_DEV_PATH", "")
 
-	result := FindMaverickDev()
+	result := FindMyceliumDev()
 	if result != fakeExe {
-		t.Errorf("FindMaverickDev() with MYCELIUM_DEV_PATH=%q returned %q, want %q",
+		t.Errorf("FindMyceliumDev() with MYCELIUM_DEV_PATH=%q returned %q, want %q",
 			fakeExe, result, fakeExe)
 	}
 }
 
-func TestFindMaverickDev_FallsBackToPATH(t *testing.T) {
+func TestFindMyceliumDev_FallsBackToPATH(t *testing.T) {
 	// Create a temporary directory and add it to PATH
 	tmpDir := t.TempDir()
-	fakeExe := filepath.Join(tmpDir, "maverick-dev")
+	fakeExe := filepath.Join(tmpDir, "mycelium-dev")
 	if err := os.WriteFile(fakeExe, []byte("#!/bin/sh\n"), 0755); err != nil {
-		t.Fatalf("failed to create fake maverick-dev: %v", err)
+		t.Fatalf("failed to create fake mycelium-dev: %v", err)
 	}
 
 	// Clear the env vars
-	t.Setenv("MAVERICK_DEV_PATH", "")
 	t.Setenv("MYCELIUM_DEV_PATH", "")
+	t.Setenv("MAVERICK_DEV_PATH", "")
 
 	// Prepend tmpDir to PATH
 	originalPath := os.Getenv("PATH")
 	newPath := tmpDir + string(os.PathListSeparator) + originalPath
 	t.Setenv("PATH", newPath)
 
-	result := FindMaverickDev()
+	result := FindMyceliumDev()
 	if result != fakeExe {
-		t.Errorf("FindMaverickDev() with PATH containing %q returned %q, want %q",
+		t.Errorf("FindMyceliumDev() with PATH containing %q returned %q, want %q",
 			tmpDir, result, fakeExe)
 	}
 }
 
-func TestFindMaverickDev_NotFound(t *testing.T) {
+func TestFindMyceliumDev_NotFound(t *testing.T) {
 	// Clear both env vars and PATH to ensure it's not found
-	t.Setenv("MAVERICK_DEV_PATH", "")
 	t.Setenv("MYCELIUM_DEV_PATH", "")
+	t.Setenv("MAVERICK_DEV_PATH", "")
 	t.Setenv("PATH", "")
 
-	result := FindMaverickDev()
+	result := FindMyceliumDev()
 	if result != "" {
-		t.Errorf("FindMaverickDev() with clean env returned %q, want empty string", result)
+		t.Errorf("FindMyceliumDev() with clean env returned %q, want empty string", result)
 	}
 }
 
