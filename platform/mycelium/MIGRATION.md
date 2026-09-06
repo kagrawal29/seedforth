@@ -1,13 +1,15 @@
 # Mycelium Platform Import
 
-This directory is the initial sanitized working-tree import of Mycelium into the SeedForth platform repository.
+This directory is the sanitized working-tree import of Mycelium into the
+SeedForth platform repository. It is the deployed platform source; the
+standalone Mycelium repository remains a provenance/reference checkout.
 
 ## Source
 
 - Source checkout: `tetrahedron/projects/mycelium`
 - Source commit at import: `e43f15f1186e6bbc117d0daadbf1e5126123b5ec`
 - Source branch: `fix/scope-split-and-deploy-flow-policy`
-- Import type: sanitized working-tree snapshot
+- Import type: sanitized working-tree snapshot (no nested Git history)
 
 ## Excluded
 
@@ -18,12 +20,22 @@ This directory is the initial sanitized working-tree import of Mycelium into the
 - Local heartbeat and sync state.
 - legacy Maverick CLI, Pulse, and bolt-proxy deployment trees.
 
-The independent Mycelium repository remains the history/reference source until a dedicated history migration and secret-removal review are complete.
+The independent Mycelium repository remains the history/reference source. It is
+not an active SeedForth runtime dependency and must not be used as the source
+for server deployments.
 
-## Required before cutover
+## Completed cutover gates
 
-1. Reconcile imported files against the canonical Mycelium branch.
-2. Remove or classify legacy Maverick/Pulse deployment assets.
-3. Review all credential/configuration files for secret safety.
-4. Add platform-level build and integration tests.
-5. Record the platform commit used by the new server.
+1. Local, GitHub, and server provenance was recorded.
+2. Legacy Maverick/Pulse material was excluded or bounded as reference-only.
+3. Runtime credentials were removed from the deployed active path.
+4. Platform tests and graph bootstrap validation pass.
+5. The server runs an immutable SeedForth release.
+
+## Follow-up boundary work
+
+- Remaining standalone-source drift is tracked in the repository reconciliation
+  ledger; do not reset dirty checkouts.
+- Historical/local-development credential defaults in non-deployed scripts are
+  retained only as migration evidence and must be removed when those scripts
+  are either ported to the platform runner or moved under `archive/`.
