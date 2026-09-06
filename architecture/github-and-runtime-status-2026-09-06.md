@@ -26,10 +26,10 @@ an enabled protection policy for SeedForth or Delta at capture time.
 - Product checkouts: Flowing Indian and Seedforthing are present, but contain
   generated/runtime changes and are not deployment-clean
 - Immutable consolidated release staged at
-  `/opt/seedforth/releases/7f51937`, with `/opt/seedforth/current` pointing to
+  `/opt/seedforth/releases/9633ca2`, with `/opt/seedforth/current` pointing to
   it; existing services have not been switched
 - Linux/amd64 Mycelium CLI artifact staged under the release and reports
-  version `7f51937`
+  version `9633ca2`
 
 ## Live graph snapshot
 
