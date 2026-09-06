@@ -22,6 +22,11 @@ are covered. The active Delta suite is green: 240 passed.
 
 This is not a platform-repository import failure. It is evidence that the Delta migration to opencode was operationally completed before the code/test/documentation contract was fully normalized.
 
+The remaining imported `cypher-shell -p` references are explicitly classified
+as manual migration/bootstrap or UI fallback code in
+[`platform/delta/LEGACY-BOUNDARY.md`](../platform/delta/LEGACY-BOUNDARY.md);
+none is a supported systemd entrypoint.
+
 ## Required resolution
 
 1. Classify every remaining tmux/Claude reference as active, compatibility, historical, or dead.

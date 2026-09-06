@@ -93,6 +93,7 @@ Environment config: copy [deploy/delta.env.example](deploy/delta.env.example) to
 ## Documentation
 
 - [CLAUDE.md](CLAUDE.md) -- Full architecture reference (system users, directory layout, message flow, provisioning, infrastructure, modules)
+- [LEGACY-BOUNDARY.md](LEGACY-BOUNDARY.md) -- Supported runtime paths and retained migration-only scripts
 - [tests/delta-behavior-map.md](tests/delta-behavior-map.md) -- Behavioral specification of every code path
 - [tests/delta-test-plan.md](tests/delta-test-plan.md) -- E2E test plan (60+ cases)
 - [tests/delta-test-results.md](tests/delta-test-results.md) -- Test results and known issues
