@@ -30,8 +30,9 @@ This is not a platform-repository import failure. It is evidence that the Delta 
    obsolete test suites are now quarantined; replacement hub/runtime coverage
    must continue to grow as cutover proceeds.
 4. Add tests for supervisor/opencode lifecycle, HTTP health, session expiry, and bridge delivery.
-5. Run the complete active Delta suite from the imported platform path.
-6. Verify the new platform checkout against the live server before deployment.
+5. Run the complete active Delta suite from the imported platform path. This is
+   now reproducible through `requirements-test.txt` and passes 240 tests.
+6. Verify each new platform checkout against the live server before deployment.
 
 ## Mycelium import debt
 
@@ -43,7 +44,8 @@ The initial Mycelium working-tree snapshot is intentionally uncommitted because 
 - current graph/Charlie work that was uncommitted in the source checkout;
 - historical and runtime artifacts that need classification.
 
-The separate Mycelium repository remains the source/reference checkout until the snapshot is classified and a safe import boundary is committed.
+The separate Mycelium repository remains preserved as provenance/reference;
+the sanitized platform snapshot is the reviewed production source.
 
 ## Credential cleanup debt
 
@@ -56,7 +58,7 @@ test-only credentials when they are isolated and clearly labeled.
 
 ## Cutover rule
 
-Neither platform component may be deployed from the consolidated path until:
+Future platform releases may be deployed from the consolidated path only after:
 
 - the source boundary is sanitized;
 - tests pass or explicit failures are classified;

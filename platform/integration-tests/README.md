@@ -14,6 +14,8 @@ product test. A release is eligible for cutover only when these checks pass:
 5. The release manifest records all component SHAs and the graph bootstrap
    version before service activation.
 
-The current release has the component gates but not all cross-component gates;
-the server cutover remains disabled until these checks are implemented and
-run against disposable infrastructure.
+The current production release passed the schema/bootstrap, active Delta,
+graph-health, fleet-reconciliation, and rollback checks and is deployed on
+`delta2`. The disposable replay and deliberate-mismatch harnesses remain
+automation backlog for subsequent releases; they are not silently treated as
+passed by the current release manifest.

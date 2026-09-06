@@ -98,20 +98,26 @@ def inspect_server(host: str, paths: list[str]) -> dict[str, object]:
 
 
 def inspect_graph(host: str) -> dict[str, object]:
-    """Collect non-secret graph health facts through the server Docker runtime."""
-    remote = (
-        "PASS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' "
-        "mycelium-neo4j 2>/dev/null | sed -n 's/^NEO4J_AUTH=neo4j\\///p'); "
-        "if [ -z \"$PASS\" ]; then echo graph-auth-unavailable; exit 2; fi; "
-        "runq(){ docker exec mycelium-neo4j cypher-shell -u neo4j -p \"$PASS\" "
-        "--format plain \"$1\" | tail -n 1; }; "
-        "printf 'nodes\\t'; runq 'MATCH (n) RETURN count(n)'; "
-        "printf 'relationships\\t'; runq 'MATCH ()-[r]->() RETURN count(r)'; "
-        "printf 'protocols_enabled\\t'; runq 'MATCH (p:Protocol {enabled:true}) RETURN count(p)'; "
-        "printf 'active_agents\\t'; runq \"MATCH (s:SubAgent {status:'active'}) RETURN count(s)\"; "
-        "printf 'pending_decisions\\t'; runq \"MATCH (d:DecisionRequest {status:'pending'}) RETURN count(d)\"; "
-        "printf 'latest_protocol_run\\t'; runq 'MATCH (r:ProtocolRun) RETURN max(r.timestamp)';"
-    )
+    """Collect graph health through the shared HTTP helper without exposing credentials."""
+    remote = r'''set -eu
+set -a
+. /opt/seedforth/shared/env/seedforth.env
+set +a
+cd /opt/seedforth/current/platform/delta
+python3 - <<'PY'
+from tools.neo4j_helper import scalar
+
+facts = {
+    "nodes": "MATCH (n) RETURN count(n)",
+    "relationships": "MATCH ()-[r]->() RETURN count(r)",
+    "protocols_enabled": "MATCH (p:Protocol {enabled:true}) RETURN count(p)",
+    "active_agents": "MATCH (s:SubAgent {status:'active'}) RETURN count(s)",
+    "pending_decisions": "MATCH (d:DecisionRequest {status:'pending'}) RETURN count(d)",
+    "latest_protocol_run": "MATCH (r:ProtocolRun) RETURN max(r.timestamp)",
+}
+for key, cypher in facts.items():
+    print(f"{key}\t{scalar(cypher, default='unknown')}")
+PY'''
     command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", host, remote]
     try:
         proc = subprocess.run(command, text=True, capture_output=True,
