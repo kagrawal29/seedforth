@@ -649,3 +649,32 @@ actions disabled until their authority and postconditions are implemented.
   governed Delta processing/useful execution, Graphify/full graph sensing, Flowing
   pilot, safe archival, source/release recovery and unattended qualification. The
   full objective remains active and incomplete.
+
+## Identity runtime deployed privately; legacy credential gate confirmed
+
+- Private identity service8dd42c0 is deployed, enabled and running as UID997/GID984
+  on127.0.0.1:8788. Graph DeploymentPolicy and identity-scope reader promoted.
+  Existing main1770e7c/control2aed97e/worker3d8feef/securityafcc87b remain unchanged.
+- Root-only kernel-peer-credential operator channel verified live; service-UID
+  requests denied. Bootstrap clientd6bf2f8 writes the owner's invitation only to a
+  new root-private file. Shared env750 root:delta was preserved after the initial
+  preflight correctly refused it. No actual human account/MFA was enrolled.
+- Normal restart and forced-process-crash recovery passed with invitation state
+  preserved and operator socket recreated. Live private SQLite snapshots passed
+  integrity checks and a root-private copy was retained. Tested restore sanitization
+  prevents resurrected sessions/tokens/factors; complete off-host recovery and
+  recurring identity/backup sensing are still pending.
+- 145test full qualification passed in29.02s with no skips, one SDK warning.
+  JUnit0f36e1363996bf2032fc1daf7fa6a71afd8702ac41574998d38e3bfdb287eecc
+  admitted in live Mycelium. No new human UI in this deployment; its prior full
+  Playwright evidence remains scoped to synthetic human acceptance.
+- Live exact-value comparison found the current graph password in12 legacy tools;
+  actual Cajon and Flowing project UIDs could read neo4j_helper.py. No credential
+  value/fingerprint was output. Public HTTP application routes remain503 pending
+  legacy writer/credential isolation, not merely a missing TLS/login implementation.
+- See identity-deployment-20260906.md for paths, evidence and limitations. Next:
+  migrate retained credential consumers and message handling, fence old privileged
+  model workers/schedulers, rotate graph/provider access safely, and then qualify
+  public identity/MCP/board routing. The governed Delta processor, Graphify/full
+  sensing, useful Flowing autonomy, archival and unattended qualification remain
+  in the complete objective.
