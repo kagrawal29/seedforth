@@ -30,6 +30,7 @@ The initial Mycelium working-tree snapshot is intentionally uncommitted because 
 
 - legacy Maverick/Pulse deployment assets;
 - credential-related implementation and test files requiring review;
+- embedded credential TOML and legacy credential/configuration paths;
 - current graph/Charlie work that was uncommitted in the source checkout;
 - historical and runtime artifacts that need classification.
 
