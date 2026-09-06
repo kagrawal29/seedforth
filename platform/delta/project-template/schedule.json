@@ -1,0 +1,21 @@
+{
+  "tasks": [],
+  "reporting": {
+    "frequency": "daily",
+    "time": "09:00",
+    "timezone": "UTC",
+    "style": "calm",
+    "what_matters": "what shipped and what's next"
+  },
+  "morning_trip": {
+    "enabled": false,
+    "time": "09:00",
+    "timezone": "UTC",
+    "philosophy": "Show something new. Push the project forward.",
+    "integrity_anchors": []
+  },
+  "project": {
+    "name": "",
+    "core_idea": ""
+  }
+}
