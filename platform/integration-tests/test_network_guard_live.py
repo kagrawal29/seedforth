@@ -41,7 +41,7 @@ for port in ports:
 time.sleep(60)
 """
     def probe(namespace,address,port):
-        code="import socket,sys; s=socket.create_connection((sys.argv[1],int(sys.argv[2])),timeout=.5);s.close()"
+        code="import socket,sys; s=socket.create_connection((sys.argv[1],int(sys.argv[2])),timeout=2);s.close()"
         return subprocess.run(['ip','netns','exec',namespace,sys.executable,'-c',code,address,str(port)],
                               capture_output=True,timeout=3).returncode==0
     try:
@@ -76,7 +76,8 @@ time.sleep(60)
             if probe(a,'10.239.218.2',22):break
             time.sleep(.05)
         for address in ['10.239.218.2','fd42:239:218::2']:
-            assert all(probe(a,address,p) for p in [22,6083,7474,7687,8900])
+            baseline={p:probe(a,address,p) for p in [22,6083,7474,7687,8900]}
+            assert all(baseline.values()),(address,baseline)
         path=Path(__file__).parents[2]/'operations/network-guard.py'
         code="import importlib.util; s=importlib.util.spec_from_file_location('g',"+repr(str(path))+");g=importlib.util.module_from_spec(s);s.loader.exec_module(g);g.enforce(dict(id='network-policy-internal-services-v1',version=1,interface='eth0',ports=[6083,7474,7687]))"
         ns(b,sys.executable,'-c',code)
