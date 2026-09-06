@@ -65,9 +65,10 @@ service can recreate it.
 
 Do not print, copy, or pass credentials as command-line arguments. Use the
 external server environment contract or a secret manager. The known
-Seedforthing Vercel token file was mode-hardened in place, but because it is
-tracked and may exist in history, the remaining required action is provider
-rotation followed by repository history scrubbing and a secret scan.
+Seedforthing Vercel token file was mode-hardened in place and removed from the
+current GitHub branch. Because it may exist in history and remains in the old
+server checkout, the remaining required action is provider rotation followed
+by repository history scrubbing and a secret scan.
 
 ## Completion condition
 

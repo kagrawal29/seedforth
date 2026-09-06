@@ -40,14 +40,14 @@ merge decisions. Re-run `python3 operations/reconcile.py` before acting.
 
 ### Security exception
 
-The Seedforthing runtime contains a tracked file at
+The Seedforthing server checkout contains a token file at
 `delta-config/.vercel-token-charlietheagent`. Its contents were not printed or
 copied. The file mode was hardened in place from `777` to `600`, preserving the
-live path and owner. Because the file is tracked in the product repository
-(and may therefore exist in repository history), the product owner must rotate
-the token and scrub the product repository history before that checkout can be
-called deployment-clean. GitHub secret scanning is currently disabled for the
-private repository; this is recorded as a structured security exception in
+live path and owner. The current GitHub branch no longer tracks the file after
+`49a2b72`, but the token may remain in repository history and the old server
+checkout still tracks it. The product owner must rotate the token and scrub
+history before that checkout can be called deployment-clean. GitHub secret
+scanning is currently disabled; this is recorded as a structured exception in
 `registry/repositories.json`.
 
 ## Next safe actions
