@@ -1,4 +1,4 @@
-"""Project provisioner -- Linux user creation, Claude Code launch, Discord channel setup.
+"""Project provisioner -- isolated opencode agent setup and Discord channels.
 
 Orchestrates everything needed to bring a new project online or tear one down.
 Supports LOCAL_MODE for Mac development (skips Linux user isolation).
@@ -30,7 +30,7 @@ def _register_rube_mcp(project_dir: str, linux_user: str = "") -> bool:
     """Register Rube MCP server for a project using claude mcp add-json.
 
     Uses Bearer token auth (not X-API-Key) to avoid browser OAuth flow.
-    When the Authorization header is pre-supplied, Claude Code sends it
+    When the Authorization header is pre-supplied, the MCP client sends it
     directly and never triggers the OAuth discovery that requires a browser.
     """
     import subprocess

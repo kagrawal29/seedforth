@@ -1,6 +1,6 @@
 """Delta -- your projects run themselves. You just dream.
 
-Discord bot where each project gets its own channel, its own Claude Code,
+Discord bot where each project gets its own channel and its own opencode agent,
 and its own Linux user. The conversation IS the project. Delta handles the rest.
 """
 
@@ -319,7 +319,7 @@ async def _handle_connect_command(
         try:
             msg_files = sorted(bridge.inbox_dir.glob("*.json"))
             if msg_files:
-                bridge.send_to_lead(msg_files[-1].stem)
+                bridge.nudge(msg_files[-1].stem)
         except Exception:
             pass
     else:
@@ -698,7 +698,7 @@ async def _handle_gh_auth_command(
             try:
                 msg_files = sorted(bridge.inbox_dir.glob("*.json"))
                 if msg_files:
-                    bridge.send_to_lead(msg_files[-1].stem)
+                    bridge.nudge(msg_files[-1].stem)
             except Exception:
                 pass
         else:
@@ -726,7 +726,7 @@ async def _handle_onboarding_complete(project_name: str, data: dict) -> None:
     2. Load PERSONAL_AGENT.md template
     3. Inject profile_summary
     4. Overwrite CLAUDE.md
-    5. Restart Claude Code
+    5. Restart the opencode agent
     6. Update registry project_type to "persistent"
     7. Notify user in Discord
     """
@@ -860,7 +860,7 @@ def _start_watchers(project_name: str) -> None:
             status = "connected" if conn else "not connected"
             bridge.write_inbox(ch_id, "delta:connection", f"{toolkit} status: {status}")
             try:
-                bridge.send_to_lead(bridge._random_id())
+                bridge.nudge(bridge._random_id())
             except Exception:
                 pass
             return
@@ -954,7 +954,7 @@ def _start_watchers(project_name: str) -> None:
                     )
                     bridge.write_inbox(source_channel, "delta:system", confirm)
                     try:
-                        bridge.send_to_lead(bridge._random_id())
+                        bridge.nudge(bridge._random_id())
                     except Exception:
                         pass
                     logger.info(f"Project {proj_name} created by {project_name}")
@@ -965,7 +965,7 @@ def _start_watchers(project_name: str) -> None:
                         f"Could not create project {proj_name}: {e}"
                     )
                     try:
-                        bridge.send_to_lead(bridge._random_id())
+                        bridge.nudge(bridge._random_id())
                     except Exception:
                         pass
 
@@ -1294,7 +1294,7 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
         if not bridge:
             await message.channel.send(f"No project called **{project_name}**.")
             return
-        scrollback = bridge.capture_tmux_scrollback(40)
+        scrollback = bridge.peek(40)
         # Wrap in code block for readability
         text = f"```\n{scrollback[:1800]}\n```"
         await message.channel.send(text)
@@ -1314,7 +1314,7 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
         msg_id = bridge.write_inbox(channel_id, f"admin:{user_id}", msg_text)
         if bridge.is_project_active():
             try:
-                bridge.send_to_lead(msg_id)
+                bridge.nudge(msg_id)
             except Exception as e:
                 logger.warning(f"Nudge failed: {e}")
         await message.channel.send(f"Sent to **{project_name}**.")
@@ -1365,7 +1365,7 @@ async def _handle_command(cmd: str, args: dict, message: discord.Message) -> Non
         if not hub_bridge:
             await message.channel.send("Hub not initialized.")
             return
-        scrollback = hub_bridge.capture_tmux_scrollback(40)
+        scrollback = hub_bridge.peek(40)
         text = f"```\n{scrollback[:1800]}\n```"
         await message.channel.send(text)
 
@@ -1463,7 +1463,7 @@ async def _handle_invariant_governance(cmd: str, args: dict, message) -> None:
 # -- Hub (orchestrator) ------------------------------------------------------
 
 def _init_hub() -> None:
-    """Initialize the hub Claude Code instance for DM orchestration."""
+    """Initialize the hub opencode instance for DM orchestration."""
     hub = _hub_dir()
     hub_linux_user = ""
 
@@ -1656,7 +1656,7 @@ def _start_hub_watchers() -> None:
                         )
                         if hub_bridge.is_project_active():
                             try:
-                                hub_bridge.send_to_lead(msg_id)
+                                hub_bridge.nudge(msg_id)
                             except Exception:
                                 pass
                 except Exception as e:
@@ -1669,7 +1669,7 @@ def _start_hub_watchers() -> None:
                         )
                         if hub_bridge.is_project_active():
                             try:
-                                hub_bridge.send_to_lead(msg_id)
+                                hub_bridge.nudge(msg_id)
                             except Exception:
                                 pass
 
@@ -1702,7 +1702,7 @@ def _start_hub_watchers() -> None:
                 target_bridge.touch_activity()
                 if target_bridge.is_project_active():
                     try:
-                        target_bridge.send_to_lead(msg_id)
+                        target_bridge.nudge(msg_id)
                     except Exception as e:
                         logger.warning(f"Forward nudge to {target} failed: {e}")
             return
@@ -2066,7 +2066,7 @@ async def _hub_snapshot_loop():
                 except OSError as e:
                     logger.warning(f"Could not write snapshot for {name}: {e}")
 
-            # Health check: hub runs headless (Claude Code disabled)
+            # Health check: hub runs headless; Discord remains the transport.
             hub_bridge = bridges.get(HUB_NAME)
             if hub_bridge and hub_bridge.is_project_active():
                 hub_pending = hub_bridge.pending_inbox_count()
@@ -2076,7 +2076,7 @@ async def _hub_snapshot_loop():
                         pending = sorted(hub_bridge.inbox_dir.glob("*.json"))[:5]
                         for msg_file in pending:
                             try:
-                                hub_bridge.send_to_lead(msg_file.stem)
+                                hub_bridge.nudge(msg_file.stem)
                             except Exception:
                                 break
                         logger.info(f"Hub pulse: re-nudged {len(pending)} of {hub_pending} pending")
@@ -2479,7 +2479,7 @@ async def _schedule_fire_loop():
                         channel_id, "delta:schedule", inbox_text
                     )
                     try:
-                        bridge.send_to_lead(msg_id)
+                        bridge.nudge(msg_id)
                         fired_today[dedup_key] = now.isoformat()
                         _update_last_fired_in_schedule(name, task_id)
                         logger.info(f"Scheduled task {task_id} fired for {name}")
@@ -2522,7 +2522,7 @@ def _remove_fired_task(project_name: str, task_id: str) -> None:
 
 def _send_report_nudge(project_name: str, bridge: ProjectBridge,
                        reporting: dict) -> None:
-    """Nudge a project's Claude Code to send its report."""
+    """Nudge a project's opencode agent to send its report."""
     if not bridge.is_project_active():
         return
 
@@ -2542,7 +2542,7 @@ def _send_report_nudge(project_name: str, bridge: ProjectBridge,
     bridge.touch_activity()  # prevent resource manager from hibernating mid-work
     msg_id = bridge.write_inbox(channel_id, "delta:reporting", nudge)
     try:
-        bridge.send_to_lead(msg_id)
+        bridge.nudge(msg_id)
         logger.info(f"Report nudge sent to {project_name}")
     except Exception as e:
         logger.warning(f"Report nudge to {project_name} failed: {e}")
@@ -2550,7 +2550,7 @@ def _send_report_nudge(project_name: str, bridge: ProjectBridge,
 
 def _send_morning_trip_nudge(project_name: str, bridge: ProjectBridge,
                              morning: dict, project_meta: dict) -> None:
-    """Nudge a project's Claude Code to deliver its morning trip."""
+    """Nudge a project's opencode agent to deliver its morning trip."""
     if not bridge.is_project_active():
         return
 
@@ -2580,7 +2580,7 @@ def _send_morning_trip_nudge(project_name: str, bridge: ProjectBridge,
     bridge.touch_activity()  # prevent resource manager from hibernating mid-work
     msg_id = bridge.write_inbox(channel_id, "delta:morning_trip", nudge)
     try:
-        bridge.send_to_lead(msg_id)
+        bridge.nudge(msg_id)
         logger.info(f"Morning trip nudge sent to {project_name}")
     except Exception as e:
         logger.warning(f"Morning trip nudge to {project_name} failed: {e}")
@@ -2605,7 +2605,7 @@ async def _silence_nudge_loop():
     """Nudge agents that go silent after receiving a user message.
 
     Repeating nudge with anti-stacking: only nudges when the agent is at
-    the Claude Code prompt (not mid-turn). Caps at 5 nudges per user message
+    the opencode prompt (not mid-turn). Caps at 5 nudges per user message
     with 25s cooldown between nudges per project.
     """
     await client.wait_until_ready()
@@ -2699,7 +2699,7 @@ async def on_ready():
     logger.info(f"Delta connected as {client.user}")
     logger.info(f"Projects: {registry.list_projects()}")
 
-    # Restore active projects whose tmux sessions died (e.g. after service restart)
+    # Restore active projects whose supervised processes died (e.g. after restart)
     restored = _restore_active_projects()
     if restored:
         logger.info(f"Restored {restored} active projects")
@@ -2779,7 +2779,7 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
 
             # Start watchers and queue the first message
             _start_watchers(project_name)
-            await asyncio.sleep(8)  # Give Claude Code time to boot
+            await asyncio.sleep(8)  # Give the opencode server time to boot
 
             bridge = _get_or_create_bridge(project_name)
             if bridge:
@@ -2790,7 +2790,7 @@ async def _auto_provision_personal_agent(message, channel_id, user_id, text, att
                 )
                 if bridge.is_project_active():
                     try:
-                        bridge.send_to_lead(msg_id)
+                        bridge.nudge(msg_id)
                     except Exception as e:
                         logger.warning(f"Nudge to new personal agent failed: {e}")
                 else:
@@ -2843,7 +2843,7 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
             _start_typing(message.channel, channel_id)
             if hub_bridge.is_project_active():
                 try:
-                    hub_bridge.send_to_lead(msg_id)
+                    hub_bridge.nudge(msg_id)
                 except Exception:
                     pass
         return
@@ -2868,7 +2868,7 @@ async def _route_dm_to_persistent(project, message, channel_id, user_id, text, a
     _start_typing(message.channel, channel_id)
     if bridge.is_project_active():
         try:
-            bridge.send_to_lead(msg_id)
+            bridge.nudge(msg_id)
         except Exception as e:
             logger.warning(f"Nudge to persistent agent {project_name} failed: {e}")
     else:
@@ -3014,7 +3014,7 @@ async def on_message(message: discord.Message):
             msg_path.write_text(onboard_request)
             if hub_bridge.is_project_active():
                 try:
-                    hub_bridge.send_to_lead(f"onboard-{int(time.time())}")
+                    hub_bridge.nudge(f"onboard-{int(time.time())}")
                 except Exception:
                     pass
             await message.channel.send(
@@ -3179,7 +3179,7 @@ async def on_message(message: discord.Message):
             )
             if hub_bridge.is_project_active():
                 try:
-                    hub_bridge.send_to_lead(hub_msg_id)
+                    hub_bridge.nudge(hub_msg_id)
                 except Exception as e:
                     logger.warning(f"Hub fallback nudge failed: {e}")
             else:

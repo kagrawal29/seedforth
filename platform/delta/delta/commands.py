@@ -141,9 +141,9 @@ HELP_TEXT = """\
 **Admin**
 `status all` -- everything at a glance
 `logs <name>` -- recent conversation history
-`peek <name>` -- live Claude Code output
+`peek <name>` -- recent opencode agent output
 `send <name> <message>` -- talk to any project
-`restart <name>` -- restart Claude Code
+`restart <name>` -- restart the opencode agent
 `schedule <name>` -- see a project's task backlog
 
 Or just talk. If you have one project, your DMs go straight to it.

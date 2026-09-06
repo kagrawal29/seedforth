@@ -1,7 +1,8 @@
 """Per-project bridge wrapper -- parameterized on instance, not module-level config.
 
 Each project gets its own ProjectBridge with HTTP delivery to opencode serve.
-Sole runtime after Phase 5 migration. No tmux/Claude Code paths remain.
+Sole runtime after Phase 5 migration: opencode over HTTP. Legacy names are
+accepted only at the registry/compatibility boundary.
 """
 
 import json
@@ -24,7 +25,8 @@ class ProjectBridge:
     def __init__(self, name: str, data_dir: str,
                  nudge_prefix: str = "", outbox_poll_interval: int = 1,
                  serve_port: int = 0, session_id: str = "",
-                 session_persist: Callable[[str, str], None] | None = None):
+                 session_persist: Callable[[str, str], None] | None = None,
+                 tmux_lead_pane: str = ""):
         self.name = name
         self.data_dir = Path(data_dir)
         self.nudge_prefix = nudge_prefix or "delta-config/inbox"
@@ -32,6 +34,9 @@ class ProjectBridge:
         self.serve_port = serve_port
         self.session_id = session_id
         self._session_persist = session_persist
+        # Deprecated constructor compatibility for older callers/tests. The
+        # opencode HTTP runtime does not use a terminal pane.
+        self._legacy_tmux_lead_pane = tmux_lead_pane
 
         # Shutdown coordination
         self._shutdown_event = threading.Event()
@@ -241,7 +246,7 @@ class ProjectBridge:
         return "(no logs yet)"
 
     def capture_tmux_scrollback(self, lines: int = 40) -> str:
-        """Compatibility shim for opencode runtime: same as peek()."""
+        """Deprecated alias for :meth:`peek` used by old integrations."""
         return self.peek(lines)
 
     def shutdown(self) -> None:
@@ -249,7 +254,11 @@ class ProjectBridge:
         self._shutdown_event.set()
 
     def send_to_lead(self, msg_id: str) -> None:
-        """Send a tmux nudge to process an inbox file."""
+        """Deprecated alias for :meth:`nudge`."""
+        self.nudge(msg_id)
+
+    def nudge(self, msg_id: str) -> None:
+        """Wake the opencode HTTP agent to process an inbox file."""
         self._nudge(msg_id)
 
     def _nudge(self, msg_id: str) -> None:
