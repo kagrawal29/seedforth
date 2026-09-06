@@ -81,9 +81,10 @@ envelope = make_envelope(
 statement = (
     "MERGE (e:Signal {node_id: $message_id}) "
     "SET e.schema = $schema, e.kind = $kind, e.project = $project, "
-    "e.payload = $payload, e.source = $source "
+    "e.payload_json = $payload_json, e.source = $source "
     "RETURN e.node_id AS node_id"
 )
+envelope["payload_json"] = json.dumps(envelope["payload"], sort_keys=True)
 for _ in range(2):
     query(statement, envelope)
 
