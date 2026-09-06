@@ -61,3 +61,9 @@ seedforthing/
 .claude/
 .playwright-mcp/
 .vercel/
+
+# Unified platform runtime state (never commit)
+platform/**/.memsearch/
+platform/**/.heartbeat.pid
+platform/**/.mycelium/
+platform/**/team-credentials.env
