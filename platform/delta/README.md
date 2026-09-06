@@ -106,5 +106,6 @@ Environment config: copy [deploy/delta.env.example](deploy/delta.env.example) to
 ## Testing
 
 ```bash
-python3 -m pytest tests/ -x -q   # 262 unit tests
+python3 -m pip install -r requirements-test.txt
+python3 -m pytest tests/ -x -q   # active suite; obsolete migration tests are excluded in tests/conftest.py
 ```

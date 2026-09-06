@@ -55,6 +55,11 @@ platform commit.
 No step in this runbook mutates the graph implicitly. Graph writes happen via
 reviewed bootstrap/protocol commands and are verified with a post-deploy query.
 
+For a reproducible Delta validation environment, install
+`platform/delta/requirements-test.txt` in an isolated virtual environment;
+do not rely on the system Python package set. The production service does not
+need pytest installed.
+
 ## Secret contract
 
 `seedforth.env` is external to Git and must provide the values required by
