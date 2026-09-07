@@ -50,6 +50,11 @@ async function refresh() {
         row.append(text('h3', item.name || item.scope));
         row.append(text('p', `${item.portfolio_state || 'unknown'} · ${item.work_enabled ? 'new work enabled' : 'new work held'} · ${item.work_count || 0} work items · ${item.attention_count || 0} need attention`));
         row.append(text('p', `Process status: ${item.historical_status || 'unknown'} (historical only) · observation: ${item.latest_observation_at || 'unknown'}`, 'muted'));
+        if (item.portfolio_state === 'active' && item.scope !== 'seedforth-platform') {
+          const open = text('button', 'Open project', 'portfolio-open');
+          open.addEventListener('click', () => { scope = item.scope; refresh(); });
+          row.append(open);
+        }
         $('portfolio-list').append(row);
       }
       $('authority').replaceChildren(text('p','Portfolio authority is graph-resident. Select a project to inspect work and evidence; process activity is not treated as progress.'));

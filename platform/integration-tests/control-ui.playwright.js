@@ -18,9 +18,10 @@ async (page) => {
     const request = route.request(), body = request.postDataJSON();
     const reply = (status, value) => route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
     if (request.headers().authorization !== `Bearer ${token}`) return reply(401,{error:'invalid_credentials'});
-    if (denied || body.scope !== 'flowing-indian') return reply(403,{error:'scope_denied'});
+    if (denied || !['flowing-indian','seedforth-platform'].includes(body.scope)) return reply(403,{error:'scope_denied'});
     if (outage) return reply(503,{error:'graph_unavailable'});
     let data = [];
+    if (body.operation === 'read-portfolio') data = [{scope:'flowing-indian',name:'Flowing Indian',portfolio_state:'active',work_enabled:false,work_count:2,attention_count:0,historical_status:'running',latest_observation_at:'fixture'}];
     if (body.operation === 'read-scope') data = [{name:'Flowing Indian fixture',portfolio_state:'active',...scopeState}];
     if (body.operation === 'read-work') data = JSON.parse(JSON.stringify(items));
     if (body.operation === 'read-sources') data = [
@@ -136,5 +137,12 @@ async (page) => {
   await page.locator('#login').waitFor({state:'visible'});
   check(await page.locator('#board').innerText() === '', 'Revocation retained scope data');
   checks.push('in-flight logout and revocation clear scoped content');
+  denied = false;
+  await page.locator('#scope').selectOption('seedforth-platform');
+  await page.locator('#token').fill(token);
+  await page.getByRole('button',{name:'Connect',exact:true}).click();
+  await page.getByRole('button',{name:'Open project',exact:true}).click();
+  await page.waitForFunction(() => document.querySelector('#project-name').textContent === 'Flowing Indian fixture');
+  checks.push('portfolio home opens an administered active project');
   return {status:'passed',checks,coverage:'synthetic API browser regression; not live graph acceptance'};
 }
