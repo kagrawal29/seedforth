@@ -1623,3 +1623,16 @@ actions disabled until their authority and postconditions are implemented.
   three and a half minutes of clean evidence to the accumulated unattended
   observation. It remains short-duration evidence and does not claim a
   day-, week-, or month-scale soak.
+
+## Live recurring-loop verification
+
+- At `13:39:21Z`, all four core services remained active with zero recorded
+  restarts and the public anonymous MCP boundary continued to return `401`.
+  The autonomous executor, Delta event/ack, conversation, runtime, code,
+  heartbeat, and Graphify timers were all loaded and waiting for their next
+  scheduled run.
+- The latest live Graphify observations for the platform, Flowing Indian, and
+  Cajon Sensei streams each completed successfully; the latest Delta event and
+  acknowledgement ingestion runs reported zero events/failures and zero
+  lines/failures respectively. This is current-loop evidence, not a claim of
+  long-duration qualification.
