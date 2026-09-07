@@ -1573,7 +1573,7 @@ def _start_hub_watchers() -> None:
             try:
                 digest = append_ack(MYCELIUM_ACK_STREAM, data)
             except (AckValidationError, OSError) as exc:
-                logger.warning("[mycelium-ack] rejected handoff: %s", exc)
+                logger.warning("[mycelium-ack] rejected handoff: %s keys=%s", exc, sorted(data))
             else:
                 logger.info("[mycelium-ack] recorded handoff %s", digest)
             return
