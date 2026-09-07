@@ -1251,3 +1251,19 @@ actions disabled until their authority and postconditions are implemented.
 - The live graph remains truthful after the run: Flowing accessibility v3 is
   `done/verified`, the Flowing scope is disabled, and prior unknown attempts
   remain retained as history.
+
+## Delta/portfolio lifecycle alignment
+
+- A live conversation qualification exercised the full internal direction
+  loop: graph admission queued the owner message, the Delta Hub received it as
+  explicitly untrusted content, emitted a deterministic `received` ACK, and
+  the ACK ingestor projected `execution_state=acknowledged` into Mycelium.
+- The live Delta registry was reconciled from graph portfolio state with a
+  retained pre-change backup. Flowing Indian and Cajon Sensei are the only
+  active projects and are marked retained `product` agents; all other retained
+  registry entries are hibernated.
+- Delta’s resource manager now exempts retained/product agents from its idle
+  hibernation policy; graph portfolio controls, not ten-minute inactivity,
+  decide their lifecycle. Release `abb677fe5ff81e7a188ad29ef49a869f0e9e9206`
+  is live as `/opt/seedforth/current`, and both product watchers plus Delta Hub
+  are running. A long unattended interval has not yet elapsed.
