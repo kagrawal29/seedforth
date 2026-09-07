@@ -6,8 +6,8 @@ boundary is superseded for this upgrade. Business-side effects still require
 specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
-Current known production release: 1770e7cdc085e36840ed5b2d5b116811348a5ae0.
-Separate control component: 6fe3ee4b65e855901d9d5011690a07241c7ed88b,
+Current known production release: abb677fe5ff81e7a188ad29ef49a869f0e9e9206.
+Separate control component: 71f6dde31e02d9c0097f5b63c1a887681f83045e,
 deployed via /opt/seedforth/control-current. Active end-to-end goal registered
 at the owner's explicit request. No token budget was requested.
 
@@ -1289,3 +1289,17 @@ actions disabled until their authority and postconditions are implemented.
   token was not reused; the Cajon timer was disabled again to avoid recurring
   false failures. Current Cajon credential/provisioning is an explicit remaining
   release boundary.
+## Live sensing and Graphify collection check
+
+- A live heartbeat completed successfully, including decay, liveness, activity
+  sync, focus maintenance, and a current system snapshot.
+- Runtime sensing observed Flowing Indian and Cajon Sensei as running and
+  archived scopes as stopped. Code sensing observed Cajon `app/index.html` and
+  Flowing `app/api/register/route.ts` plus `app/page.tsx` as matching their
+  committed revisions.
+- Graphify producers generated current snapshots for both products (51 Flowing
+  facts and 116 Cajon facts); the Graphify sensor collected all three scoped
+  streams, including SeedForth platform, with 112, 51, and 116 facts and zero
+  collection failures. This proves the sensing path is live and producing
+  evidence, but does not by itself prove product outcomes or unattended
+  autonomy.
