@@ -1765,6 +1765,16 @@ def _start_hub_watchers() -> None:
     t2 = Thread(target=bridge.watch_inbox, daemon=True)
     t2.start()
 
+    def _authenticated_message_seen(data: dict) -> None:
+        logger.info("[mycelium] Hub session acknowledged message %s", data.get("id", ""))
+
+    t3 = Thread(
+        target=bridge.watch_authenticated_inbox,
+        args=(_authenticated_message_seen,),
+        daemon=True,
+    )
+    t3.start()
+
     logger.info("Hub watchers started")
 
 

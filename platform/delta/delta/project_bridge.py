@@ -345,6 +345,50 @@ class ProjectBridge:
                 pass
             self._shutdown_event.wait(nudge_interval)
 
+    def watch_authenticated_inbox(self, callback: Callable[[dict], None],
+                                  poll_interval: int = 5) -> None:
+        """Deliver Mycelium-originated inbox messages into the opencode session.
+
+        The legacy nudge file is not a transport for opencode. This narrow
+        watcher is limited to the authenticated Mycelium source and keeps the
+        original JSON file until the session returns text, so an outage can be
+        retried without losing the message.
+        """
+        in_flight: dict[str, float] = {}
+        while not self._shutdown_event.is_set():
+            try:
+                now = time.time()
+                for path in sorted(self.inbox_dir.glob("*.json")):
+                    if path.name in in_flight and now - in_flight[path.name] < 300:
+                        continue
+                    try:
+                        data = json.loads(path.read_text())
+                    except (json.JSONDecodeError, OSError):
+                        continue
+                    if data.get("source") != "mycelium-conversation-processor":
+                        continue
+                    if not all(isinstance(data.get(key), str)
+                               for key in ("id", "channel", "user", "text")):
+                        continue
+                    in_flight[path.name] = now
+
+                    def delivered(_channel: str, _text: str,
+                                  message_path: Path = path,
+                                  message_data: dict = data) -> None:
+                        try:
+                            callback(message_data)
+                            message_path.unlink()
+                            in_flight.pop(message_path.name, None)
+                        except OSError:
+                            pass
+
+                    self.deliver_message(data["channel"], data["user"],
+                                         data["text"], data["id"],
+                                         callback=delivered)
+            except OSError:
+                pass
+            self._shutdown_event.wait(poll_interval)
+
     def watch_outbox(self, callback: Callable[[dict], None]) -> None:
         """Poll outbox/ for new JSON files. Runs forever."""
         seen: set[str] = set()
