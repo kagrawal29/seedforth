@@ -7,6 +7,7 @@ Requires=docker.service
 Type=simple
 User=delta
 Group=delta
+SupplementaryGroups=proj-delta-hub
 WorkingDirectory=/opt/seedforth/current/platform/delta
 EnvironmentFile=/opt/seedforth/shared/env/seedforth.env
 ExecStart=/usr/bin/python3 -m delta.app

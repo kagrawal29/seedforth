@@ -76,7 +76,10 @@ def write_deterministic(target: Path, value: dict) -> str:
             os.chown(target, owner.pw_uid, owner.pw_gid)
         except KeyError:
             pass
-        os.chmod(target, 0o600)
+        # The Delta service reads this handoff to deliver it to the Hub
+        # session. It runs as `delta`; the dedicated Hub group grants only
+        # read access to these files, while the Hub user remains the owner.
+        os.chmod(target, 0o640)
         return digest
     except Exception:
         try:
