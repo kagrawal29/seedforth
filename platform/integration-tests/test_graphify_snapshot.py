@@ -79,3 +79,14 @@ def test_empty_extraction_is_still_a_recorded_observation(tmp_path):
     snapshot = graphify_snapshot.build_snapshot(path, "org/repo", "empty", "fixture-v1")
     assert snapshot["metadata"]["fact_count"] == 0
     assert graphify_snapshot.record(Graph(), "principal", "seedforth-platform", snapshot)
+
+
+def test_collection_failure_is_not_an_empty_extraction():
+    snapshot = graphify_snapshot.build_collection_failure_snapshot(
+        "/var/lib/graphify/flowing/output.json", "org/repo", "abc123", "sensor-v1",
+        "artifact_collection_failed:FileNotFoundError",
+        captured_at="2026-09-07T10:00:00+00:00")
+    assert snapshot["metadata"]["coverage"] == "collection_failure"
+    assert snapshot["metadata"]["fact_count"] == 0
+    assert snapshot["metadata"]["failure_count"] == 1
+    assert snapshot["failures"]

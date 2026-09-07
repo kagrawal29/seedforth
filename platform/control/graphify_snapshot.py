@@ -140,6 +140,33 @@ def build_snapshot(
     return {"metadata": metadata, "facts": facts, "failures": failures}
 
 
+def build_collection_failure_snapshot(
+    source_path: str,
+    repository: str,
+    revision: str,
+    extractor_revision: str,
+    reason: str,
+    captured_at: str | None = None,
+) -> dict[str, Any]:
+    """Create an observation when a source artifact cannot be collected."""
+    captured = captured_at or datetime.now(timezone.utc).isoformat()
+    metadata = {
+        "repository": _text(repository, 300),
+        "revision": _text(revision, 200),
+        "extractor_revision": _text(extractor_revision, 200),
+        "selected_paths": [],
+        "coverage": "collection_failure",
+        "captured_at": captured,
+        "content_hash": sha256({"source_path": source_path, "reason": reason}),
+        "fact_count": 0,
+        "failure_count": 1,
+    }
+    if not metadata["repository"] or not metadata["revision"] or not metadata["extractor_revision"]:
+        raise ValueError("incomplete_graphify_provenance")
+    metadata["snapshot_id"] = sha256(metadata)
+    return {"metadata": metadata, "facts": [], "failures": [reason]}
+
+
 def record(graph: Graph, principal: str, scope: str, snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     metadata = snapshot["metadata"]
     return graph.operation(
