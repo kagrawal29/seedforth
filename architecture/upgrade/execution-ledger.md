@@ -1116,3 +1116,16 @@ actions disabled until their authority and postconditions are implemented.
   `extraction_status=complete`, with content hash, repository, release, and
   observation timestamp. This proves the Graphify sensing path live for the
   platform corpus; it does not claim project-specific Flowing/Cajon coverage.
+
+## Graphify cadence and missing-source qualification
+
+- Deployed `graphify-sensor-v1` on a fifteen-minute systemd cadence. It reads
+  only exact allowlisted artifact paths and records a `collection_failure`
+  observation when a producer has not supplied an artifact; it never converts
+  missing input into an empty extraction.
+- The first live run returned platform `collected` (112 facts, 0 failures),
+  Flowing Indian `collection_failed` (0 facts, 1 failure), and Cajon Sensei
+  `collection_failed` (0 facts, 1 failure). Mycelium projected the latter two
+  streams as `partial`, preserving the last-success distinction.
+- This qualifies sensing and outage visibility, not project Graphify content.
+  Project-specific extraction remains an explicit producer/coverage milestone.
