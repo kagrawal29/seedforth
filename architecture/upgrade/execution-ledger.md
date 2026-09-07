@@ -912,3 +912,19 @@ actions disabled until their authority and postconditions are implemented.
   controls, OAuth client trials, and remote MCP still require the final
   originator-bound processor, owner credential rotation, and public-client
   qualification. No public access is claimed.
+
+## Versioned human scope gate
+
+- The authored `set-scope-work-enabled` operation was live-qualified against
+  the dedicated disposable Neo4j graph on 2026-09-07. It passed the pause,
+  stale-version rejection, and resume path while creating no WorkItem and
+  claiming no execution lease (`1 passed, 35 deselected`).
+- Control release `73a55d867bd681722ef7060c122525f94d796907` was fetched into
+  a clean immutable server release and deployed atomically. The migration
+  applied with source hash `b9d99ddc6bd4cfe906d83af1cc60a3e3ec625a5fbea11733031af470509a9d50`;
+  the graph's promoted operation hash matched the release source. Control and
+  both sensing timer units returned active, with the previous control release
+  retained for rollback.
+- This makes the board's scope pause/resume primitive production-deployed; it
+  does not enable either product scope, dispatch work, qualify useful
+  autonomy, open public MCP, or satisfy unattended operation.
