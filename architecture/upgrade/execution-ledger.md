@@ -1713,3 +1713,11 @@ actions disabled until their authority and postconditions are implemented.
   Live checks returned `/login=200`, anonymous `/mcp=401`, and a scoped
   `read-sources` result showing the conversation processor as `success`, exit
   `0`, and fresh. The prior control target is retained for rollback.
+
+## Continued board-release health interval
+
+- From `13:52:39Z` through `14:00:52Z`, the deployed service-health timer
+  completed eight post-recovery cycles. Every cycle projected all eleven
+  allowlisted services as successful; core services stayed active and public
+  anonymous MCP returned `401`. No new service-health or Graphify failures
+  appeared. This remains short-duration evidence, not unattended completion.
