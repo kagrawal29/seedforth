@@ -1158,3 +1158,15 @@ actions disabled until their authority and postconditions are implemented.
   local Flowing branch but not claimed as deployed: the configured GitHub remote
   is inaccessible from the current owner account, and production secret
   rotation/deployment still requires that project release path.
+
+## Current control-surface verification
+
+- Re-ran the prescribed Playwright CLI human-interface journey against the
+  shipped control board: it passed scope pause/resume, memory-only credentials,
+  stale/file-drift/partial coverage states, legacy non-actionability, version
+  conflicts, outage recovery, mobile layout, identity isolation, logout and
+  revocation. This remains synthetic-API browser evidence, not production MCP
+  acceptance.
+- The remote TLS qualification also passes 14 checks for TLS and deliberately
+  closed public ingress. Public MCP remains disabled until the real OAuth/client
+  qualification and production Flowing credential release path are complete.
