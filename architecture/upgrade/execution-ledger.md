@@ -822,3 +822,28 @@ actions disabled until their authority and postconditions are implemented.
   useful, that archived external obligations are cancelled, or that products
   are deployed/operating autonomously. The remaining runtime fencing and
   retained-service checks are explicit follow-up work.
+
+## Legacy runtime sensing, fencing, and final non-core archival batch
+
+- Release `0872e22` expanded deterministic process sensing from the two pilot
+  ports to all seven supervised product ports and projects observed status onto
+  `AgentProcess`. Migration and control deployment succeeded after correcting a
+  source-file variable collision; the first live collection reported Flowing
+  Indian/Cajon running and the five legacy targets stopped, with fresh evidence
+  on every source.
+- Supervisor then stopped exactly `ethos`, `linkedin-himanshu-ghiya`,
+  `linkedin-kshitiz-agarwal`, `seedforthing`, and `zuuro`. After the fresh
+  stopped observations, the guarded archive operation archived those five
+  historical Project identities, disabled new work, held their pending items,
+  and preserved history. No shared service was stopped.
+- Current graph verification: 42 Project identities have
+  `portfolio_state=archived`; the only non-core, non-archived product identities
+  are canonical Flowing Indian and Cajon Sensei. Their portfolio state is
+  explicit `active`, while both scopes remain work-disabled/held. Supervisor
+  retains only Cajon, Flowing, and the shared Delta Hub product processes in
+  running/ready state. Control, worker, Delta, and all sensing timers are active.
+- This closes portfolio disposition and runtime visibility for the current
+  inventory, but does not cancel external accounts, delete repositories, prove
+  business outcomes, or qualify unattended autonomy. Archived retained services
+  still require an obligations/recovery review, and useful two-product execution
+  remains the next major gate.
