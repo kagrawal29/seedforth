@@ -8,6 +8,7 @@ s.enabled=true,s.freshness_seconds=900,s.expected_interval_seconds=300,
 s.authority='observed_selected_file_metadata_only',s.coverage='one_approved_path_not_repository',
 s.owner='seedforth-platform',s.trigger='periodic',s.schema_version=1,s.created_at=datetime(),
 s.consumer='control-board',s.retry='next_cadence_no_repair',s.retention='pending_policy_no_automatic_deletion'
+SET s.path=pilot.path,s.scope_id=pilot.scope
 MERGE (s)-[:OBSERVES_SCOPE]->(scope)
 MERGE (p:Principal {node_id:'principal-code-sensor'})
 ON CREATE SET p.enabled=true,p.kind='service',p.created_at=datetime()
