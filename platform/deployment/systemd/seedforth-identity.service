@@ -16,6 +16,7 @@ UMask=0077
 LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
 Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=PYTHONPATH=/opt/seedforth/identity-current/platform
+Environment=SEEDFORTH_GOVERNED_DELTA_PROCESSOR=1
 ExecStart=/opt/seedforth/shared/identity-venv/bin/python -m control.identity_runtime
 Restart=on-failure
 RestartSec=5s
