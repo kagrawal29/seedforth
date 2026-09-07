@@ -1070,3 +1070,10 @@ actions disabled until their authority and postconditions are implemented.
 - The isolated live journey passed: **1 passed, 36 deselected in 113.47s**.
   This is disposable-graph evidence only; it does not yet qualify production
   Delta traffic or justify enabling the production ingest timer.
+
+## Production ingest readiness
+
+- Ran the deployed acknowledgement ingest service once against the empty
+  production handoff stream. It exited cleanly with `lines: 0, dispatched: 0,
+  failed: 0`; the recurring timer remains disabled. This proves service
+  wiring and credential loading only, not production message processing.
