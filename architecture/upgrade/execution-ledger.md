@@ -1219,3 +1219,22 @@ actions disabled until their authority and postconditions are implemented.
   product workers plus the retained Delta service running. Archived product
   workers were not running. This agrees with the graph portfolio disposition;
   it is fleet evidence, not proof of product progress.
+
+## First useful Flowing bounded candidate outcome
+
+- Expanded Flowing’s protected read-only repository binding to include the
+  non-secret `app/page.tsx` path; the registration route remains covered for
+  sensing but was not included in this candidate.
+- A fresh owner-bounded mandate reached `ready`, was claimed by the
+  project-scoped worker, and produced a candidate artifact. The capability
+  generation and broker settlement grant were requalified in Mycelium after
+  two earlier fail-closed attempts exposed those missing policy edges.
+- Independent verification passed against the exact base revision: one
+  `app/page.tsx` change added the landmark label, the artifact remained
+  `untrusted_candidate_code`, `applied=false`, and no credential-bearing route
+  was present. The graph recorded `succeeded -> review`, the independent test
+  run passed, and owner review marked this candidate work done.
+- The Flowing scope was paused immediately afterward. No product checkout,
+  repository, deployment, or production behavior was changed. This is the
+  first useful bounded candidate outcome for Flowing, not full product
+  autonomy or deployment acceptance.
