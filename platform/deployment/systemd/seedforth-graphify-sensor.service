@@ -1,6 +1,6 @@
 [Unit]
 Description=SeedForth Graphify source observations
-After=docker.service
+After=docker.service seedforth-graphify-producer@proj-flowing-indian.service seedforth-graphify-producer@proj-cajon-sensei.service
 Requires=docker.service
 
 [Service]

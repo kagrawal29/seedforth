@@ -15,8 +15,8 @@ from control.graphify_snapshot import build_collection_failure_snapshot, build_s
 ADAPTER_REVISION = "graphify-sensor-v1"
 ARTIFACTS = {
     "seedforth-platform": "/opt/seedforth/current/platform/mycelium/signals/artifacts/graphify-output.json",
-    "flowing-indian": "/opt/seedforth/shared/graphify/flowing-indian/output.json",
-    "cajon-sensei": "/opt/seedforth/shared/graphify/cajon-sensei/output.json",
+    "flowing-indian": "/home/proj-flowing-indian/.local/share/seedforth-graphify/output.json",
+    "cajon-sensei": "/home/proj-cajon-sensei/.local/share/seedforth-graphify/output.json",
 }
 REPOSITORIES = {
     "seedforth-platform": "kagrawal29/seedforth",
@@ -40,7 +40,13 @@ def collect(graph: Graph, revision: str):
         try:
             if not path.is_file() or path.is_symlink():
                 raise FileNotFoundError(str(path))
-            snapshot = build_snapshot(path, REPOSITORIES[scope], revision, ADAPTER_REVISION,
+            envelope = json.loads(path.read_text(encoding="utf-8"))
+            repository = envelope.get("repository", REPOSITORIES[scope])
+            source_revision = envelope.get("revision", revision)
+            extractor_revision = envelope.get("extractor_revision", ADAPTER_REVISION)
+            if repository != REPOSITORIES[scope] or not isinstance(source_revision, str):
+                raise ValueError("artifact_provenance_mismatch")
+            snapshot = build_snapshot(path, repository, source_revision, extractor_revision,
                                       captured_at=captured)
             status = "collected" if not snapshot["failures"] else "partial"
         except (OSError, ValueError, json.JSONDecodeError) as exc:

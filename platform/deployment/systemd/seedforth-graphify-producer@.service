@@ -1,0 +1,19 @@
+[Unit]
+Description=SeedForth project Graphify producer (%i)
+
+[Service]
+Type=oneshot
+User=%i
+WorkingDirectory=/
+Environment=PYTHONPATH=/opt/seedforth/control-current/platform
+ExecStart=/usr/bin/python3 -m control.produce_graphify %i
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-write
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX
+ReadWritePaths=/home/%i/.local/share/seedforth-graphify
+MemoryMax=192M
+TasksMax=32
+TimeoutStartSec=60
