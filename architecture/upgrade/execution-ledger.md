@@ -1170,3 +1170,14 @@ actions disabled until their authority and postconditions are implemented.
 - The remote TLS qualification also passes 14 checks for TLS and deliberately
   closed public ingress. Public MCP remains disabled until the real OAuth/client
   qualification and production Flowing credential release path are complete.
+
+## Bounded autonomous executor activation
+
+- Added and deployed the scoped executor timer for Flowing Indian. Its service
+  has localhost-only graph access, root-only graph/worker credentials, and the
+  existing graph selection/claim/invoke/complete gates; it cannot create grants,
+  enable a scope, or accept its own result.
+- A live run authenticated and queried Mycelium, found no ready work because the
+  Flowing scope remains held, and exited successfully with `status=idle`. No
+  Invocation, artifact, deployment, or acceptance was created. This qualifies
+  safe idle autonomy and scheduling, not useful product execution.
