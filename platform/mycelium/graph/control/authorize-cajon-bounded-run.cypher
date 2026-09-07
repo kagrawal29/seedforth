@@ -6,7 +6,8 @@ WHERE $actor='principal-seedforth-owner'
 MATCH (owner)-[:HAS_GRANT]->(control:Grant {scope:'cajon-sensei',revoked:false})
 WHERE 'work.control' IN control.permissions
   AND (control.expires_at IS NULL OR control.expires_at>datetime())
-MATCH (s:ControlScope {node_id:'cajon-sensei',portfolio_state:'active',new_work:'held',work_enabled:false})
+MATCH (s:ControlScope {node_id:'cajon-sensei',work_enabled:false})
+      -[:MAPS_PROJECT]->(p:Project {node_id:'project-cajon-sensei',portfolio_state:'active',new_work:'held'})
 WHERE size($run_id)>=8 AND size($run_id)<=96
   AND size($work_id)>=8 AND size($work_id)<=128
   AND size($arguments_json)>=2 AND size($arguments_json)<=28000
