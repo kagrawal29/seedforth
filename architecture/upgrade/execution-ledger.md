@@ -1551,3 +1551,14 @@ actions disabled until their authority and postconditions are implemented.
   `proposed/verification=rejected`, the Flowing scope is disabled again, and
   the credential exposure is parked for explicit provider-secret remediation.
   The secret is not reproduced in this ledger or in agent-facing output.
+
+## Worker secret guard deployment
+
+- The source-artifact secret detector was regression-tested locally, including
+  Slack webhook-shaped credentials, and packaged as immutable worker release
+  `326a5dbba82ca1ee594a554bf6417fe11ddce7f1` based on the qualified worker
+  release. The live `worker-current` symlink now points to that clean release;
+  the worker restarted successfully and remains active.
+- The detector rejects the Flowing source before candidate materialization on
+  future runs. The previously generated rejected artifact remains retained as
+  private evidence of the security finding; it was never applied or sent.
