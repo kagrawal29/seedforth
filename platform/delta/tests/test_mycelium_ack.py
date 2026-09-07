@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from delta.mycelium_ack import AckValidationError, append_ack, validate_ack
+from delta.mycelium_ack import AckValidationError, append_ack, append_ack_once, validate_ack
 
 
 def valid(**overrides):
@@ -50,3 +50,10 @@ def test_symlink_target_is_rejected(tmp_path):
     target.symlink_to(tmp_path / "other.jsonl")
     with pytest.raises(OSError):
         append_ack(target, valid())
+
+
+def test_append_ack_once_deduplicates_retries(tmp_path):
+    target = tmp_path / "acks.jsonl"
+    assert append_ack_once(target, valid(), now=datetime(2026, 9, 7, tzinfo=timezone.utc))
+    assert append_ack_once(target, valid(), now=datetime(2026, 9, 8, tzinfo=timezone.utc)) == "already_recorded"
+    assert len(target.read_text().splitlines()) == 1

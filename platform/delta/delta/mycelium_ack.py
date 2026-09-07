@@ -81,3 +81,19 @@ def append_ack(path: str | Path, data: dict[str, Any], *, now: datetime | None =
     finally:
         os.close(fd)
     return hashlib.sha256(line).hexdigest()
+
+
+def append_ack_once(path: str | Path, data: dict[str, Any], *, now: datetime | None = None) -> str:
+    """Append one receipt for an acknowledgement ID; tolerate a delivery retry."""
+    record = validate_ack(data)
+    target = Path(path)
+    if target.exists():
+        try:
+            for line in target.read_text().splitlines():
+                existing = json.loads(line)
+                if (existing.get("ack_id") == record["ack_id"] and
+                        existing.get("conversation_message_id") == record["conversation_message_id"]):
+                    return "already_recorded"
+        except (OSError, json.JSONDecodeError):
+            pass
+    return append_ack(target, record, now=now)

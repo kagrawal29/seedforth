@@ -33,7 +33,7 @@ from delta.router import Router
 from delta.agent_runner import get_runner
 from delta.agent_lifecycle import is_agent_running
 from delta import connections
-from delta.mycelium_ack import AckValidationError, append_ack
+from delta.mycelium_ack import AckValidationError, append_ack, append_ack_once
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("delta")
@@ -1776,7 +1776,20 @@ def _start_hub_watchers() -> None:
     t2.start()
 
     def _authenticated_message_seen(data: dict) -> None:
-        logger.info("[mycelium] Hub session acknowledged message %s", data.get("id", ""))
+        message_id = data.get("conversation_message_id", "")
+        scope = data.get("scope", "")
+        try:
+            digest = append_ack_once(MYCELIUM_ACK_STREAM, {
+                "conversation_message_id": message_id,
+                "ack_id": "ack-" + message_id,
+                "ack_status": "received",
+                "scope": scope,
+                "summary": "Delta Hub session received the message; no execution is implied",
+            })
+        except (AckValidationError, OSError) as exc:
+            logger.warning("[mycelium-ack] receipt handoff failed for %s: %s", message_id, exc)
+        else:
+            logger.info("[mycelium] Hub session receipt for %s (%s)", message_id, digest)
 
     t3 = Thread(
         target=bridge.watch_authenticated_inbox,
