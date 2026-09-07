@@ -965,3 +965,16 @@ actions disabled until their authority and postconditions are implemented.
   atomically after migration; the prior release remains available for
   rollback. This is a deployed board primitive, not yet public remote access
   or a complete multi-project operating surface.
+
+## Honest progress estimate after current qualification
+
+- The working estimate is now approximately **62/100**. The increase reflects
+  one current end-to-end bounded autonomous candidate loop with independent
+  browser evidence, graph-recorded verification/review, and a deployed
+  versioned human scope control. It does not count the candidate as deployed
+  product code or count any unattended time that has not elapsed.
+- The remaining work is still substantial: Delta/Charlie originator-bound
+  processing, Flowing source/credential reconciliation and useful autonomy,
+  public scoped MCP with qualified clients, richer multi-project board UX,
+  recovery/security drills, continuity, and an elapsed unattended-operation
+  qualification.
