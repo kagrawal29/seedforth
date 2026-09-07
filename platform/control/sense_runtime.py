@@ -13,7 +13,15 @@ from uuid import uuid4
 
 from control.graph import Graph
 
-APPROVED_PORTS={'flowing-indian':7745,'cajon-sensei':7724}
+APPROVED_PORTS={
+    'flowing-indian':7745,
+    'cajon-sensei':7724,
+    'ethos':7744,
+    'linkedin-himanshu-ghiya':7730,
+    'linkedin-kshitiz-agarwal':7731,
+    'seedforthing':7740,
+    'zuuro':7743,
+}
 
 
 def scan_processes():

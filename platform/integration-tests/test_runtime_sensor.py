@@ -17,7 +17,7 @@ def test_only_exact_process_executables_and_ports_count(monkeypatch):
  14 echo opencode serve --port 7724
 '''
     monkeypatch.setattr(subprocess,'run',lambda *a,**kw:SimpleNamespace(stdout=output))
-    assert sense_runtime.scan_processes()=={7745:1,7724:1}
+    assert sense_runtime.scan_processes()=={7745:1,7724:1,7744:0,7730:0,7731:0,7740:0,7743:0}
 
 
 def test_collect_does_not_mark_scan_failure_as_stopped(monkeypatch):

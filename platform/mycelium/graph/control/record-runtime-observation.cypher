@@ -17,4 +17,8 @@ FOREACH (_ IN CASE WHEN s.last_attempt_at IS NULL OR o.observed_at>s.last_attemp
 SET s.last_attempt_at=o.observed_at,s.last_attempt_status=o.status)
 FOREACH (_ IN CASE WHEN o.status<>'collection_failed' AND (s.last_success_at IS NULL OR o.observed_at>s.last_success_at) THEN [1] ELSE [] END |
 SET s.last_success_at=o.observed_at,s.process_status=o.status,s.process_count=o.process_count,s.latest_observation=o.node_id)
+WITH s,o
+OPTIONAL MATCH (x:AgentProcess {project:$scope})
+SET x.status=CASE WHEN o.status='running' THEN 'ready' WHEN o.status='stopped' THEN 'stopped' ELSE o.status END,
+    x.last_observation=o.node_id,x.updated_at=datetime()
 RETURN o.node_id AS id,o.status AS status,s.last_success_at AS last_success_at
