@@ -1699,3 +1699,17 @@ actions disabled until their authority and postconditions are implemented.
   public anonymous MCP remained `401`, and no new service-health or Graphify
   failures appeared. The single historical failed observation remains the
   known backup-window outage; this interval is clean but still short.
+
+## Board service-health visibility deployment
+
+- Extended the canonical `read-sources` projection with unit identity, current
+  unit result, exit status, and evidence freshness. The control board renders
+  these fields separately from product process and selected-file code sensing.
+  The Playwright CLI human journey passed all existing checks plus explicit
+  service-health rendering (`status: passed`).
+- Immutable control release `aaee8b8c0a9b9296b76dea7d1edd30b18eb25bdc` is live
+  after additive operation promotion with source hash
+  `2fca3903264ad73b7581a89718942698d94df5d5f64ee738c65b8a15f95307ef`.
+  Live checks returned `/login=200`, anonymous `/mcp=401`, and a scoped
+  `read-sources` result showing the conversation processor as `success`, exit
+  `0`, and fresh. The prior control target is retained for rollback.
