@@ -1094,3 +1094,14 @@ actions disabled until their authority and postconditions are implemented.
 - Enabled only `seedforth-delta-ack-ingest.timer` for ongoing receipt
   observation. The outbound conversation processor timer and public MCP gate
   remain disabled pending broader delivery, identity, and unattended trials.
+
+## Bounded conversation delivery activation
+
+- After verifying all active-scope conversation queues were empty, enabled the
+  source-controlled outbound processor timer. The first scheduled run saw
+  zero queued messages in Flowing Indian, Cajon Sensei, and the platform scope
+  and exited cleanly. The processor remains graph-gated, scope-limited, and
+  fail-closed on destination or commit drift.
+- This activates the internal graph-to-Delta transport only. Public MCP
+  conversation sending remains disabled until remote identity/client and
+  unattended-operation qualification are complete.
