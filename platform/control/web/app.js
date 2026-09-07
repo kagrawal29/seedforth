@@ -49,6 +49,7 @@ async function refresh() {
       $('login').hidden = true; $('workspace').hidden = false;
       $('project-name').textContent = 'SeedForth portfolio';
       $('freshness').textContent = `Graph read ${new Date(portfolio.as_of).toLocaleString()} · portfolio projection`;
+      $('freshness-detail').textContent = 'Portfolio state is read from Mycelium. Open a project to inspect work, evidence, and sensing detail.';
       $('portfolio').hidden = false; $('project-view').hidden = true;
       $('portfolio-list').replaceChildren();
       for (const item of portfolio.data) {
@@ -80,7 +81,8 @@ async function refresh() {
       : s.path
         ? `${s.path}: ${s.code_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'}; selected file only, not repository or hosting health)`
         : `${s.adapter}: ${s.process_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'})`).join(' · ') : 'Source not registered';
-    $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · ${sourceSummary}`;
+    $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · sensing detail available below`;
+    $('freshness-detail').textContent = sourceSummary;
     const p = project.data[0];
     $('authority').replaceChildren();
     $('authority').append(text('p',`Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`));
@@ -213,7 +215,7 @@ function disconnect() {
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
   $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();$('evidence').replaceChildren();
   $('portfolio-list').replaceChildren();$('portfolio').hidden=true;$('project-view').hidden=false;
-  for (const id of ['project-name','freshness','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
+  for (const id of ['project-name','freshness','freshness-detail','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
   $('inspector').hidden=true;$('conversation-messages').replaceChildren(text('p','No messages loaded.','muted'));
   $('conversation-status').textContent='';$('direction-text').value='';$('conversation-key').value='control-board';
   $('connection').textContent='Disconnected';

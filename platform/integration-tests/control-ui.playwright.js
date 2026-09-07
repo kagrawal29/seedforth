@@ -77,11 +77,12 @@ async (page) => {
   checks.push('scope pause/resume uses versioned board control');
   check(await page.locator('#token').inputValue() === '', 'Credential input retained');
   check(await page.evaluate(() => localStorage.length === 0 && sessionStorage.length === 0), 'Credential persisted in browser storage');
-  check((await page.locator('#freshness').innerText()).includes('stale'), 'Stale sensing hidden');
-  check((await page.locator('#freshness').innerText()).includes('app/index.html: diverged_from_commit'), 'File drift hidden');
-  check((await page.locator('#freshness').innerText()).includes('not repository or hosting health'), 'Partial source coverage hidden');
-  check((await page.locator('#freshness').innerText()).includes('seedforth-conversation-processor.service: success (exit 0'), 'Service health hidden');
-  check(await page.locator('#freshness img').count() === 0, 'Source path interpreted as HTML');
+  const sensing = await page.locator('#freshness-detail').innerText();
+  check(sensing.includes('stale'), 'Stale sensing hidden');
+  check(sensing.includes('app/index.html: diverged_from_commit'), 'File drift hidden');
+  check(sensing.includes('not repository or hosting health'), 'Partial source coverage hidden');
+  check(sensing.includes('seedforth-conversation-processor.service: success (exit 0'), 'Service health hidden');
+  check(await page.locator('#freshness-detail img').count() === 0, 'Source path interpreted as HTML');
   check(await page.locator('#board img').count() === 0, 'Graph text interpreted as HTML');
   checks.push('login, memory-only credential, stale sensing, file drift, partial coverage, graph-text escaping');
   await page.getByRole('button',{name:/^Legacy/}).click();

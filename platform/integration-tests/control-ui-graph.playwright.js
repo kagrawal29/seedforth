@@ -14,7 +14,7 @@ async (page) => {
   await page.locator('#project-view').waitFor({state:'visible'});
   await page.locator('#board .card').first().waitFor({state:'visible'});
   if (await page.locator('#board .card').count() !== 22) throw new Error('Expected exact graph plan');
-  if (!(await page.locator('#freshness').innerText()).includes('fixture/app.html: diverged_from_commit')) throw new Error('Graph-backed code drift missing');
+  if (!(await page.locator('#freshness-detail').innerText()).includes('fixture/app.html: diverged_from_commit')) throw new Error('Graph-backed code drift missing');
   const firstWork = page.getByRole('button',{name:/^Verify current baseline and writer census/});
   await firstWork.waitFor({state:'visible'});
   await firstWork.click();
