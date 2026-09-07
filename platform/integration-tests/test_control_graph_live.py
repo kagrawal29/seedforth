@@ -295,6 +295,33 @@ def test_scope_work_gate_is_versioned_and_does_not_claim_work(graph, case):
     assert graph.query("MATCH (w:WorkItem {node_id:$id}) RETURN count(w) AS n",case)==[{'n':0}]
 
 
+def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case):
+    graph.query("MATCH (g:Grant {node_id:$actor+'-grant'}) SET g.permissions=g.permissions+['conversation.send','conversation.read']",case)
+    processor=case['scope']+'-processor'
+    graph.query("CREATE (p:Principal {node_id:$processor,enabled:true}) "
+                "CREATE (p)-[:HAS_GRANT]->(:Grant {node_id:$processor+'-grant',scope:$scope,"
+                "permissions:['read','conversation.deliver','conversation.reconcile'],revoked:false})",
+                {**case,'processor':processor})
+    graph.query("CREATE (c:ScopedConversation {node_id:$scope+'-conversation',scope_id:$scope,originator:$actor,recipient:'delta',sequence:1}) "
+                "CREATE (m:ConversationMessage {node_id:$scope+'-message',scope_id:$scope,originator:$actor,recipient:'delta',"
+                "sequence:1,status:'queued',text:'untrusted direction',request_hash:'request-hash'}) "
+                "CREATE (c)-[:HAS_MESSAGE]->(m)",case)
+    message=case['scope']+'-message'; attempt='delivery-'+uuid4().hex
+    claimed=graph.operation('claim-conversation-message',processor,case['scope'],message_id=message,delivery_attempt=attempt)
+    assert claimed[0]['message_id']==message and graph.operation('claim-conversation-message',processor,case['scope'],message_id=message,delivery_attempt=uuid4().hex)==[]
+    committed=graph.operation('record-conversation-delivery',processor,case['scope'],message_id=message,
+        delivery_attempt=attempt,delivery_hash='a'*64,delivery_ref='/bounded/inbox/'+message)
+    assert committed[0]['delivery_state']=='delivered'
+    second=case['scope']+'-message-2'
+    graph.query("CREATE (m:ConversationMessage {node_id:$id,scope_id:$scope,originator:$actor,recipient:'delta',"
+                "sequence:2,status:'queued',text:'second untrusted direction',request_hash:'request-hash-2'})",{**case,'id':second})
+    retry='delivery-'+uuid4().hex
+    graph.operation('claim-conversation-message',processor,case['scope'],message_id=second,delivery_attempt=retry)
+    graph.query("MATCH (m:ConversationMessage {node_id:$id}) SET m.status='delivering',m.delivery_lease_until=datetime()-duration('PT1S')",{'id':second})
+    recovered=graph.operation('reconcile-conversation-delivery',processor,case['scope'],message_id=second)
+    assert recovered[0]['delivery_state']=='queued'
+
+
 def test_full_migration_and_upgrade_plan_are_idempotent(graph):
     from control.migrate import migrate
     for node_id,name in [('proj-mycelium','mycelium'),('project-cajon-sensei','cajon-sensei'),('project-flowing-indian','flowing-indian')]:
