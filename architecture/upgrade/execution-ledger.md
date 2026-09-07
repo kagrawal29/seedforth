@@ -767,3 +767,19 @@ actions disabled until their authority and postconditions are implemented.
   work was dispatched, and no archive disposition or useful autonomous outcome
   is claimed. Production triage requires this release's operation to be used
   in a separately bounded, reversible batch.
+
+## Flowing Indian legacy work reconciled
+
+- Using the deployed operation and the owner principal's existing `work.control`
+  grant, six actual unscoped Flowing Indian work items were reconciled on
+  2026-09-07. The operation hash matched the immutable control release before
+  any write.
+- All six now carry `scope_id=flowing-indian`, `state_version=0`,
+  `status=proposed`, `hold=true`, and `verification_status=unverified`; their
+  prior states (`in_progress`, `in_review`, `todo`, and historical `done`) are
+  retained in `legacy_status`. No item became ready or executable, and the
+  product scope remains disabled.
+- This closes a real graph visibility/state-machine gap and makes the legacy
+  loop reviewable through the canonical board projection. It is not acceptance
+  of any historical work, a product outcome, an archive decision, or useful
+  autonomous execution.
