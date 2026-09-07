@@ -42,7 +42,11 @@ def run_once(graph: Graph, worker: WorkerClient, principal: str, scope: str) -> 
 
 def main() -> int:
     scope = os.environ.get("SEEDFORTH_AUTONOMOUS_SCOPE", "")
-    principal = os.environ.get("SEEDFORTH_AUTONOMOUS_PRINCIPAL", "")
+    principals = {
+        "flowing-indian": "principal-flowing-upgrade-worker",
+        "cajon-sensei": "principal-cajon-upgrade-worker",
+    }
+    principal = os.environ.get("SEEDFORTH_AUTONOMOUS_PRINCIPAL", principals.get(scope, ""))
     token_file_value = os.environ.get("SEEDFORTH_WORKER_TOKEN_FILE", "")
     token_file = Path(token_file_value) if token_file_value else None
     socket_path = os.environ.get("SEEDFORTH_WORKER_SOCKET", "/run/seedforth-worker/broker.sock")

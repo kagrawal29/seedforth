@@ -12,7 +12,6 @@ LoadCredential=worker.token:/opt/seedforth/shared/env/worker-%i.token
 Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=PYTHONPATH=/opt/seedforth/control-current/platform
 Environment=SEEDFORTH_AUTONOMOUS_SCOPE=%i
-Environment=SEEDFORTH_AUTONOMOUS_PRINCIPAL=principal-%i-upgrade-worker
 Environment=SEEDFORTH_WORKER_SOCKET=/run/seedforth-worker/broker.sock
 Environment=SEEDFORTH_WORKER_TOKEN_FILE=%d/worker.token
 ExecStart=/usr/bin/python3 -m control.autonomous_executor
