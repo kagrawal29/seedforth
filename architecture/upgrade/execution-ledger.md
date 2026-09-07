@@ -1238,3 +1238,16 @@ actions disabled until their authority and postconditions are implemented.
   repository, deployment, or production behavior was changed. This is the
   first useful bounded candidate outcome for Flowing, not full product
   autonomy or deployment acceptance.
+
+## Reproducible worker capability requalification
+
+- The missing Flowing settlement edge and release-dependent capability
+  generations are now represented by the graph operation
+  `requalify-worker-capabilities`; it accepts only the three compiled,
+  artifact-only capability IDs and bounded generation/cost/duration evidence.
+- Release `d5ec5990405823ba1aa32923dba6d43f2f981a86` was deployed to both the
+  control and worker component links, and the operation was promoted and
+  exercised successfully. Control and worker services are active.
+- The live graph remains truthful after the run: Flowing accessibility v3 is
+  `done/verified`, the Flowing scope is disabled, and prior unknown attempts
+  remain retained as history.
