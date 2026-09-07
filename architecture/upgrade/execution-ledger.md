@@ -1636,3 +1636,16 @@ actions disabled until their authority and postconditions are implemented.
   acknowledgement ingestion runs reported zero events/failures and zero
   lines/failures respectively. This is current-loop evidence, not a claim of
   long-duration qualification.
+
+## Conversation processor transient constraint incident
+
+- Live journal review found two consecutive conversation-processor failures at
+  `12:28:36Z` and `12:29:11Z` with `Neo.ClientError.Schema.ConstraintValidationFailed`
+  while processing qualification-era conversation state. Subsequent scheduled
+  runs completed successfully with empty queues; no core service remained down.
+- Current graph reconciliation shows zero `queued` or `delivering` messages,
+  with four delivered and four cancelled historical messages. No duplicate
+  dispatch was observed. This incident invalidates a claim of uninterrupted
+  soak for that interval; reducer/idempotency behavior and the exact historic
+  conflict require a targeted follow-up before long-duration qualification can
+  be accepted.
