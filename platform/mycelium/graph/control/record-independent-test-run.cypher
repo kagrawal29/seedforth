@@ -3,10 +3,10 @@
 MATCH (:Principal {node_id:$actor,enabled:true})-[:HAS_GRANT]->(grant:Grant {scope:$scope,revoked:false})
 WHERE 'work.review' IN grant.permissions
   AND (grant.expires_at IS NULL OR grant.expires_at>datetime())
-MATCH (r:Receipt {node_id:$receipt,scope_id:$scope,artifact_hash:$artifact_hash})
-      <-[:PRODUCED]-(i:Invocation {scope_id:$scope,status:'succeeded'})
-      -[:EXECUTES]->(w:WorkItem {scope_id:$scope})
-WHERE i.actor<>$actor AND $status='passed' AND size($runner)>=1 AND size($runner)<=256
+MATCH (e:ExecutionSession {scope_id:$scope,status:'succeeded'})-[:PRODUCED]->
+      (r:Receipt {node_id:$receipt,scope_id:$scope,artifact_hash:$artifact_hash})
+      ,(e)-[:EXECUTES]->(w:WorkItem {scope_id:$scope})
+WHERE e.actor<>$actor AND $status='passed' AND size($runner)>=1 AND size($runner)<=256
   AND size($test_run)>=8 AND size($test_run)<=128
 MERGE (v:TestRun {node_id:$test_run})
 ON CREATE SET v.scope_id=$scope,v.status=$status,v.runner=$runner,
