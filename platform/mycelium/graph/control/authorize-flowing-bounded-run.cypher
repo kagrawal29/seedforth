@@ -21,6 +21,7 @@ MERGE (grant:Grant {node_id:'grant-flowing-bounded-'+$run_id})
 ON CREATE SET grant.scope='flowing-indian',grant.permissions=['read','work.execute'],
     grant.revoked=false,grant.created_at=datetime(),grant.expires_at=datetime($expires_at),
     grant.authority='owner-bounded-run'
+MERGE (worker)-[:HAS_GRANT]->(grant)
 MERGE (mandate:Mandate {node_id:'mandate-flowing-bounded-'+$run_id})
 ON CREATE SET mandate.scope_id='flowing-indian',mandate.enabled=true,mandate.version=1,
     mandate.expires_at=datetime($expires_at),mandate.budget_id='budget-flowing-bounded-'+$run_id,
