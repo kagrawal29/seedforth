@@ -1472,3 +1472,15 @@ actions disabled until their authority and postconditions are implemented.
   invitation files were removed, and the local browser proxy/tunnel/secrets
   were stopped or removed. The identity service remains active and the public
   `/mcp` route still returns `503`.
+
+## Public ingress qualification attempt
+
+- A reviewed nginx candidate was exercised against the live TLS endpoint with
+  allowlisted identity, OAuth, and `/mcp` paths, host rejection, HTTP closure,
+  and unknown-route closure. The candidate reached the identity process for
+  `/mcp`, but HTML and OAuth routes produced Uvicorn `Invalid HTTP request`
+  responses while direct loopback requests remained healthy.
+- The candidate was not accepted as production-ready. The server was restored
+  from the root-private pre-exposure backup and verified back in the closed
+  `503` posture. The local candidate remains uncommitted for further diagnosis;
+  no public human credential or MCP session was created.
