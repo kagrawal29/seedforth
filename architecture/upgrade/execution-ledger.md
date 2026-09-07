@@ -996,3 +996,19 @@ actions disabled until their authority and postconditions are implemented.
   the graph with scoped delivery/reconciliation grants, but no external writer
   or MCP send path has been enabled yet. Injection handling and Delta-side
   acknowledgement remain required before opening direction.
+
+## Disabled Delta delivery adapter
+
+- Added a bounded external adapter that reads only graph-listed queued message
+  identifiers, claims each message through the delivery reducer, writes one
+  deterministic hub inbox file, fsyncs and hashes it, and commits delivery back
+  to Mycelium. Destination drift, symlink substitution, invalid message
+  identity, and failed graph commits fail closed. Direction text is explicitly
+  wrapped as authenticated-origin but untrusted content; it carries no graph
+  permissions or approval semantics.
+- Local adapter qualification passed 14 tests, including injection content
+  preservation, deterministic replay, destination conflict refusal, and exact
+  claim/write/commit ordering. Systemd definitions were installed and verified
+  on delta2, but the service is inactive and its timer disabled. The MCP
+  `send_to_delta` gate remains closed until Delta-side prompt-injection,
+  acknowledgement, and replay qualification is complete.
