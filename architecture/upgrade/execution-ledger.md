@@ -1317,3 +1317,19 @@ actions disabled until their authority and postconditions are implemented.
   minute autonomous timer is now enabled alongside Flowing’s. This proves
   cadence symmetry and credential readiness, not yet useful autonomous product
   progress or an elapsed unattended soak.
+
+## Graph-native portfolio home projection
+
+- Added the admin-only `read-portfolio` graph operation and exposed it through
+  the control boundary. It returns portfolio authority, work gate/version,
+  attention count, historical process status, and latest observation time for
+  every administered scope.
+- The board now has a portfolio home view for the platform scope while
+  project-scoped users remain on their project board. It explicitly labels
+  historical process status as non-authoritative and renders graph state as
+  text, not executable markup.
+- The first live projection revealed duplicate rows caused by repeated grant or
+  relationship paths; the operation was corrected with canonical scope
+  deduplication. The deployed live query now returns eight unique scopes and
+  identifies exactly three active scopes: SeedForth Platform, Flowing Indian,
+  and Cajon Sensei.
