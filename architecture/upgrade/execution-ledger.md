@@ -1494,3 +1494,19 @@ actions disabled until their authority and postconditions are implemented.
   qualification gate; the previously completed real browser journey remains
   loopback-based. The public candidate is therefore deployed but not yet
   counted as end-to-end human authorization proof.
+
+## Public human-to-MCP qualification
+
+- A temporary Cajon-only graph principal completed the full journey against
+  `https://185.192.96.100`: invitation enrollment, authenticator setup, MFA
+  login, server-side session creation, OAuth registration, S256 PKCE,
+  consent, callback, authorization-code token exchange, scoped `read_work`,
+  and foreign-project scope denial. Playwright returned `status:passed` for
+  all four journey groups.
+- The browser used no persistent credential storage: local/session storage
+  remained empty and document JavaScript could not read the secure cookies.
+- Cleanup was completed with the root-only identity reset, deletion of the
+  invitation artifacts, graph principal disablement, grant revocation, and
+  verification of zero remaining human users or active sessions for the
+  qualification principal. Public anonymous `/mcp` remains `401` and the
+  identity service remains active.
