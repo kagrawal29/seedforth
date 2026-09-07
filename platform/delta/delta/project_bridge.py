@@ -85,6 +85,13 @@ class ProjectBridge:
         }
         with open(log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
+        # Hub and the Delta service share this audit log through the dedicated
+        # setgid directory; never leave a newly-created log unreadable to the
+        # other side of the boundary.
+        try:
+            os.chmod(log_file, 0o660)
+        except OSError:
+            pass
 
     def _append_graph_event(self, event_type: str, payload: dict) -> None:
         """Append a graph-boundary event for async promotion instead of inline writes."""

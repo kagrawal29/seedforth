@@ -1525,6 +1525,15 @@ def _init_hub() -> None:
         # Ensure delta-config dirs are writable by hub user (root writes inbox, hub reads/deletes)
         for d in [data_dir, data_dir / "inbox", data_dir / "outbox", data_dir / "logs"]:
             os.chmod(str(d), 0o777)
+        # The Hub agent and Delta service both need the audit log, but neither
+        # should require root or broad world access to it.
+        try:
+            run_as_user(
+                hub_linux_user,
+                f"chgrp proj-delta-hub {data_dir}/logs && chmod 2770 {data_dir}/logs",
+            )
+        except Exception as exc:
+            logger.warning("Could not establish Hub log group boundary: %s", exc)
 
         # The server service runs as the unprivileged `delta` user. Do not
         # inspect or mutate root's home here. The current opencode runtime has
