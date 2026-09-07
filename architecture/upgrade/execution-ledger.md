@@ -1690,3 +1690,12 @@ actions disabled until their authority and postconditions are implemented.
   observations for every monitored unit are successful.
 - This confirms the reducer preserves incident history while projecting the
   current healthy state; a recovery does not erase evidence of the outage.
+
+## Continued post-recovery health evidence
+
+- From the first successful post-recovery projection at `13:52:39Z` through
+  `13:57:47Z`, the service-health timer completed five additional cycles with
+  all eleven graph-projected units successful. Core services remained active,
+  public anonymous MCP remained `401`, and no new service-health or Graphify
+  failures appeared. The single historical failed observation remains the
+  known backup-window outage; this interval is clean but still short.
