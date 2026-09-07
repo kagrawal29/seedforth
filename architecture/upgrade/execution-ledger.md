@@ -1077,3 +1077,20 @@ actions disabled until their authority and postconditions are implemented.
   production handoff stream. It exited cleanly with `lines: 0, dispatched: 0,
   failed: 0`; the recurring timer remains disabled. This proves service
   wiring and credential loading only, not production message processing.
+
+## Production shadow acknowledgement qualification
+
+- Created two explicitly labelled, no-action Cajon Sensei shadow messages
+  through the owner-bound graph conversation operation. The real deployed
+  processor delivered both to the live Delta Hub session. The Hub consumed the
+  inbox files and the deterministic Delta transport callback wrote durable
+  receipts; a model-written malformed command was rejected without becoming
+  authority or a Discord message.
+- The deployed ingest service promoted both receipts with
+  `dispatched: 2, failed: 0`. Both graph messages now show
+  `status: delivered, execution_state: acknowledged`. This is the first
+  production-shadow proof of the complete conversation acknowledgement loop;
+  it was no-action shadow traffic, not product execution.
+- Enabled only `seedforth-delta-ack-ingest.timer` for ongoing receipt
+  observation. The outbound conversation processor timer and public MCP gate
+  remain disabled pending broader delivery, identity, and unattended trials.
