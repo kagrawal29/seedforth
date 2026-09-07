@@ -195,7 +195,7 @@ class HumanUI:
         session = await self.io(self.identity.session, request.cookies.get(SESSION,''))
         if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
         scopes = await self.io(self.identity.grants, session['principal'])
-        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-provision-principal','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'scope':form.get('scope','')}})
+        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-provision-principal','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'target_scope':form.get('scope','')}})
         invite = await self.io(self.identity.issue_invite, form.get('principal',''))
         return self.page(request, 'Invitation created', '<p>Share this one-time link with the teammate:</p><p><code>/enroll?invite='+escape(invite)+'</code></p><p>It expires in 24 hours.</p>')
 
@@ -204,7 +204,7 @@ class HumanUI:
         session = await self.io(self.identity.session, request.cookies.get(SESSION,''))
         if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
         scopes = await self.io(self.identity.grants, session['principal'])
-        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-set-grant','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'scope':form.get('scope',''),'revoked':form.get('revoked')=='1'}})
+        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-set-grant','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'target_scope':form.get('scope',''),'revoked':form.get('revoked')=='1'}})
         return RedirectResponse('/admin',status_code=303)
 
     async def logout(self, request):
