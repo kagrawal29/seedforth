@@ -1,10 +1,10 @@
 [Unit]
-Description=Run bounded SeedForth autonomous executor for %i
+Description=Run one bounded autonomous work cycle every fifteen minutes (%i)
 
 [Timer]
-OnBootSec=90s
-OnUnitActiveSec=120s
-AccuracySec=5s
+OnBootSec=120s
+OnUnitActiveSec=900s
+AccuracySec=10s
 Unit=seedforth-autonomous-executor@%i.service
 
 [Install]
