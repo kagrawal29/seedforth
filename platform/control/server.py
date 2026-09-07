@@ -26,6 +26,7 @@ FIELDS = {
     'read-conversation': {'conversation_key':str,'cursor':int},
     'read-scope': {}, 'read-work': {}, 'read-sources': {}, 'read-legacy-work': {}, 'read-timeline': {'id':str}, 'read-evidence': {'id':str},
     'create-work': {'id':str,'milestone':str,'title':str,'acceptance':str},
+    'set-scope-work-enabled': {'version':int,'enabled':bool,'reason':str},
     'ready-work': {'id':str,'version':int},
     'hold-work': {'id':str,'version':int,'hold':bool},
     'review-work': {'id':str,'version':int,'receipt':str,'artifact_hash':str,

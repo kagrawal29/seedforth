@@ -12,6 +12,7 @@ async (page) => {
     {id:'a',title:'Work A',status:'ready',version:1,hold:false,acceptance:'Criterion A'},
     {id:'b',title:'Work B',status:'review',version:2,hold:false,acceptance:'Criterion B'},
   ];
+  let scopeState = {work_enabled:false,state_version:0};
   await page.route('**/api/operation', async route => {
     const request = route.request(), body = request.postDataJSON();
     const reply = (status, value) => route.fulfill({status,contentType:'application/json',body:JSON.stringify(value)});
@@ -19,7 +20,7 @@ async (page) => {
     if (denied || body.scope !== 'flowing-indian') return reply(403,{error:'scope_denied'});
     if (outage) return reply(503,{error:'graph_unavailable'});
     let data = [];
-    if (body.operation === 'read-scope') data = [{name:'Flowing Indian fixture',portfolio_state:'active',work_enabled:false}];
+    if (body.operation === 'read-scope') data = [{name:'Flowing Indian fixture',portfolio_state:'active',...scopeState}];
     if (body.operation === 'read-work') data = JSON.parse(JSON.stringify(items));
     if (body.operation === 'read-sources') data = [
       {adapter:'fixture',process_status:'unknown',evidence_status:'stale',last_success_at:null},
@@ -37,6 +38,11 @@ async (page) => {
       if (conflict || work.version !== body.params.version) return reply(409,{error:'transition_denied_or_version_conflict'});
       work.hold = body.params.hold; work.version++; data = [work];
     }
+    if (body.operation === 'set-scope-work-enabled') {
+      if (body.params.version !== scopeState.state_version) return reply(409,{error:'transition_denied_or_version_conflict'});
+      scopeState = {work_enabled:body.params.enabled,state_version:scopeState.state_version+1};
+      data = [{scope:body.scope,enabled:scopeState.work_enabled,version:scopeState.state_version}];
+    }
     return reply(200,{data,as_of:new Date().toISOString(),scope:body.scope});
   });
   const connect = async () => {
@@ -51,6 +57,13 @@ async (page) => {
   await page.goto('http://127.0.0.1:18787/');
   await page.setViewportSize({width:1440,height:1000});
   await connect();
+  await page.getByRole('button',{name:'Enable bounded work',exact:true}).click();
+  await page.getByRole('button',{name:'Pause new work',exact:true}).waitFor();
+  check(scopeState.work_enabled && scopeState.state_version === 1, 'Scope gate did not enable with a version');
+  await page.getByRole('button',{name:'Pause new work',exact:true}).click();
+  await page.getByRole('button',{name:'Enable bounded work',exact:true}).waitFor();
+  check(!scopeState.work_enabled && scopeState.state_version === 2, 'Scope gate did not close with a version');
+  checks.push('scope pause/resume uses versioned board control');
   check(await page.locator('#token').inputValue() === '', 'Credential input retained');
   check(await page.evaluate(() => localStorage.length === 0 && sessionStorage.length === 0), 'Credential persisted in browser storage');
   check((await page.locator('#freshness').innerText()).includes('stale'), 'Stale sensing hidden');

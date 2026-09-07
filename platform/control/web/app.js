@@ -48,7 +48,20 @@ async function refresh() {
       : `${s.adapter}: ${s.process_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'})`).join(' · ') : 'Source not registered';
     $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · ${sourceSummary}`;
     const p = project.data[0];
-    $('authority').textContent = `Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`;
+    $('authority').replaceChildren();
+    $('authority').append(text('p',`Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`));
+    if (Number.isInteger(p.state_version) && p.portfolio_state === 'active') {
+      const gate=text('button',p.work_enabled ? 'Pause new work' : 'Enable bounded work');
+      gate.addEventListener('click',async()=>{
+        gate.disabled=true;
+        try {
+          await operation('set-scope-work-enabled',{version:p.state_version,enabled:!p.work_enabled,
+            reason:p.work_enabled ? 'paused from control board' : ''});
+          await refresh();
+        } catch(error) { fail(error); }
+      });
+      $('authority').append(gate,text('p',`Scope gate version ${p.state_version}. ${p.hold_reason || 'No hold reason recorded.'}`,'muted'));
+    }
     const attention = work.data.filter(w => w.legacy || w.hold || ['blocked','review'].includes(w.status));
     $('attention').textContent = attention.length ? `${attention.length} items need inspection: ${attention.map(w => w.title).join(', ')}` : 'No attention items in the governed work projection. Legacy incidents are not yet included.';
     $('board').replaceChildren();
@@ -104,6 +117,18 @@ async function inspect(work) {
   $('evidence').replaceChildren();
   for (const item of evidence.data) $('evidence').append(text('li',`${item.kind}: ${item.status}${item.tests_passed ? ` · ${item.tests_passed} tests` : ''} · ${item.recorded_at} · ${item.revision || item.artifact_hash || item.id}`));
   if (!evidence.data.length) $('evidence').append(text('li','No qualifying evidence linked to this work.'));
+  const receipt=evidence.data.find(item=>item.kind==='execution_receipt' && item.artifact_hash);
+  const verification=evidence.data.find(item=>item.kind==='release_qualification' && item.status==='passed' && item.artifact_hash===receipt?.artifact_hash);
+  if (online && !work.legacy && work.status==='review' && receipt && verification) {
+    const accept=text('button','Accept verified result');
+    accept.addEventListener('click',async()=>{
+      accept.disabled=true;
+      try { await operation('review-work',{id:work.id,version:work.version,receipt:receipt.id,
+        artifact_hash:receipt.artifact_hash,test_run:verification.id,accept:true}); await refresh(); }
+      catch(error) { fail(error); }
+    });
+    $('actions').append(accept,text('p','Acceptance requires a separate recent test run matching the execution artifact.','muted'));
+  }
   $('timeline').replaceChildren();
   for (const event of events.data.filter(e=>e.id)) $('timeline').append(text('li',`${event.created_at}: ${event.from_state} → ${event.to_state} · ${event.actor}`));
   if (!$('timeline').children.length) $('timeline').append(text('li','No recorded state transitions.'));
