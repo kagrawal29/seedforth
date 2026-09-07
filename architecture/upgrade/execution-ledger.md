@@ -1047,3 +1047,16 @@ actions disabled until their authority and postconditions are implemented.
   is live as the main Delta platform release; the acknowledgement stream is
   owned by Delta with mode `0640`. The graph acknowledgement ingest service
   remains disabled until a real Delta acknowledgement journey is qualified.
+
+## Acknowledgement wire-contract qualification
+
+- Corrected the ingest bridge to consume Delta's exact
+  `conversation_message_id` field. The previous `message_id` expectation was
+  detected before enabling the bridge and would have quarantined valid Delta
+  receipts.
+- The focused wire-contract tests passed (`9 passed`), and the broader local
+  integration suite passed (`110 passed, 66 skipped`). Control release
+  `b396c29d49ee1fe014672724bfcf920f4d12db49` was migrated and deployed; the
+  main Delta release remains `a4a2789374c16cbb3f5c9e2952915ae4ffcc9f64`.
+  The ingest timer remains disabled because a real end-to-end acknowledgement
+  journey and unattended qualification are still outstanding.
