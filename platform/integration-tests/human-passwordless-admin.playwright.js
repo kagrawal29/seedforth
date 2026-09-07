@@ -1,0 +1,30 @@
+async (page) => {
+  const check = (value, message) => { if (!value) throw new Error(message); };
+  const base = 'http://localhost:18789';
+  const state = await (await page.request.get(base+'/__fixture/state')).json();
+  const password = 'passwordless-admin-qualification-2026';
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(base+'/enroll?invite='+encodeURIComponent(state.owner_invite));
+  await page.getByLabel('Username',{exact:true}).fill('owner-passwordless-e2e');
+  await page.getByLabel('Passphrase (14–256 characters)',{exact:true}).fill(password);
+  await page.getByRole('button',{name:'Continue to SeedForth',exact:true}).click();
+  await page.getByRole('heading',{name:'Enter SeedForth'}).waitFor();
+  await page.getByRole('button',{name:'Enter SeedForth',exact:true}).click();
+  await page.goto(base+'/control');
+  await page.locator('#project-name').waitFor();
+  check((await page.locator('#project-name').innerText()) === 'SeedForth portfolio','Owner did not enter portfolio');
+  const platform = page.locator('.portfolio-row').filter({hasText:'SeedForth Platform'}).first();
+  await platform.getByRole('button',{name:'Open project',exact:true}).click();
+  await page.locator('#board .card').first().waitFor();
+  check(await page.locator('#board .card').count() === 22,'Authenticated board did not render graph plan');
+  await page.goto(base+'/admin');
+  await page.getByRole('heading',{name:'Access administration'}).waitFor();
+  check(await page.getByText('Manage human identities and project grants').count() === 1,'Admin dashboard missing');
+  await page.getByLabel('Principal ID (principal-human-...)',{exact:true}).fill('principal-human-playwright');
+  await page.getByLabel('Project scope',{exact:true}).fill('flowing-indian');
+  await page.getByRole('button',{name:'Create invitation',exact:true}).click();
+  await page.getByRole('heading',{name:'Invitation created'}).waitFor();
+  check((await page.locator('code').allTextContents()).some(text => text.includes('/enroll?invite=')),'Admin invitation link missing');
+  await page.screenshot({path:'.playwright-cli/passwordless-admin-mobile.png',fullPage:true});
+  return {status:'passed',checks:['invitation link enrollment without MFA','secure session auto-entered portfolio','graph-backed project board','owner admin dashboard and invitation creation'],coverage:'real browser against disposable Neo4j and identity service'};
+}

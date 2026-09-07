@@ -238,7 +238,10 @@ class HumanUI:
             content = content.replace('src="/app.js"', 'src="/control/app.js"')
             content = content.replace('<body>', '<body data-api-path="/control/api/operation" data-session-auth="true" data-allowed-scopes="'+escape(json.dumps(sorted(scopes), separators=(",", ":")))+'">')
         media = {'html': 'text/html; charset=utf-8', 'js': 'text/javascript; charset=utf-8', 'css': 'text/css; charset=utf-8'}[path.suffix[1:]]
-        return Response(content, media_type=media)
+        response = Response(content, media_type=media)
+        if name == 'index.html':
+            response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+        return response
 
     async def control_operation(self, request):
         if request.headers.get('origin') != self.origin:

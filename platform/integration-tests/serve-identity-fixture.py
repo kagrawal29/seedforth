@@ -52,9 +52,10 @@ if __name__ == '__main__':
             [scope,other],grants,clock=lambda:now[0])
         identity = HumanIdentity(store,grants,clock=lambda:now[0])
         invite = identity.issue_invite(principal)
+        owner_invite = identity.issue_invite('principal-seedforth-owner')
         app = create_identity_app(identity,provider,graph)
         async def state(request):
-            return JSONResponse(dict(invite=invite,scope=scope,other=other,now=now[0]))
+            return JSONResponse(dict(invite=invite,owner_invite=owner_invite,scope=scope,other=other,now=now[0]))
         async def advance(request):
             now[0] += 31
             return JSONResponse(dict(now=now[0]))
