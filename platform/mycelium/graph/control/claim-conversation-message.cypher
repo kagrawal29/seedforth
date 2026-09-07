@@ -17,4 +17,5 @@ CREATE (s:Signal {node_id:'delivery-claim-'+$delivery_attempt,scope_id:$scope,
 CREATE (s)-[:TARGETS]->(m)
 RETURN m.node_id AS message_id,m.originator AS originator,m.recipient AS recipient,
        m.sequence AS sequence,m.text AS text,m.request_hash AS request_hash,
+       m.created_at AS created_at,
        m.delivery_attempt AS delivery_attempt,m.delivery_lease_until AS lease_until

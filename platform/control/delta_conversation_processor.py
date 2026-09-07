@@ -38,7 +38,9 @@ def payload(claim: dict) -> dict:
             + claim['text']
         ),
         'thread_ts': None,
-        'timestamp': datetime.now(timezone.utc).isoformat(),
+        # Preserve the graph's original timestamp so lease recovery produces
+        # byte-identical payloads at the deterministic destination.
+        'timestamp': claim['created_at'],
         'source': 'mycelium-conversation-processor',
         'scope': claim['scope'],
         'originator': claim['originator'],
