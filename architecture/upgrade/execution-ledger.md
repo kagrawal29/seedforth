@@ -7,7 +7,7 @@ specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
 Current known production release: abb677fe5ff81e7a188ad29ef49a869f0e9e9206.
-Separate control component: 71f6dde31e02d9c0097f5b63c1a887681f83045e,
+Separate control component: 0495e91d808a14548ec83ccc7bf87de18c19e33a,
 deployed via /opt/seedforth/control-current. Active end-to-end goal registered
 at the owner's explicit request. No token budget was requested.
 
@@ -1355,3 +1355,27 @@ actions disabled until their authority and postconditions are implemented.
   work reached `done/verified`. The Flowing scope was closed again at version
   14. This proves useful bounded execution plus honest failure recovery for a
   second Flowing candidate; it is not deployment or business-outcome evidence.
+
+## Cajon source reconciliation and corrected autonomous candidate
+
+- Reconciled the Cajon worker's read-only source binding from stale revision
+  `2a518d9` to the live clean source revision
+  `9ae3def9b1d4d6838d0a0bd3fa6fbfbfe0f8bb6b`. The previous binding was
+  preserved as a backup, the new bare binding is root-owned and read-only to
+  the worker, and the worker restarted successfully.
+- Two stale capability-generation attempts failed closed and were reconciled
+  as unknown/blocked rather than retried against an untrusted generation. The
+  capability generations were then recalculated against the actual worker
+  artifact root and all three worker capabilities were independently
+  requalified live.
+- A fresh accessibility candidate was run. An initial candidate was rejected
+  by the independent verifier because its HTML closing tag was malformed;
+  Mycelium recorded the rejection without awarding progress.
+- The corrected candidate changed only `app/index.html`, adding the explicit
+  `aria-label="Start or stop groove"` to the Cajon play button. Its base
+  revision, path scope, exact replacement, artifact hash, and independent
+  test receipt were verified; owner review accepted it and Mycelium advanced
+  the work to `done/verified`. The artifact remains untrusted and unapplied.
+- The Cajon work gate was closed at version 10 after qualification. This is
+  useful bounded autonomy and evidence-backed recovery, not deployment or
+  unattended-soak evidence.
