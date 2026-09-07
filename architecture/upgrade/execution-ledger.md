@@ -1729,3 +1729,14 @@ actions disabled until their authority and postconditions are implemented.
   graph-projected health at `11/11` successful streams, and public anonymous
   MCP returning `401` at every sample. A preceding malformed shell observation
   was discarded and is intentionally not counted as evidence.
+
+## Twelve-sample unattended health window
+
+- Twelve valid samples from `14:06:36Z` through `14:12:08Z` (~5.5 minutes)
+  found all four core services active, the service-health sensor reporting
+  `success` with exit `0`, zero core-service restarts, and public anonymous MCP
+  returning `401` at every sample. The final Mycelium query found all eleven
+  health streams present with no non-success current projection.
+- This is the longest explicit clean window since the board-release cutover,
+  but remains short-duration evidence and does not satisfy the long unattended
+  qualification gate.
