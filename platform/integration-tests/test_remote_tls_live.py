@@ -47,13 +47,17 @@ def test_certificate_trusted_for_ip_and_not_near_expiry():
 def test_reviewed_application_route_matrix(path, expected):
     status, headers, body = request(path)
     assert status == expected
-    assert headers['Cache-Control'] == 'no-store'
+    if path.startswith('/.well-known/'):
+        assert headers['Cache-Control'] == 'public, max-age=3600'
+    else:
+        assert headers['Cache-Control'] == 'no-store'
     assert headers['X-Content-Type-Options'] == 'nosniff'
     assert "frame-ancestors 'none'" in headers['Content-Security-Policy']
     assert not headers.get('Access-Control-Allow-Origin')
     if path == '/login':
         assert b'SeedForth / Mycelium' in body
-    elif path == '/mcp':
+    elif path in {'/mcp', '/.well-known/oauth-protected-resource/mcp',
+                  '/.well-known/oauth-authorization-server'}:
         assert not headers.get('Set-Cookie')
 
 
