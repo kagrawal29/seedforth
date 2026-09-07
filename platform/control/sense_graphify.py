@@ -14,7 +14,7 @@ from control.graphify_snapshot import build_collection_failure_snapshot, build_s
 
 ADAPTER_REVISION = "graphify-sensor-v1"
 ARTIFACTS = {
-    "seedforth-platform": "/opt/seedforth/shared/graphify/seedforth-platform/output.json",
+    "seedforth-platform": "/opt/seedforth/current/platform/mycelium/signals/artifacts/graphify-output.json",
     "flowing-indian": "/opt/seedforth/shared/graphify/flowing-indian/output.json",
     "cajon-sensei": "/opt/seedforth/shared/graphify/cajon-sensei/output.json",
 }
