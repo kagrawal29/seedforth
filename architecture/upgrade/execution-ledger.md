@@ -1510,3 +1510,14 @@ actions disabled until their authority and postconditions are implemented.
   verification of zero remaining human users or active sessions for the
   qualification principal. Public anonymous `/mcp` remains `401` and the
   identity service remains active.
+
+## Isolated identity restore qualification
+
+- The fresh root-private identity snapshot was verified against its recorded
+  SHA-256 and SQLite `integrity_check`.
+- It was copied into an isolated temporary database, where the recovery
+  invalidation policy revoked sessions, consumed recovery factors and invites,
+  disabled restored users, and preserved database integrity. The source
+  snapshot hash remained unchanged and the live identity service stayed active.
+- This qualifies credential-safety behavior for identity restore. It does not
+  claim a full Neo4j or whole-server disaster recovery drill.
