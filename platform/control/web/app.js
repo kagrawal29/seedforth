@@ -225,8 +225,12 @@ $('connect').addEventListener('submit',event=>{event.preventDefault();generation
 $('refresh').addEventListener('click',refresh);$('disconnect').addEventListener('click',disconnect);
 $('direction-form').addEventListener('submit',sendDirection);
 if (document.body.dataset.sessionAuth === 'true') {
-  scope = 'seedforth-platform';
-  portfolioMode = true;
+  const allowed = JSON.parse(document.body.dataset.allowedScopes || '[]');
+  const options = [...$('scope').options];
+  options.forEach(option => { option.hidden = !allowed.includes(option.value); });
+  scope = allowed.includes('seedforth-platform') ? 'seedforth-platform' : (allowed[0] || '');
+  $('scope').value = scope;
+  portfolioMode = scope === 'seedforth-platform';
   generation++;
   refresh();
 }

@@ -233,9 +233,10 @@ class HumanUI:
             session = await self.io(self.identity.session, request.cookies.get(SESSION, ''))
             if not session:
                 return RedirectResponse('/login?next=/control', status_code=303)
+            scopes = await self.io(self.identity.grants, session['principal'])
             content = content.replace('href="/style.css"', 'href="/control/style.css"')
             content = content.replace('src="/app.js"', 'src="/control/app.js"')
-            content = content.replace('<body>', '<body data-api-path="/control/api/operation" data-session-auth="true">')
+            content = content.replace('<body>', '<body data-api-path="/control/api/operation" data-session-auth="true" data-allowed-scopes="'+escape(json.dumps(sorted(scopes), separators=(",", ":")))+'">')
         media = {'html': 'text/html; charset=utf-8', 'js': 'text/javascript; charset=utf-8', 'css': 'text/css; charset=utf-8'}[path.suffix[1:]]
         return Response(content, media_type=media)
 
