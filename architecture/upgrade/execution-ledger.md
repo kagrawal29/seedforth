@@ -1593,6 +1593,18 @@ actions disabled until their authority and postconditions are implemented.
   `200` seconds of explicit live stability evidence, not a long-duration or
   month-long unattended qualification.
 
+## Accumulated unattended timer evidence
+
+- Live journal measurement from `13:20Z` through `13:31Z` found eleven
+  heartbeat/runtime/event/ack cycles, eleven runtime and event completions,
+  two code-sensor completions, one Graphify-sensor completion, and twenty-two
+  conversation-processor completions. The relevant units had no actual
+  warning-level entries, all four core services reported zero restarts, and
+  public anonymous `/mcp` remained `401`.
+- This extends the measured unattended window to roughly eleven minutes of
+  recurring operation. It remains short-duration evidence and does not claim
+  a day-, week-, or month-scale soak.
+
 ## Final live archival boundary audit
 
 - Live graph inventory now shows no non-core product Project outside the
