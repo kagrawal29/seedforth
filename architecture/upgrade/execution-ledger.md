@@ -1181,3 +1181,17 @@ actions disabled until their authority and postconditions are implemented.
   Flowing scope remains held, and exited successfully with `status=idle`. No
   Invocation, artifact, deployment, or acceptance was created. This qualifies
   safe idle autonomy and scheduling, not useful product execution.
+
+## Flowing autonomy attempt and fail-closed recovery
+
+- Prepared a one-unit Flowing candidate with an exact repository revision and
+  bounded email-validation change. Owner-controlled graph transitions enabled
+  the scope briefly, released the held item, and made it ready; no production
+  deployment authority was included.
+- The executor authenticated and claimed the work, but the protected worker
+  rejected invocation because its deployed capability checkout was still
+  Cajon-only. The execution lease was allowed to expire rather than retried.
+- `reconcile-expired-work` then recorded the attempt as `unknown` with
+  `error_code=lease_expired`, blocked/held the work item, and left zero
+  `Invocation` or artifact records. The Flowing scope was paused again. This
+  qualifies claim failure and recovery safety, not useful product progress.
