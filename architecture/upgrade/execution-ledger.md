@@ -1303,3 +1303,17 @@ actions disabled until their authority and postconditions are implemented.
   collection failures. This proves the sensing path is live and producing
   evidence, but does not by itself prove product outcomes or unattended
   autonomy.
+
+## Cajon worker authority renewal and cadence symmetry
+
+- Added the graph operation `renew-cajon-worker-authority`, restricted to the
+  owner, the existing Cajon worker principal, the Cajon scope, and a maximum
+  one-hour expiry. It cannot enable work or create a mandate.
+- Renewed Cajon authority for a short qualification window, rotated its
+  external broker token, preserved the existing Flowing credential entry, and
+  restarted only the protected worker service. The broker returned active.
+- Started the Cajon executor successfully; it returned `status=idle` because
+  the graph work gate remains held and no work was launched. Cajon’s fifteen-
+  minute autonomous timer is now enabled alongside Flowing’s. This proves
+  cadence symmetry and credential readiness, not yet useful autonomous product
+  progress or an elapsed unattended soak.
