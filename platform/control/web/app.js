@@ -1,6 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let credential = '', scope = '', selected = null, online = false, generation = 0;
+let portfolioMode = false;
 let refreshVersion = 0, inspectionVersion = 0, conversationCursor = 0;
 class Superseded extends Error {}
 function text(tag, value, className) {
@@ -36,7 +37,7 @@ function fail(error) {
 async function refresh() {
   const requestGeneration = generation, requestVersion = ++refreshVersion;
   try {
-    if (scope === 'seedforth-platform') {
+    if (portfolioMode) {
       const portfolio = await operation('read-portfolio');
       if (requestGeneration !== generation || requestVersion !== refreshVersion) return;
       online = true; $('error').textContent = ''; $('connection').textContent = 'Connected';
@@ -50,9 +51,9 @@ async function refresh() {
         row.append(text('h3', item.name || item.scope));
         row.append(text('p', `${item.portfolio_state || 'unknown'} · ${item.work_enabled ? 'new work enabled' : 'new work held'} · ${item.work_count || 0} work items · ${item.attention_count || 0} need attention`));
         row.append(text('p', `Process status: ${item.historical_status || 'unknown'} (historical only) · observation: ${item.latest_observation_at || 'unknown'}`, 'muted'));
-        if (item.portfolio_state === 'active' && item.scope !== 'seedforth-platform') {
+        if (item.portfolio_state === 'active') {
           const open = text('button', 'Open project', 'portfolio-open');
-          open.addEventListener('click', () => { scope = item.scope; refresh(); });
+          open.addEventListener('click', () => { scope = item.scope; portfolioMode = false; refresh(); });
           row.append(open);
         }
         $('portfolio-list').append(row);
@@ -202,7 +203,7 @@ async function inspect(work) {
 function disconnect() {
   generation++;
   refreshVersion++;inspectionVersion++;
-  credential='';scope='';selected=null;online=false;
+  credential='';scope='';portfolioMode=false;selected=null;online=false;
   conversationCursor=0;
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
   $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();$('evidence').replaceChildren();
@@ -213,6 +214,6 @@ function disconnect() {
   $('connection').textContent='Disconnected';
   $('error').textContent='';
 }
-$('connect').addEventListener('submit',event=>{event.preventDefault();generation++;credential=$('token').value;scope=$('scope').value;$('token').value='';refresh();});
+$('connect').addEventListener('submit',event=>{event.preventDefault();generation++;credential=$('token').value;scope=$('scope').value;portfolioMode=scope==='seedforth-platform';$('token').value='';refresh();});
 $('refresh').addEventListener('click',refresh);$('disconnect').addEventListener('click',disconnect);
 $('direction-form').addEventListener('submit',sendDirection);

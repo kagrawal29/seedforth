@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 from http.server import ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -21,9 +22,13 @@ from control.server import Boundary, Handler
 if __name__ == '__main__':
     graph = Graph('http://127.0.0.1:27474', user='', password='')
     assert graph.query("MATCH (w:WorkItem {node_id:'wi-upgrade-W00'}) RETURN count(w) AS n") == [{'n': 1}]
-    # Re-promote only to the dedicated test graph so source hash enforcement
-    # covers the exact local checkout used by this browser qualification.
-    graph.promote()
+    # Re-promote only on a fresh test graph. Remote browser qualification may
+    # reuse the graph promoted by an earlier fixture; repeating every
+    # operation over an SSH tunnel makes startup appear hung.
+    if os.environ.get('CONTROL_FIXTURE_REUSE_PROMOTION') == '1':
+        graph.operation('read-identity-scopes','nonexistent-fixture','seedforth-platform')
+    else:
+        graph.promote()
     graph.query("MERGE (p:Principal {node_id:'principal-ui-fixture-sensor'}) SET p.enabled=true "
                 "MERGE (g:Grant {node_id:'grant-ui-fixture-sensor'}) "
                 "SET g.scope='seedforth-platform',g.revoked=false,g.permissions=['source.observe'] "
