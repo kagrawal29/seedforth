@@ -951,3 +951,17 @@ actions disabled until their authority and postconditions are implemented.
   This is the first current useful autonomous candidate loop with independent
   evidence, not a claim that product code was deployed, that musical accuracy
   is proven, or that unattended operation is qualified.
+
+## Board scope-control deployment
+
+- The human control board now exposes the graph's `work_enabled`,
+  `state_version`, and hold reason, with explicit versioned Pause/Enable
+  actions. The server allowlist exposes only the authored scope-gate
+  operation; graph grants still decide whether a human can perform it.
+- The pinned Playwright CLI human journey passed the new scope pause/resume
+  interaction plus the existing stale-version, outage recovery, mobile,
+  escaping, concurrent inspection, logout, and revocation checks.
+- Control release `d4276215b3c746141a2d480f22999799f812004e` was deployed
+  atomically after migration; the prior release remains available for
+  rollback. This is a deployed board primitive, not yet public remote access
+  or a complete multi-project operating surface.
