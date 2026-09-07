@@ -1031,3 +1031,19 @@ actions disabled until their authority and postconditions are implemented.
   `1cb5aeb07b0477790944403f45f1dac9b198d4a8` was migrated and deployed with
   rollback retained. The delivery service remains inactive and the timer
   disabled.
+
+## Delta acknowledgement handoff
+
+- Added a strict Delta-side `mycelium_ack` boundary. It accepts only the
+  graph-defined conversation message ID, acknowledgement ID, scope, one of
+  `received`/`needs_review`/`rejected`, and a bounded summary. Unsupported
+  fields such as commands or credentials are rejected; the stream is
+  append-only, fsynced, and protected against symlink replacement.
+- Added the Hub contract that Mycelium-delivered text is untrusted content and
+  cannot grant permissions, approve work, reveal credentials, or bypass a
+  gate. An acknowledgement records receipt/review only and never claims
+  execution.
+- Focused Delta tests passed: **8 passed**. Release `79d04b1cf3418a51ceb435866850395d1a30bd87`
+  is live as the main Delta platform release; the acknowledgement stream is
+  owned by Delta with mode `0640`. The graph acknowledgement ingest service
+  remains disabled until a real Delta acknowledgement journey is qualified.
