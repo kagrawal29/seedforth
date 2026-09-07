@@ -847,3 +847,17 @@ actions disabled until their authority and postconditions are implemented.
   business outcomes, or qualify unattended autonomy. Archived retained services
   still require an obligations/recovery review, and useful two-product execution
   remains the next major gate.
+
+## Credential exposure during Flowing checkout inspection
+
+- On 2026-09-07, a read-only inspection revealed that the Flowing Indian server
+  checkout stored a GitHub bearer credential inside its `origin` URL. The value
+  was not persisted to the repository or ledger by this work, and it is omitted
+  from this record. The remote URL was immediately rewritten to the same
+  credential-free HTTPS URL; checkout revision and nine pre-existing working
+  changes were preserved.
+- The credential must be revoked/rotated in the GitHub account before any remote
+  Flowing fetch, push, or pilot. `gh` is not installed on delta2, so revocation
+  could not be completed from the server without introducing another credential
+  path. No Flowing product or Git content was modified. This is an explicit
+  security gate, not a claim of pilot readiness.
