@@ -21,7 +21,14 @@ def case():
     source=Path(__file__).parents[1]/'mycelium/graph/knowledge/seedforth-conversation-model-v1.cypher'
     for statement in source.read_text().split(';'):
         if statement.strip():g.query(statement)
-    g.promote()
+    # Promotion is intentionally explicit for a fresh disposable graph, but
+    # remote end-to-end journeys may reuse a graph already promoted by their
+    # fixture bootstrap. Re-promoting hundreds of operations through an SSH
+    # tunnel makes the client journey look hung and adds no coverage.
+    if os.environ.get('CONTROL_FIXTURE_REUSE_PROMOTION') == '1':
+        g.operation('read-identity-scopes','nonexistent-fixture','seedforth-platform')
+    else:
+        g.promote()
     scope='fixture-conversation-'+uuid4().hex
     actor=scope+'-owner'
     g.query("CREATE (p:Principal {node_id:$actor,enabled:true})-[:HAS_GRANT]->"

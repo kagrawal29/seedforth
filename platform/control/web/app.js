@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id);
 let credential = '', scope = '', selected = null, online = false, generation = 0;
 let portfolioMode = false;
+const API_PATH = document.body.dataset.apiPath || '/api/operation';
 let refreshVersion = 0, inspectionVersion = 0, conversationCursor = 0;
 class Superseded extends Error {}
 function text(tag, value, className) {
@@ -11,7 +12,11 @@ function text(tag, value, className) {
 }
 async function operation(name, params = {}) {
   const requestGeneration = generation;
-  const response = await fetch('/api/operation', {method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${credential}`}, body:JSON.stringify({operation:name,scope,params})});
+  const headers = {'Content-Type':'application/json'};
+  if (credential) headers.Authorization = `Bearer ${credential}`;
+  const csrf = document.body.dataset.csrf;
+  if (csrf) headers['X-SeedForth-CSRF'] = csrf;
+  const response = await fetch(API_PATH, {method:'POST', headers, body:JSON.stringify({operation:name,scope,params})});
   const result = await response.json();
   if (requestGeneration !== generation) throw new Superseded('Session changed; response discarded');
   if (!response.ok) {

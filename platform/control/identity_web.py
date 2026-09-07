@@ -1,6 +1,7 @@
 """Trusted human identity surface. No client-supplied principal or bearer storage."""
 from contextlib import asynccontextmanager
 from html import escape
+import json
 from pathlib import Path
 import re
 import secrets
@@ -11,13 +12,14 @@ from mcp.server.auth.provider import AuthorizeError
 from mcp.server.transport_security import RequestBodyLimitMiddleware
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, RedirectResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.routing import Route, Mount
 
 from control.graph import GraphError
 from control.human_identity import IdentityError
 from control.oauth_http import auth_routes
 from control.oauth_provider import project_scopes
+from control.server import Boundary, RequestError
 
 SESSION = '__Host-seedforth-session'
 CSRF = '__Host-seedforth-csrf'
@@ -43,8 +45,10 @@ def field(label, name, kind='text', autocomplete='off'):
 
 
 class HumanUI:
-    def __init__(self, identity, provider):
+    def __init__(self, identity, provider, graph=None):
         self.identity, self.provider = identity, provider
+        self.graph = graph
+        self.control = Boundary(graph, '') if graph is not None else None
         self.origin = provider.issuer.rstrip('/')
 
     async def io(self, method, *args):
@@ -90,8 +94,11 @@ class HumanUI:
 
     async def login_page(self, request):
         request_id = self.request_id(request.query_params.get('request', ''))
+        next_path = request.query_params.get('next', '')
+        if not (next_path.startswith('/') and not next_path.startswith('//')):
+            next_path = ''
         body = '<p>Use your passphrase and an authenticator code or one-use recovery code.</p>'
-        body += '<form method="post" action="/login">' + hidden('csrf', self.csrf(request)) + hidden('request', request_id)
+        body += '<form method="post" action="/login">' + hidden('csrf', self.csrf(request)) + hidden('request', request_id) + hidden('next', next_path)
         body += field('Username', 'username', autocomplete='username')
         body += field('Passphrase', 'password', 'password', 'current-password')
         body += field('Authenticator or recovery code', 'code', autocomplete='one-time-code')
@@ -100,12 +107,15 @@ class HumanUI:
         return self.page(request, 'Sign in', body)
 
     async def login(self, request):
-        form = await self.form(request, {'username', 'password', 'code', 'request'})
+        form = await self.form(request, {'username', 'password', 'code', 'request', 'next'})
         session = await self.io(self.identity.login, form.get('username',''), form.get('password',''),
                                 form.get('code',''), request.client.host)
         await self.io(self.identity.logout, request.cookies.get(SESSION, ''))
         request_id = self.request_id(form.get('request',''))
-        response = RedirectResponse('/consent?'+urlencode({'request':request_id}) if request_id else '/account', status_code=303)
+        next_path = form.get('next', '')
+        if not (next_path.startswith('/') and not next_path.startswith('//')):
+            next_path = ''
+        response = RedirectResponse('/consent?'+urlencode({'request':request_id}) if request_id else (next_path or '/account'), status_code=303)
         cookie(response, SESSION, session)
         cookie(response, CSRF, secrets.token_urlsafe(32))
         return response
@@ -179,6 +189,37 @@ class HumanUI:
         clear(response, SESSION); clear(response, CSRF)
         return response
 
+    async def control_asset(self, request):
+        names = {'/control': 'index.html', '/control/': 'index.html',
+                 '/control/app.js': 'app.js', '/control/style.css': 'style.css'}
+        name = names.get(request.url.path)
+        if not name:
+            return Response('Not found', status_code=404)
+        path = Path(__file__).parent / 'web' / name
+        content = path.read_text() if path.suffix in {'.html', '.js', '.css'} else path.read_bytes()
+        if name == 'index.html':
+            session = await self.io(self.identity.session, request.cookies.get(SESSION, ''))
+            if not session:
+                return RedirectResponse('/login?next=/control', status_code=303)
+            content = content.replace('href="/style.css"', 'href="/control/style.css"')
+            content = content.replace('src="/app.js"', 'src="/control/app.js"')
+            content = content.replace('<body>', '<body data-api-path="/control/api/operation">')
+        media = {'html': 'text/html; charset=utf-8', 'js': 'text/javascript; charset=utf-8', 'css': 'text/css; charset=utf-8'}[path.suffix[1:]]
+        return Response(content, media_type=media)
+
+    async def control_operation(self, request):
+        if request.headers.get('origin') != self.origin:
+            raise RequestError(403, 'origin_denied')
+        session = await self.io(self.identity.session, request.cookies.get(SESSION, ''))
+        if not session:
+            raise RequestError(401, 'authentication_required')
+        try:
+            body = await request.json()
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise RequestError(400, 'invalid_envelope') from None
+        scopes = await self.io(self.identity.grants, session['principal'])
+        return JSONResponse(self.control.dispatch_identity(session['principal'], scopes, body))
+
     async def consent(self, request):
         request_id = self.request_id(request.query_params.get('request',''))
         pending = await self.io(self.provider.pending, request_id)
@@ -232,7 +273,10 @@ class HumanUI:
             Route('/enroll',self.enrollment),Route('/enroll/start',self.enroll_start,methods=['POST']),
             Route('/enroll/finish',self.enroll_finish,methods=['POST']),Route('/account',self.account),
             Route('/logout',self.logout,methods=['POST']),Route('/sessions/revoke',self.revoke,methods=['POST']),
-            Route('/consent',self.consent),Route('/consent',self.decide,methods=['POST']),Route('/identity.css',css)]
+            Route('/consent',self.consent),Route('/consent',self.decide,methods=['POST']),Route('/identity.css',css),
+            Route('/control',self.control_asset),Route('/control/',self.control_asset),
+            Route('/control/app.js',self.control_asset),Route('/control/style.css',self.control_asset),
+            Route('/control/api/operation',self.control_operation,methods=['POST'])]
 
 
 def security_policy(callback=''):
@@ -270,7 +314,7 @@ class IdentitySecurity:
 
 
 def create_identity_app(identity, provider, graph=None):
-    ui = HumanUI(identity, provider)
+    ui = HumanUI(identity, provider, graph)
     routes = ui.routes()+auth_routes(provider)
     @asynccontextmanager
     async def lifespan(app):
@@ -285,8 +329,8 @@ def create_identity_app(identity, provider, graph=None):
                           [urlsplit(provider.issuer).netloc],[provider.issuer.rstrip('/')])
         routes.append(Mount('/', app=mcp_app))
     async def problem(request, exc):
-        code = exc.code if isinstance(exc,IdentityError) else 'consent_not_authorized' if isinstance(exc,AuthorizeError) else 'service_unavailable'
-        status = exc.status if isinstance(exc,IdentityError) else 400 if isinstance(exc,AuthorizeError) else 503
+        code = exc.code if isinstance(exc,(IdentityError,RequestError)) else 'consent_not_authorized' if isinstance(exc,AuthorizeError) else 'service_unavailable'
+        status = exc.status if isinstance(exc,(IdentityError,RequestError)) else 400 if isinstance(exc,AuthorizeError) else 503
         messages = {'invalid_credentials':'Sign-in failed. Check your credentials or try a remaining recovery code.',
             'invalid_authenticator_code':'That authenticator code is not valid. Try the current code.',
             'consent_expired_or_used':'This connection request expired or was already used. Start again from your client.',
@@ -298,5 +342,5 @@ def create_identity_app(identity, provider, graph=None):
             body += '<form method="post" action="/sessions/revoke">'+hidden('csrf',ui.csrf(request))+'<button class="danger">Revoke all sessions and clients</button></form>'
         return ui.page(request, 'Unable to continue', body,status)
     app = Starlette(routes=routes, lifespan=lifespan,
-        exception_handlers={IdentityError:problem,AuthorizeError:problem,GraphError:problem})
+        exception_handlers={IdentityError:problem,RequestError:problem,AuthorizeError:problem,GraphError:problem})
     return RequestBodyLimitMiddleware(IdentitySecurity(app,identity,provider.issuer),32768)
