@@ -1,4 +1,7 @@
 CREATE CONSTRAINT seedforth_source_stream_id IF NOT EXISTS FOR (n:SourceStream) REQUIRE n.node_id IS UNIQUE;
+MATCH (legacy:SourceStream)
+WHERE legacy.node_id IN ['source-code-flowing-indian-order-route','source-code-flowing-indian-verify-route']
+SET legacy.enabled=false,legacy.disabled_reason='path_replaced_by_live_checkout_reconciliation',legacy.updated_at=datetime();
 UNWIND [{scope:'cajon-sensei',path:'app/index.html',key:'app-index'},
 {scope:'flowing-indian',path:'app/api/register/route.ts',key:'register-route'}] AS pilot
 MATCH (scope:ControlScope {node_id:pilot.scope})
