@@ -1394,3 +1394,13 @@ actions disabled until their authority and postconditions are implemented.
 - The exact control release `cf2d1082d8dd66a4fa2469c33da757ca23833a08` is
   live at `/opt/seedforth/control-current`; the control service is active and
   the endpoint serves the new panel. Public MCP/HTTP ingress remains closed.
+
+## Portfolio home navigation
+
+- Closed the navigation gap in the portfolio projection: active administered
+  product cards now provide an explicit `Open project` action that changes the
+  current scoped board without requiring a new login.
+- Playwright CLI regression passed the complete prior journey plus the
+  portfolio-home-to-project transition. The live control release
+  `9b9428fde0ccd830c4476403a30cf032293c8542` serves the change and the
+  control service remained active after deployment.
