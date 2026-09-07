@@ -1060,3 +1060,13 @@ actions disabled until their authority and postconditions are implemented.
   main Delta release remains `a4a2789374c16cbb3f5c9e2952915ae4ffcc9f64`.
   The ingest timer remains disabled because a real end-to-end acknowledgement
   journey and unattended qualification are still outstanding.
+
+## Disposable acknowledgement loop
+
+- Extended the live disposable Neo4j conversation qualification to use
+  Delta's actual acknowledgement serializer and the real Mycelium ingest
+  bridge. The journey now proves delivery commit, append-only wire receipt,
+  graph dispatch, and the resulting `ConversationMessage.execution_state`.
+- The isolated live journey passed: **1 passed, 36 deselected in 113.47s**.
+  This is disposable-graph evidence only; it does not yet qualify production
+  Delta traffic or justify enabling the production ingest timer.

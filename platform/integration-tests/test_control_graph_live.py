@@ -295,7 +295,7 @@ def test_scope_work_gate_is_versioned_and_does_not_claim_work(graph, case):
     assert graph.query("MATCH (w:WorkItem {node_id:$id}) RETURN count(w) AS n",case)==[{'n':0}]
 
 
-def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case):
+def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case, tmp_path):
     graph.query("MATCH (g:Grant {node_id:$actor+'-grant'}) SET g.permissions=g.permissions+['conversation.send','conversation.read']",case)
     processor=case['scope']+'-processor'
     graph.query("CREATE (p:Principal {node_id:$processor,enabled:true}) "
@@ -312,8 +312,27 @@ def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case):
     committed=graph.operation('record-conversation-delivery',processor,case['scope'],message_id=message,
         delivery_attempt=attempt,delivery_hash='a'*64,delivery_ref='/bounded/inbox/'+message)
     assert committed[0]['delivery_state']=='delivered'
-    acknowledged=graph.operation('record-conversation-ack',processor,case['scope'],
-        message_id=message,ack_id='ack-'+uuid4().hex,ack_status='received',summary='received as untrusted content')
+    # Exercise the actual Delta wire shape through the ingest bridge, not only
+    # the graph reducer. The fixed processor identity is substituted only for
+    # this isolated disposable fixture.
+    from control import ingest_delta_acks
+    sys.path.insert(0, str(Path(__file__).parents[1] / 'delta'))
+    from delta.mycelium_ack import append_ack
+    ack_stream = tmp_path / 'acks.jsonl'
+    ack_state = ack_stream.with_suffix('.state.json')
+    ingest_delta_acks.PROCESSOR = processor
+    append_ack(ack_stream, {
+        'conversation_message_id': message,
+        'ack_id': 'ack-' + uuid4().hex,
+        'ack_status': 'received',
+        'scope': case['scope'],
+        'summary': 'received as untrusted content',
+    })
+    acknowledged = ingest_delta_acks.collect_and_dispatch(graph, ack_stream, ack_state)
+    assert acknowledged == {'lines': 1, 'dispatched': 1, 'failed': 0}
+    acknowledged = graph.query("MATCH (m:ConversationMessage {node_id:$id}) "
+        "RETURN m.execution_state AS execution_state", {'id': message})
+    assert acknowledged == [{'execution_state': 'acknowledged'}]
     assert acknowledged[0]['execution_state']=='acknowledged'
     second=case['scope']+'-message-2'
     graph.query("CREATE (m:ConversationMessage {node_id:$id,scope_id:$scope,originator:$actor,recipient:'delta',"
