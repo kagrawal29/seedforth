@@ -10,6 +10,7 @@ ON CREATE SET s.name=pilot.name,s.portfolio_state='active',s.work_enabled=false,
 s.hold_reason='governed_execution_not_yet_promoted',s.created_at=datetime(),s.updated_at=datetime(),
 s.direction_source='owner-session-2026-09-06',s.state_version=0
 MERGE (s)-[:MAPS_PROJECT]->(p)
+SET p.portfolio_state='active',p.new_work='held',p.portfolio_decision='decision-upgrade-active-products-20260906',p.updated_at=datetime()
 MERGE (d:Decision {node_id:'decision-upgrade-active-products-20260906'})
 ON CREATE SET d.project='system',d.created_at=datetime(),d.status='accepted',
 d.summary='Flowing Indian and Cajon Sensei are the active product priorities. Platform upgrade remains active. Other projects require archival assessment preserving services and history.',
