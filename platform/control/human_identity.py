@@ -149,6 +149,25 @@ class HumanIdentity:
             self._event(db, row['principal'], 'enrollment_completed')
         return session, recovery
 
+    def finish_simple_enrollment(self, pending, peer):
+        """Complete an invited password session without a second factor.
+
+        The invitation is the enrollment factor; it is single-use and short
+        lived. Existing recovery/MFA columns remain for migration compatibility.
+        """
+        self.rate('enrollment-confirm:' + peer, 20, 600)
+        with self.store.transaction() as db:
+            row = db.execute('SELECT * FROM human_pending WHERE hash=? AND expires>?',
+                             (digest(pending), self.clock())).fetchone()
+            if not row or not self.grants(row['principal']):
+                raise IdentityError('enrollment_expired')
+            db.execute('INSERT INTO human_users(username,principal,password,otp_secret,last_step) VALUES (?,?,?,?,?)',
+                       (row['username'], row['principal'], row['password'], '', -1))
+            db.execute('DELETE FROM human_pending WHERE hash=?', (digest(pending),))
+            session = self._new_session(db, row['principal'])
+            self._event(db, row['principal'], 'password_enrollment_completed')
+        return session
+
     def login(self, username, password, code, peer):
         username = username.strip().lower()[:64]
         self.rate('login-peer:' + peer, 30, 600)
@@ -175,6 +194,33 @@ class HumanIdentity:
                 db.execute('UPDATE human_users SET last_step=? WHERE username=?', (step, username))
             session = self._new_session(db, current['principal'])
             self._event(db, current['principal'], 'recovery_login' if recovery else 'mfa_login')
+        return session
+
+    def password_login(self, username, password, peer):
+        """Simple web login for the invited human product experience.
+
+        MCP/OAuth clients retain the stronger explicit MFA-capable login path;
+        the public board uses invitation + passphrase + revocable session.
+        """
+        return self._password_login(username, password, peer)
+
+    def _password_login(self, username, password, peer):
+        username = username.strip().lower()[:64]
+        self.rate('login-peer:' + peer, 30, 600)
+        self.rate('login-account:' + username, 10, 600)
+        if len(password) > 256:
+            raise IdentityError('invalid_credentials', 401)
+        with self.store.transaction() as db:
+            user = db.execute('SELECT * FROM human_users WHERE username=? AND enabled=1', (username,)).fetchone()
+        valid = self._hash(password, user['password'] if user else self.dummy)
+        if not valid or not user or not self.grants(user['principal']):
+            raise IdentityError('invalid_credentials', 401)
+        with self.store.transaction() as db:
+            current = db.execute('SELECT * FROM human_users WHERE username=? AND enabled=1', (username,)).fetchone()
+            if not current or current['password'] != user['password'] or current['principal'] != user['principal']:
+                raise IdentityError('invalid_credentials', 401)
+            session = self._new_session(db, current['principal'])
+            self._event(db, current['principal'], 'password_login')
         return session
 
     def _credential_session(self, value):

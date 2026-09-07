@@ -97,19 +97,19 @@ class HumanUI:
         next_path = request.query_params.get('next', '')
         if not (next_path.startswith('/') and not next_path.startswith('//')):
             next_path = ''
-        body = '<p>Use your passphrase and an authenticator code or one-use recovery code.</p>'
+        body = '<p>Sign in with the passphrase you chose when you accepted your invitation.</p>'
         body += '<form method="post" action="/login">' + hidden('csrf', self.csrf(request)) + hidden('request', request_id) + hidden('next', next_path)
         body += field('Username', 'username', autocomplete='username')
         body += field('Passphrase', 'password', 'password', 'current-password')
-        body += field('Authenticator or recovery code', 'code', autocomplete='one-time-code')
+        body += hidden('code', '')
         body += '<button>Sign in</button></form><p><a href="/enroll">Use an enrollment invitation</a></p>'
         body += '<p class="muted">Lost all factors or your passphrase? An authorized operator must reset enrollment. No agent message can reset access.</p>'
         return self.page(request, 'Sign in', body)
 
     async def login(self, request):
         form = await self.form(request, {'username', 'password', 'code', 'request', 'next'})
-        session = await self.io(self.identity.login, form.get('username',''), form.get('password',''),
-                                form.get('code',''), request.client.host)
+        session = await self.io(self.identity.password_login, form.get('username',''), form.get('password',''),
+                                request.client.host)
         await self.io(self.identity.logout, request.cookies.get(SESSION, ''))
         request_id = self.request_id(form.get('request',''))
         next_path = form.get('next', '')
@@ -123,18 +123,16 @@ class HumanUI:
     async def enrollment(self, request):
         pending = await self.io(self.identity.pending, request.cookies.get(PENDING, ''))
         if pending:
-            body = '<p>Add this secret to your authenticator app as a time-based, six-digit code. Keep it private.</p>'
+            body = '<p>Your invitation is verified. You can continue directly to the workspace.</p>'
             body += '<p>Account: ' + escape(pending['username']) + '</p>'
-            body += '<code id="totp-secret">' + escape(pending['otp_secret']) + '</code>'
             body += '<form method="post" action="/enroll/finish">' + hidden('csrf', self.csrf(request))
-            body += field('Authenticator code', 'code', autocomplete='one-time-code')
-            body += '<button>Confirm authenticator</button></form><p>This enrollment step expires in ten minutes.</p>'
-            return self.page(request, 'Set up your authenticator', body)
+            body += hidden('code', '') + '<button>Enter SeedForth</button></form><p>This enrollment step expires in ten minutes.</p>'
+            return self.page(request, 'Enter SeedForth', body)
         body = '<p>An invitation links your login to an existing graph identity. It does not grant new permissions.</p>'
         body += '<form method="post" action="/enroll/start">' + hidden('csrf', self.csrf(request))
         body += field('Invitation', 'invite', 'password') + field('Username', 'username', autocomplete='username')
         body += field('Passphrase (14–256 characters)', 'password', 'password', 'new-password')
-        body += '<button>Set up authenticator</button></form><p><a href="/login">Back to sign in</a></p>'
+        body += '<button>Continue to SeedForth</button></form><p><a href="/login">Back to sign in</a></p>'
         return self.page(request, 'Enroll your identity', body)
 
     async def enroll_start(self, request):
@@ -147,12 +145,10 @@ class HumanUI:
 
     async def enroll_finish(self, request):
         form = await self.form(request, {'code'})
-        session, recovery = await self.io(self.identity.finish_enrollment, request.cookies.get(PENDING,''),
-                                          form.get('code',''), request.client.host)
+        session = await self.io(self.identity.finish_simple_enrollment, request.cookies.get(PENDING,''), request.client.host)
         await self.io(self.identity.logout, request.cookies.get(SESSION,''))
-        body = '<p>Save these recovery codes in your password manager. Each replaces an authenticator code once and still requires your passphrase. They will not be shown again.</p><ul>'
-        body += ''.join('<li><code class="recovery-code">'+escape(code)+'</code></li>' for code in recovery)
-        body += '</ul><p><a class="button" href="/account">I saved my recovery codes</a></p>'
+        body = '<p>Your identity is ready. You can now use your passphrase to sign in from any device.</p>'
+        body += '<p><a class="button" href="/control">Open your workspace</a></p>'
         response = self.page(request, 'Save your recovery codes', body)
         cookie(response, SESSION, session)
         clear(response, PENDING)

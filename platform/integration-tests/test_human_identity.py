@@ -133,12 +133,9 @@ def test_http_csrf_host_cookie_enrollment_and_recovery_login(human):
         assert http.post('/enroll/start',data=form,headers={'Origin':'https://hostile.example'}).status_code == 403
         headers = {'Origin':'https://identity.example'}
         response = http.post('/enroll/start',data=form,headers=headers)
-        assert 'Set up your authenticator' in response.text
-        secret = re.search(r'id="totp-secret">([^<]+)',response.text).group(1)
-        response = http.post('/enroll/finish',data=dict(csrf=csrf(response),code=pyotp.TOTP(secret).at(now[0])),headers=headers)
-        assert 'Save your recovery codes' in response.text
-        recovery = re.findall(r'class="recovery-code">([^<]+)',response.text)
-        assert len(recovery) == 8
+        assert 'Enter SeedForth' in response.text
+        response = http.post('/enroll/finish',data=dict(csrf=csrf(response),code=''),headers=headers)
+        assert 'identity is ready' in response.text
         cookie = next(c for c in http.cookies.jar if c.name == SESSION)
         assert cookie.secure and not cookie.value in response.text
         account = http.get('/account')
@@ -147,7 +144,7 @@ def test_http_csrf_host_cookie_enrollment_and_recovery_login(human):
         response = http.post('/logout',data=dict(csrf=csrf(account)),headers=headers)
         assert 'Sign in' in response.text
         login = http.get('/login')
-        response = http.post('/login',data=dict(csrf=csrf(login),username='operator',password=PASSWORD,code=recovery[0]),headers=headers)
+        response = http.post('/login',data=dict(csrf=csrf(login),username='operator',password=PASSWORD,code=''),headers=headers)
         assert 'Your access' in response.text
         response = http.post('/sessions/revoke',data=dict(csrf=csrf(response)),headers=headers)
         assert 'Sign in' in response.text
