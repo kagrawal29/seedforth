@@ -1,4 +1,4 @@
-"""Read-only qualification of the deliberately closed public TLS ingress."""
+"""Read-only qualification of the reviewed public TLS identity/MCP ingress."""
 import os
 import socket
 import ssl
@@ -36,21 +36,36 @@ def test_certificate_trusted_for_ip_and_not_near_expiry():
             assert tls.version() in ('TLSv1.2', 'TLSv1.3')
 
 
-@pytest.mark.parametrize('path', ['/', '/mcp', '/api', '/.well-known/oauth-protected-resource', '/.env'])
-def test_application_routes_remain_closed(path):
+@pytest.mark.parametrize('path,expected', [
+    ('/login', 200),
+    ('/.well-known/oauth-protected-resource/mcp', 200),
+    ('/.well-known/oauth-authorization-server', 200),
+    ('/mcp', 401),
+    ('/api', 404),
+    ('/.env', 404),
+])
+def test_reviewed_application_route_matrix(path, expected):
     status, headers, body = request(path)
-    assert status == 503
+    assert status == expected
     assert headers['Cache-Control'] == 'no-store'
     assert headers['X-Content-Type-Options'] == 'nosniff'
     assert "frame-ancestors 'none'" in headers['Content-Security-Policy']
     assert not headers.get('Access-Control-Allow-Origin')
-    assert not headers.get('Set-Cookie')
-    assert b'503 Service Temporarily Unavailable' in body
+    if path == '/login':
+        assert b'SeedForth / Mycelium' in body
+    elif path == '/mcp':
+        assert not headers.get('Set-Cookie')
 
 
-@pytest.mark.parametrize('path', ['/', '/mcp', '/.well-known/acme-challenge/absent-probe-token'])
+@pytest.mark.parametrize('path', ['/api', '/.well-known/acme-challenge/absent-probe-token'])
 def test_http_serves_no_application_or_directory(path):
     assert request(path, scheme='http')[0] == 404
+
+
+def test_https_root_redirects_to_login():
+    status, headers, _ = request('/')
+    assert status == 200  # urllib follows the reviewed 302 to /login
+    assert headers['Content-Type'].startswith('text/html')
 
 
 @pytest.mark.parametrize('scheme', ['http', 'https'])
