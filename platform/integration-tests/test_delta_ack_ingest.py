@@ -13,10 +13,10 @@ class Graph:
 def test_ack_ingest_dispatches_and_quarantines(tmp_path):
     stream=tmp_path/'acks.jsonl'; state=tmp_path/'state.json'
     stream.write_text('\n'.join([
-        json.dumps({'scope':'cajon-sensei','message_id':'message-a','ack_id':'ack-12345678',
+        json.dumps({'scope':'cajon-sensei','conversation_message_id':'message-a','ack_id':'ack-12345678',
                     'ack_status':'received','summary':'received as content'}),
         '{not-json}',
-        json.dumps({'scope':'cajon-sensei','message_id':'message-b','ack_id':'ack-87654321',
+        json.dumps({'scope':'cajon-sensei','conversation_message_id':'message-b','ack_id':'ack-87654321',
                     'ack_status':'approved','summary':'invalid status'}),
     ])+'\n')
     graph=Graph(); result=collect_and_dispatch(graph,stream,state)

@@ -57,14 +57,16 @@ def collect_and_dispatch(graph: Graph, stream: Path=STREAM, state: Path=STATE) -
             stats['lines']+=1
             try:
                 data=json.loads(raw)
+                message_id = (data.get('conversation_message_id')
+                              if isinstance(data, dict) else None)
                 if (not isinstance(data,dict) or not re.fullmatch(r'[a-z0-9-]{1,64}',str(data.get('scope','')))
-                        or not isinstance(data.get('message_id'),str)
+                        or not isinstance(message_id,str)
                         or not isinstance(data.get('ack_id'),str)
                         or data.get('ack_status') not in {'received','needs_review','rejected'}
                         or not isinstance(data.get('summary'),str)):
                     raise ValueError('invalid_ack')
                 rows=graph.operation('record-conversation-ack',PROCESSOR,data['scope'],
-                    message_id=data['message_id'],ack_id=data['ack_id'],
+                    message_id=message_id,ack_id=data['ack_id'],
                     ack_status=data['ack_status'],summary=data['summary'][:2000])
                 if not rows: raise ValueError('ack_transition_denied')
                 stats['dispatched']+=1
