@@ -895,3 +895,20 @@ actions disabled until their authority and postconditions are implemented.
   useful Flowing/Cajon autonomy, independent outcome measurement, Delta/Charlie
   processor alignment, public scoped MCP/board operation, provider credential
   rotation, recovery drills, and elapsed unattended qualification.
+
+## MCP direction fail-closed alignment
+
+- Control/identity release `6471b8aea2b535884284c841b62383afc5ba208a` is now
+  deployed to both `control-current` and `identity-current`; migration applied
+  successfully and the identity service restarted with `/login` returning 200
+  on its host-bound loopback check.
+- MCP `send_to_delta` now refuses by default unless the explicit
+  `SEEDFORTH_GOVERNED_DELTA_PROCESSOR` feature gate is enabled. Synthetic tests
+  opt into that gate to verify durable queue/reconnect semantics; the live
+  service does not. This prevents remote text from entering the legacy Delta
+  processor as executable direction before originator-bound processing is
+  qualified.
+- Public TLS ingress remains deliberately 503. Scoped graph reads, board
+  controls, OAuth client trials, and remote MCP still require the final
+  originator-bound processor, owner credential rotation, and public-client
+  qualification. No public access is claimed.
