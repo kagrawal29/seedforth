@@ -222,3 +222,9 @@ function disconnect() {
 $('connect').addEventListener('submit',event=>{event.preventDefault();generation++;credential=$('token').value;scope=$('scope').value;portfolioMode=scope==='seedforth-platform';$('token').value='';refresh();});
 $('refresh').addEventListener('click',refresh);$('disconnect').addEventListener('click',disconnect);
 $('direction-form').addEventListener('submit',sendDirection);
+if (document.body.dataset.sessionAuth === 'true') {
+  scope = 'seedforth-platform';
+  portfolioMode = true;
+  generation++;
+  refresh();
+}

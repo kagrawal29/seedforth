@@ -203,7 +203,7 @@ class HumanUI:
                 return RedirectResponse('/login?next=/control', status_code=303)
             content = content.replace('href="/style.css"', 'href="/control/style.css"')
             content = content.replace('src="/app.js"', 'src="/control/app.js"')
-            content = content.replace('<body>', '<body data-api-path="/control/api/operation">')
+            content = content.replace('<body>', '<body data-api-path="/control/api/operation" data-session-auth="true">')
         media = {'html': 'text/html; charset=utf-8', 'js': 'text/javascript; charset=utf-8', 'css': 'text/css; charset=utf-8'}[path.suffix[1:]]
         return Response(content, media_type=media)
 
