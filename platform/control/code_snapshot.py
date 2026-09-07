@@ -103,7 +103,7 @@ class CodeSnapshot:
                 raise ValueError('invalid_source_blob')
             content = raw.decode('utf-8')
             # Defense-in-depth tripwires, not a claim of exhaustive secret detection.
-            if re.search(r'-----BEGIN .*PRIVATE KEY-----|(?:sk_live_|rzp_live_|ghp_|github_pat_|sk-ant-)[A-Za-z0-9_-]{12,}', content):
+            if re.search(r'-----BEGIN .*PRIVATE KEY-----|(?:sk_live_|rzp_live_|ghp_|github_pat_|sk-ant-)[A-Za-z0-9_-]{12,}|https://hooks\.slack\.com/services/[A-Za-z0-9/_-]{20,}', content):
                 raise ValueError('possible_secret_in_snapshot')
             files.append({'path': path, 'git_blob': oid,
                 'sha256': hashlib.sha256(raw).hexdigest(), 'content': content})

@@ -20,11 +20,12 @@ def source(tmp_path):
     (repo/'large.js').write_text('x' * (CodeSnapshot.max_file_bytes + 1))
     (repo/'link.js').symlink_to('app.js')
     (repo/'bad.js').write_text('const token="ghp_' + 'x'*24 + '";')
-    subprocess.run(['git', '-C', str(repo), 'add', 'app.js', 'large.js', 'link.js', 'bad.js'], check=True)
+    (repo/'webhook.js').write_text('const hook="https://hooks.slack.com/services/T00000000/B00000000/abcdefghijklmnopqrstuvwxyz";')
+    subprocess.run(['git', '-C', str(repo), 'add', 'app.js', 'large.js', 'link.js', 'bad.js', 'webhook.js'], check=True)
     subprocess.run(['git', '-C', str(repo), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'fixture'], check=True)
     revision = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
-    adapter = CodeSnapshot({'fixture': repo}, {'fixture': ['app.js', 'large.js', 'link.js', 'bad.js']}, tmp_path/'artifacts')
+    adapter = CodeSnapshot({'fixture': repo}, {'fixture': ['app.js', 'large.js', 'link.js', 'bad.js', 'webhook.js']}, tmp_path/'artifacts')
     return adapter, repo, revision
 
 
@@ -49,7 +50,7 @@ def test_path_escape_and_unpromoted_coverage_denied(source, path):
         adapter.validate('fixture', {'revision': revision, 'paths': [path]})
 
 
-@pytest.mark.parametrize('path', ['large.js', 'link.js', 'bad.js'])
+@pytest.mark.parametrize('path', ['large.js', 'link.js', 'bad.js', 'webhook.js'])
 def test_size_symlink_and_secret_fail_without_artifact(source, path):
     adapter, _, revision = source
     with pytest.raises(ValueError):
