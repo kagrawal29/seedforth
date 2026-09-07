@@ -12,6 +12,7 @@ async (page) => {
     {id:'a',title:'Work A',status:'ready',version:1,hold:false,acceptance:'Criterion A'},
     {id:'b',title:'Work B',status:'review',version:2,hold:false,acceptance:'Criterion B'},
   ];
+  let sentDirection = null;
   let scopeState = {work_enabled:false,state_version:0};
   await page.route('**/api/operation', async route => {
     const request = route.request(), body = request.postDataJSON();
@@ -33,6 +34,8 @@ async (page) => {
       await new Promise(resolve => { releaseA = resolve; });
     }
     if (body.operation === 'read-evidence') data = [{kind:'TestRun',status:`evidence-${body.params.id}`,recorded_at:'fixture',id:body.params.id}];
+    if (body.operation === 'read-conversation' && sentDirection) data = [{id:'message-fixture',sequence:1,role:'direction',text:sentDirection,delivery_state:'queued',execution_state:'not_started',created_at:'fixture'}];
+    if (body.operation === 'send-conversation-message') { sentDirection = body.params.text; data = [{id:'message-fixture',sequence:1,delivery_state:'queued',execution_state:'not_started'}]; }
     if (body.operation === 'hold-work') {
       const work = items.find(w => w.id === body.params.id);
       if (conflict || work.version !== body.params.version) return reply(409,{error:'transition_denied_or_version_conflict'});
@@ -57,6 +60,12 @@ async (page) => {
   await page.goto('http://127.0.0.1:18787/');
   await page.setViewportSize({width:1440,height:1000});
   await connect();
+  await page.locator('#direction-text').fill('Inspect the next useful bounded outcome.');
+  await page.getByRole('button',{name:'Queue direction to Delta',exact:true}).click();
+  await page.waitForFunction(() => document.querySelector('#conversation-status').textContent.includes('Conversation read through sequence 1'));
+  check(sentDirection === 'Inspect the next useful bounded outcome.', 'Direction was not queued with the scoped conversation');
+  check((await page.locator('#conversation-messages').innerText()).includes('queued'), 'Queued conversation state is not visible');
+  checks.push('scoped direction queues durably and distinguishes queued from execution');
   await page.getByRole('button',{name:'Enable bounded work',exact:true}).click();
   await page.getByRole('button',{name:'Pause new work',exact:true}).waitFor();
   check(scopeState.work_enabled && scopeState.state_version === 1, 'Scope gate did not enable with a version');

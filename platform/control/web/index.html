@@ -15,6 +15,12 @@
 <p id="freshness" class="muted"></p><div id="authority" class="panel"></div>
 <section id="portfolio" hidden aria-labelledby="portfolio-title"><h2 id="portfolio-title">Portfolio</h2><p class="muted">Current graph state across scopes you administer. Historical process status is shown separately from portfolio authority.</p><div id="portfolio-list" class="portfolio-list"></div></section>
 <section id="project-view">
+<section id="direction" class="panel" aria-labelledby="direction-title"><h2 id="direction-title">Direction</h2>
+<p class="muted">Talk to Delta in this project's scope. Messages are durable direction queued for review; queued is not execution or approval.</p>
+<label>Conversation key<input id="conversation-key" value="control-board" maxlength="128" pattern="[A-Za-z0-9_-]+" autocomplete="off"></label>
+<div id="conversation-messages" class="conversation-messages" role="log" aria-live="polite"><p class="muted">No messages loaded.</p></div>
+<form id="direction-form"><label>Direction<textarea id="direction-text" rows="4" maxlength="8000" required></textarea></label><button>Queue direction to Delta</button></form>
+<p id="conversation-status" class="muted" role="status"></p></section>
 <section aria-labelledby="attention-title"><h2 id="attention-title">Needs attention</h2><div id="attention" class="panel"></div></section>
 <section aria-labelledby="board-title"><h2 id="board-title">Work</h2><p class="muted">Only governed work appears here. An empty board does not mean legacy work or problems are absent.</p><div id="board" class="board"></div></section>
 <section id="inspector" class="panel" hidden aria-labelledby="inspect-title"><h2 id="inspect-title"></h2><p id="criteria"></p><p id="verification"></p><div id="actions"></div><h3>Evidence</h3><ul id="evidence"></ul><h3>State history</h3><ol id="timeline"></ol></section>

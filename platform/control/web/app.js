@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let credential = '', scope = '', selected = null, online = false, generation = 0;
-let refreshVersion = 0, inspectionVersion = 0;
+let refreshVersion = 0, inspectionVersion = 0, conversationCursor = 0;
 class Superseded extends Error {}
 function text(tag, value, className) {
   const node = document.createElement(tag); node.textContent = value;
@@ -71,6 +71,7 @@ async function refresh() {
     const p = project.data[0];
     $('authority').replaceChildren();
     $('authority').append(text('p',`Portfolio: ${p.portfolio_state || 'unknown'}. New governed work: ${p.work_enabled ? 'enabled' : 'held'}. Legacy status: ${p.historical_status || 'unknown'} (not portfolio authority).`));
+    await loadConversation();
     if (Number.isInteger(p.state_version) && p.portfolio_state === 'active') {
       const gate=text('button',p.work_enabled ? 'Pause new work' : 'Enable bounded work');
       gate.addEventListener('click',async()=>{
@@ -105,6 +106,43 @@ async function refresh() {
   } catch (error) {
     if (requestVersion === refreshVersion) fail(error);
   }
+}
+async function loadConversation() {
+  const key = $('conversation-key').value.trim() || 'control-board';
+  try {
+    const result = await operation('read-conversation',{conversation_key:key,cursor:0});
+    $('conversation-messages').replaceChildren();
+    conversationCursor = 0;
+    for (const message of result.data) {
+      const item = text('article','',`conversation-message ${message.role || 'unknown'}`);
+      item.append(text('strong',message.role === 'direction' ? 'You' : (message.role || 'Delta')));
+      item.append(text('p',message.text || '(no text)'));
+      item.append(text('small',`${message.delivery_state || 'unknown'} · ${message.execution_state || 'unknown'} · ${message.created_at || 'time unknown'}`,'muted'));
+      $('conversation-messages').append(item);
+      if (Number.isInteger(message.sequence)) conversationCursor = Math.max(conversationCursor,message.sequence);
+    }
+    if (!result.data.length) $('conversation-messages').append(text('p','No messages loaded.','muted'));
+    $('conversation-status').textContent = `Conversation read through sequence ${conversationCursor}.`;
+  } catch (error) {
+    $('conversation-status').textContent = `Conversation unavailable: ${error.message}`;
+  }
+}
+async function sendDirection(event) {
+  event.preventDefault();
+  const button = $('direction-form').querySelector('button');
+  const key = $('conversation-key').value.trim() || 'control-board';
+  const message = $('direction-text').value.trim();
+  if (!message) return;
+  button.disabled = true;
+  try {
+    const result = await operation('send-conversation-message',{conversation_key:key,
+      request_id:`board-${crypto.randomUUID()}`,text:message});
+    $('direction-text').value = '';
+    const queued = result.data[0];
+    $('conversation-status').textContent = `Queued as ${queued?.id || 'a durable message'}; Delta has not executed it.`;
+    await loadConversation();
+  } catch (error) { fail(error); }
+  finally { button.disabled = false; }
 }
 function card(work) {
   const node=text('button',work.title || work.id,'card');
@@ -158,13 +196,16 @@ function disconnect() {
   generation++;
   refreshVersion++;inspectionVersion++;
   credential='';scope='';selected=null;online=false;
+  conversationCursor=0;
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
   $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();$('evidence').replaceChildren();
   $('portfolio-list').replaceChildren();$('portfolio').hidden=true;$('project-view').hidden=false;
   for (const id of ['project-name','freshness','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
-  $('inspector').hidden=true;
+  $('inspector').hidden=true;$('conversation-messages').replaceChildren(text('p','No messages loaded.','muted'));
+  $('conversation-status').textContent='';$('direction-text').value='';$('conversation-key').value='control-board';
   $('connection').textContent='Disconnected';
   $('error').textContent='';
 }
 $('connect').addEventListener('submit',event=>{event.preventDefault();generation++;credential=$('token').value;scope=$('scope').value;$('token').value='';refresh();});
 $('refresh').addEventListener('click',refresh);$('disconnect').addEventListener('click',disconnect);
+$('direction-form').addEventListener('submit',sendDirection);
