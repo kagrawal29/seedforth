@@ -7,7 +7,7 @@ specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
 Current known production release: abb677fe5ff81e7a188ad29ef49a869f0e9e9206.
-Separate control component: cf2d1082d8dd66a4fa2469c33da757ca23833a08,
+Separate control component: 657115103078391f6de00b202975093c3ac81664,
 deployed via /opt/seedforth/control-current. Active end-to-end goal registered
 at the owner's explicit request. No token budget was requested.
 
@@ -1416,3 +1416,24 @@ actions disabled until their authority and postconditions are implemented.
   its explicit disposable-graph endpoint and was not falsely counted as a new
   production qualification. The live identity service has not been opened or
   granted this flag yet.
+
+## Live processor qualification and reducer repair
+
+- A live synthetic qualification initially exposed a real failure: repeated
+  `HAS_MESSAGE` paths could make `claim-conversation-message` create the same
+  deterministic claim signal more than once. A second run exposed the same
+  class of fan-out through multiple valid delivery grants during
+  `record-conversation-delivery`.
+- Both reducers now collapse matched graph rows with `WITH DISTINCT` before
+  mutating state or creating immutable signals. The regression fixture now
+  covers duplicate message relationships and duplicate delivery grants.
+- After promotion, a live synthetic originator queued one scoped direction;
+  the processor delivered exactly one deterministic temporary-inbox artifact,
+  preserved `authenticated_origin_untrusted_content`, recorded
+  `received_by_delta`, and returned zero on the second delivery pass. All
+  temporary identities/grants were disabled or revoked, temporary files were
+  removed, and live graph state has zero queued or delivering messages.
+- This qualifies the processor and reducers against live Mycelium without
+  sending a synthetic message to the real Delta inbox. The remote MCP flag is
+  intentionally still disabled pending identity-release integration and final
+  remote client qualification.
