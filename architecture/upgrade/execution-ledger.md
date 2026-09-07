@@ -1681,3 +1681,12 @@ actions disabled until their authority and postconditions are implemented.
 - This is clean post-deployment evidence for the new health projection and
   recovery from the maintenance-window outage. It is still a short window and
   does not satisfy the required long-duration unattended qualification.
+
+## Service-health history and recovery validation
+
+- A live graph query found exactly one retained failed service observation for
+  `seedforth-graphify-sensor.service`, at `13:52:14Z` with result `exit-code`,
+  corresponding to the intentional Neo4j restart window. The latest six
+  observations for every monitored unit are successful.
+- This confirms the reducer preserves incident history while projecting the
+  current healthy state; a recovery does not erase evidence of the outage.
