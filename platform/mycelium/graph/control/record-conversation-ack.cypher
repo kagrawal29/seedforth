@@ -15,7 +15,13 @@ WITH a,m
 WHERE a.scope_id=$scope AND a.message_id=m.node_id AND a.status IN ['received','needs_review','rejected']
 SET m.execution_state=CASE WHEN a.status='received' THEN 'acknowledged' ELSE 'requires_review' END,
     m.acknowledged_at=coalesce(m.acknowledged_at,a.created_at),m.ack_status=a.status,
-    m.ack_id=a.node_id,m.delta_response=a.summary,m.updated_at=datetime()
+    m.ack_id=a.node_id,
+    m.delta_response=CASE
+      WHEN $summary='Delta Hub session received the message; no execution is implied'
+        THEN m.delta_response
+      ELSE a.summary
+    END,
+    m.updated_at=datetime()
 MERGE (a)-[:ACKNOWLEDGES]->(m)
 RETURN m.node_id AS message_id,m.execution_state AS execution_state,
        a.node_id AS ack_id,a.status AS ack_status
