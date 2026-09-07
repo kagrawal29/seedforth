@@ -978,3 +978,21 @@ actions disabled until their authority and postconditions are implemented.
   public scoped MCP with qualified clients, richer multi-project board UX,
   recovery/security drills, continuity, and an elapsed unattended-operation
   qualification.
+
+## Governed conversation delivery boundary
+
+- Added graph-native claim, commit, and lease-recovery reducers for
+  authenticated `ConversationMessage` direction. A delivery claim is scoped
+  to the authenticated originator's conversation, carries a short lease, and
+  returns content only as untrusted data. The commit records a deterministic
+  delivery hash/reference; recovery returns an expired delivery to `queued`
+  while preserving prior signals.
+- The disposable live graph qualification passed claim single-winner,
+  duplicate-claim refusal, deterministic commit, and expired-lease recovery.
+  The test also caught and fixed a misleading empty-result recovery path
+  before deployment.
+- Control release `3e9d5061867be21bbc27f7c39fae912845d1d561` was migrated and
+  deployed atomically. The Delta conversation processor identity is present in
+  the graph with scoped delivery/reconciliation grants, but no external writer
+  or MCP send path has been enabled yet. Injection handling and Delta-side
+  acknowledgement remain required before opening direction.
