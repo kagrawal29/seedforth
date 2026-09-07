@@ -1592,3 +1592,13 @@ actions disabled until their authority and postconditions are implemented.
   every sample. Together with the prior window this provides approximately
   `200` seconds of explicit live stability evidence, not a long-duration or
   month-long unattended qualification.
+
+## Final live archival boundary audit
+
+- Live graph inventory now shows no non-core product Project outside the
+  archived boundary. The retained non-archived records are Mycelium, Delta,
+  Tetrahedron reference state, Flowing Indian, and Cajon Sensei.
+- Live service, process, and root-cron census found no running obsolete
+  `ethos`, LinkedIn, Seedforthing, or Zuuro runtime/schedule to fence. The two
+  products remain portfolio-active while their execution gates stay explicit
+  and independently controlled.
