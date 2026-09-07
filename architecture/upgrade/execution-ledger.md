@@ -1521,3 +1521,18 @@ actions disabled until their authority and postconditions are implemented.
   snapshot hash remained unchanged and the live identity service stayed active.
 - This qualifies credential-safety behavior for identity restore. It does not
   claim a full Neo4j or whole-server disaster recovery drill.
+
+## Flowing bounded-autonomy requalification boundary
+
+- A fresh one-unit Flowing candidate mandate was admitted with a twenty-minute
+  expiry, the settlement authority was renewed, and the graph gate was opened
+  through the normal versioned transitions. The candidate was ready without
+  production deployment or spend authorization.
+- The executor then failed closed at the worker transport with
+  `401 invalid_credentials` while reading the attempt receipt. No candidate
+  effect occurred. This is the first direct evidence that the current worker
+  credential boundary, not the graph mandate, prevents useful autonomy.
+- The Flowing scope was immediately disabled and the candidate re-held through
+  graph transitions. All core services remained active. The failed credential
+  boundary is retained as an explicit release blocker; it is not counted as an
+  autonomous outcome.
