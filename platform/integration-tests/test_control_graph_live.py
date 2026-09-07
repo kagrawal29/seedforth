@@ -261,6 +261,16 @@ def test_legacy_done_is_not_governed_verified_work(graph, case):
     assert graph.operation('read-legacy-work',case['actor'],case['scope'])==[]
 
 
+def test_legacy_triage_preserves_state_and_never_admits_execution(graph, case):
+    graph.query("CREATE (:WorkItem {node_id:$id+'-legacy-triage',project:$scope,status:'in_review',title:'Historical output'})",case)
+    rows=graph.operation('triage-legacy-work',case['actor'],case['scope'],
+                         id=case['id']+'-legacy-triage',event_id=uuid4().hex)
+    assert rows[0]['status']=='proposed' and rows[0]['hold'] is True
+    assert rows[0]['legacy_status']=='in_review' and rows[0]['version']==0
+    assert graph.operation('read-work',case['actor'],case['scope'])[0]['status'] in {'proposed','in_review'}
+    assert graph.operation('select-ready-work',case['worker'],case['scope'])==[]
+
+
 def test_full_migration_and_upgrade_plan_are_idempotent(graph):
     from control.migrate import migrate
     for node_id,name in [('proj-mycelium','mycelium'),('project-cajon-sensei','cajon-sensei'),('project-flowing-indian','flowing-indian')]:

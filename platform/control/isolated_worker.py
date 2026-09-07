@@ -5,6 +5,7 @@ capability invocation produces a review candidate, never an accepted outcome.
 """
 import http.client
 import json
+import os
 from pathlib import Path
 import socket
 
@@ -13,7 +14,7 @@ def request(job, token, operation, **params):
     connection = http.client.HTTPConnection('localhost', timeout=40)
     connection.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     connection.sock.settimeout(40)
-    connection.sock.connect('/run/broker.sock')
+    connection.sock.connect(os.environ.get('SEEDFORTH_WORKER_SOCKET', '/run/seedforth-worker/broker.sock'))
     try:
         connection.request('POST', '/api/operation',
             body=json.dumps({'operation':operation,'scope':job['scope'],'params':params}),

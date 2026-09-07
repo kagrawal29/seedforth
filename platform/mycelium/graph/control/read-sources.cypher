@@ -5,6 +5,7 @@ MATCH (s:SourceStream {scope_id:scope})
 RETURN s.node_id AS id,s.adapter AS adapter,s.enabled AS enabled,
 s.path AS path,s.coverage AS coverage,s.repository_revision AS repository_revision,
 s.committed_hash AS committed_hash,s.working_hash AS working_hash,
+s.extraction_status AS extraction_status,s.fact_count AS fact_count,s.failure_count AS failure_count,
 s.last_attempt_at AS last_attempt_at,s.last_attempt_status AS last_attempt_status,
 s.last_success_at AS last_success_at,s.latest_observation AS evidence,
 CASE WHEN s.last_success_at IS NULL THEN 'unknown'

@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1] / 'mycelium/graph/knowledge'
 SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cypher',
            'seedforth-upgrade-pilot-scopes.cypher','seedforth-pilot-runtime-sources.cypher',
            'seedforth-pilot-code-sources.cypher',
+           'seedforth-delta-event-sources-v1.cypher',
+           'seedforth-graphify-source-v1.cypher',
            'seedforth-conversation-model-v1.cypher',
            'seedforth-upgrade-work-plan.cypher','seedforth-control-owner.cypher',
            'seedforth-owner-conversations-v1.cypher']

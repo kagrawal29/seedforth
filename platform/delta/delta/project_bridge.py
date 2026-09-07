@@ -86,6 +86,19 @@ class ProjectBridge:
         with open(log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
 
+    def _append_graph_event(self, event_type: str, payload: dict) -> None:
+        """Append a graph-boundary event for async promotion instead of inline writes."""
+        event_file = self.logs_dir / "graph-events.jsonl"
+        record = {
+            "agent": self.name,
+            "project": self.name,
+            "event_type": event_type,
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "payload": payload,
+        }
+        with open(event_file, "a") as stream:
+            stream.write(json.dumps(record) + "\n")
+
     def write_inbox(self, channel: str, user: str, text: str,
                     thread_ts: str | None = None, **extra) -> str:
         """Write a message to the project's inbox. Returns msg_id.
@@ -167,28 +180,16 @@ class ProjectBridge:
                     if resp_text and callback:
                         callback(channel_id, resp_text)
                     if resp_text:
-                        try:
-                            import time as _t
-                            import urllib.request as _ur, json as _json, base64 as _b64
-                            node_id = f"trace-{int(_t.time() * 1000)}"
-                            safe_text = text[:100].replace('"', '\\"')
-                            body = _json.dumps({"statements": [{"statement":
-                                "CREATE (st:SessionTrace {node_id:$nid, agent:$ag, "
-                                "project:$pr, user:$usr, text_preview:$txt, created_at:datetime()})",
-                                "parameters": {"nid": node_id, "ag": self.name,
-                                               "pr": self.name, "usr": user_name,
-                                               "txt": safe_text}}]}).encode()
-                            auth = _b64.b64encode(
-                                f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()
-                            ).decode()
-                            req = _ur.Request(
-                                "http://127.0.0.1:7474/db/neo4j/tx/commit",
-                                data=body, headers={"Content-Type": "application/json",
-                                                    "Authorization": f"Basic {auth}"})
-                            with _ur.urlopen(req, timeout=5) as r:
-                                r.read()
-                        except Exception as e2:
-                            print(f"session trace write failed: {e2}")
+                        self._append_graph_event(
+                            "session_trace",
+                            {
+                                "msg_id": msg_id,
+                                "user": user_name,
+                                "text_preview": text[:100],
+                                "session_id": sid,
+                                "channel_id": channel_id,
+                            },
+                        )
             except Exception as e:
                 print(f"HTTP delivery failed for {self.name}: {e}")
 
@@ -575,27 +576,19 @@ class ProjectBridge:
             return 0
 
     def _write_work_item(self, task: dict) -> None:
-        import subprocess, time
+        import time
         try:
             task_id = task.get("id", "unknown")
-            node_id = f"workitem-{task_id}-{int(time.time())}"
             what = task.get("what", "")[:100].replace('"', '\\"')
             status = task.get("status", "unknown")
-            cypher = (
-                f'CREATE (wi:WorkItem {{'
-                f'node_id:"{node_id}", '
-                f'project:"{self.name}", '
-                f'task_id:"{task_id}", '
-                f'what:"{what}", '
-                f'status:"{status}", '
-                f'created_at:datetime()'
-                f'}})'
-            )
-            subprocess.run(
-                ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-                 "-u", "neo4j", "-p", os.environ.get("NEO4J_PASSWORD", ""),
-                 "--format", "plain", cypher],
-                capture_output=True, text=True, timeout=10
+            self._append_graph_event(
+                "work_item",
+                {
+                    "task_id": task_id,
+                    "project": self.name,
+                    "status": status,
+                    "what": what,
+                },
             )
         except Exception as e:
             print(f"work item write failed: {e}")

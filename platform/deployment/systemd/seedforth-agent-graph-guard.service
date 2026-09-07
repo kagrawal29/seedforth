@@ -1,0 +1,20 @@
+[Unit]
+Description=SeedForth legacy agent direct graph containment
+Before=supervisor.service seedforth-delta.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 /opt/seedforth/agent-guard-current/operations/agent-graph-guard.py
+User=root
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+CapabilityBoundingSet=CAP_NET_ADMIN
+AmbientCapabilities=CAP_NET_ADMIN
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target

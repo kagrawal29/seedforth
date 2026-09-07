@@ -80,14 +80,43 @@ at the owner's explicit request. No token budget was requested.
   handoff docs contain plaintext credentials: keep them out of release material
   and include dependent-service rotation/redaction in security remediation.
 
+- 2026-09-07 local upgrade slice: Delta event ingestion now has explicit source
+  adapters, graph operations, durable per-file cursors, partial-line retry,
+  quarantine for malformed/unsupported records, and cursor preservation on graph
+  failure. Graphify output now has a bounded snapshot adapter with content hash,
+  repository/revision/extractor provenance, extracted-vs-inferred fact classes,
+  coverage/failure counts, and no raw model summaries in graph facts. The legacy
+  Graphify direct delete/recreate writer was removed from the runtime agent path.
+  Focused sensing/Graphify tests pass 17; complete platform integration suite
+  passes 102 with 62 explicit infrastructure skips; Delta bridge/registry/lifecycle
+  tests pass 31. Playwright CLI 0.1.19 control-board regression passes all listed
+  synthetic human journeys. These changes are local and not deployed to delta2.
+- 2026-09-07 live read-only baseline: delta2 host `vmi3556896` reports immutable
+  release `1770e7c`; seedforth Delta, control, worker, and identity services are
+  active; heartbeat/runtime/code timers are scheduled. The new event-ingest files
+  and timer are absent from that release. No live mutation was performed.
+- The dedicated disposable Neo4j on delta2 accepted the new additive migration
+  and operation promotion twice through the loopback tunnel. Synthetic session,
+  work-item, provision, and Graphify snapshot events were recorded; session replay
+  returned the same node without duplication, and a Graphify fact linked to its
+  snapshot. This is staging evidence only; the disposable graph was not used as
+  production evidence and the tunnel was closed afterward.
+- The Graphify reducer was corrected and re-promoted on the disposable graph:
+  an empty extraction now still records a successful snapshot and updates source
+  health. The staging operation returned `facts=0`, `failures=0`, and the source
+  projection pointed to the snapshot. The new operation source hash is
+  `c58ea4e0438f33a3e11cc3c7b31fdeeb08d503c0815c812706baed1c538c5331`.
+
 ## Immediate continuation
 
 Continue the active end-to-end goal, not another planning-only pass. Next priority:
-protected capability broker and useful governed executor (W12/W13), including
-isolated workers, budgets, durable invocation/outcome reconciliation, and strict
-promotion controls before replacing the unsafe legacy division path. Continue
-Graphify/source census and remote TLS/OAuth/MCP alongside that boundary. The
-loopback board is an early interface, not the complete UX or remote-access promise.
+stage the new source/Graphify slice in a disposable/restored graph, then promote it
+only after migration and rollback checks. In parallel continue the protected
+capability broker and useful governed executor (W12/W13), including monetary/model
+budgets, durable invocation/outcome reconciliation, and strict promotion controls
+before replacing the unsafe legacy division path. Continue remote TLS/OAuth/MCP,
+portfolio archival, and richer board controls. The loopback board is an early
+interface, not the complete UX or remote-access promise.
 No autonomous product outcome, archival, public MCP, scheduler retirement, or
 30-day soak has been demonstrated. Preserve this distinction in progress reports.
 
@@ -678,3 +707,45 @@ actions disabled until their authority and postconditions are implemented.
   public identity/MCP/board routing. The governed Delta processor, Graphify/full
   sensing, useful Flowing autonomy, archival and unattended qualification remain
   in the complete objective.
+
+## Disposable live control qualification
+
+- On 2026-09-07, the staging-only Neo4j fixture at localhost:27474 passed
+  `test_control_graph_live.py`: 31 passed, 2 skipped in 644.66s. The suite
+  exercised live graph promotion, capability/mandate/fence checks, receipt and
+  idempotency behavior, loss/retry paths, and control-state transitions through
+  the disposable delta2 container.
+- The temporary Cajon authority fixture was restored and re-verified after the
+  run: `cajon-sensei.work_enabled=false`,
+  `wi-cajon-partial-loop-credit.status=proposed`, `hold=true`,
+  `state_version=0`. The SSH tunnel was closed. Production was not contacted
+  or changed.
+- This materially strengthens staging evidence for the control substrate, but
+  does not qualify useful product autonomy, production deployment, public
+  scoped MCP access, project archival, or an unattended soak. The full goal
+  remains active and incomplete.
+
+## Legacy work triage boundary
+
+- Live inventory on 2026-09-07 found legacy work items with `scope_id=null` and
+  overloaded states (`todo`, `in_progress`, `in_review`, and `open`). This is a
+  real source-of-truth gap: the canonical selector cannot safely reason about
+  such items, while treating their old states as executable would fabricate
+  authority and progress.
+- Added graph-authored `triage-legacy-work`. With a current scoped
+  `work.control` grant it maps exactly one unscoped item to the scope's mapped
+  canonical project, preserves its prior state in `legacy_status`, sets the
+  canonical state to `proposed`, applies `hold=true`, initializes the version,
+  marks verification unverified, and appends a transition. It cannot admit the
+  item to execution.
+- Disposable live Neo4j execution passed for a synthetic `in_review` item and
+  verified scope mapping, `proposed`/held state, version zero, and preserved
+  legacy status. The fixture and promoted operation were deleted afterward.
+  Source hash: `d8e710af4cab3a1aaff922ee4f5643e51d449e6b94ae5204e30e34efb237f50d`.
+- The behavior is now covered by the live control test
+  `test_legacy_triage_preserves_state_and_never_admits_execution` (1 passed in
+  86.79s) against the dedicated disposable endpoint. The tunnel was closed
+  after the test.
+- The operation is not yet promoted to production. Next is to inventory and
+  triage actual Flowing/Cajon legacy items in bounded batches, then separately
+  assess archive candidates; no historical item is silently reactivated.

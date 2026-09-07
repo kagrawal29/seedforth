@@ -1,7 +1,7 @@
 MATCH (:Principal {node_id:$actor,enabled:true})-[:HAS_GRANT]->(g:Grant {scope:$scope,revoked:false})
 WHERE 'read' IN g.permissions AND (g.expires_at IS NULL OR g.expires_at>datetime())
 WITH DISTINCT g.scope AS scope,
-['WorkItem','Workstream','Milestone','EntityGoal','Decision','Receipt','TestRun','SourceStream','Knowledge','Observation'] AS allowed,
+['WorkItem','Workstream','Milestone','EntityGoal','Decision','Receipt','TestRun','SourceStream','Knowledge','Observation','DeltaEvent','GraphifySnapshot','GraphifyFact'] AS allowed,
 ['Principal','Grant','CypherAtom','ControlOperation','OperationRevision','NetworkPolicy','ScopedConversation','ConversationMessage'] AS excluded
 MATCH (n {scope_id:scope})
 WHERE n.node_id IS NOT NULL AND n.node_id>$cursor
@@ -13,7 +13,7 @@ CALL {
   MATCH (n)-[r]-(m {scope_id:scope})
   WHERE m.node_id IS NOT NULL AND any(label IN labels(m) WHERE label IN allowed)
   AND NOT any(label IN labels(m) WHERE label IN excluded)
-  AND type(r) IN ['HAS_WORKSTREAM','HAS_MILESTONE','HAS_WORK_ITEM','ADVANCES','VERIFIES','INFORMS','CONTEXT_FOR','OBSERVED_STREAM']
+  AND type(r) IN ['HAS_WORKSTREAM','HAS_MILESTONE','HAS_WORK_ITEM','ADVANCES','VERIFIES','INFORMS','CONTEXT_FOR','OBSERVED_STREAM','FROM_STREAM','CONTAINS_FACT','DESCRIBES']
   WITH r,m ORDER BY m.node_id,type(r) LIMIT 20
   RETURN collect({type:type(r),from:startNode(r).node_id,to:endNode(r).node_id}) AS edges
 }

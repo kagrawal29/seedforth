@@ -2403,6 +2403,9 @@ async def _schedule_fire_loop():
 
     Polls every 30s for sub-60s delivery accuracy.
     """
+    if not os.getenv("DELTAV1_LEGACY_SCHEDULE_AUTOMATION", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy schedule fire loop disabled by configuration")
+        return
     await client.wait_until_ready()
     # Track which tasks have been fired today to prevent double-firing
     fired_today: dict[str, str] = {}  # "project:task_id:date" -> iso timestamp
@@ -2608,6 +2611,9 @@ async def _silence_nudge_loop():
     the opencode prompt (not mid-turn). Caps at 5 nudges per user message
     with 25s cooldown between nudges per project.
     """
+    if not os.getenv("DELTAV1_LEGACY_SILENCE_NUDGE", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy silence nudge loop disabled by configuration")
+        return
     await client.wait_until_ready()
 
     while not client.is_closed():
@@ -2670,6 +2676,10 @@ def _restore_active_projects() -> int:
     but any stopped ones need to be restarted.
     Returns the number of projects restored.
     """
+    if not os.getenv("DELTAV1_LEGACY_RESTORE", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy project restore loop disabled by configuration")
+        return 0
+
     restored = 0
     booted = 0
     for name in registry.list_projects():
@@ -2723,10 +2733,12 @@ async def on_ready():
     client.loop.create_task(_admin_steering_digest_loop())
 
     # Start silence nudge loop (pokes agents that go dark)
-    client.loop.create_task(_silence_nudge_loop())
+    if os.getenv("DELTAV1_LEGACY_SILENCE_NUDGE", "").lower() in ("1", "true", "yes", "on"):
+        client.loop.create_task(_silence_nudge_loop())
 
     # Start general-purpose schedule fire loop (fires tasks from schedule.json)
-    client.loop.create_task(_schedule_fire_loop())
+    if os.getenv("DELTAV1_LEGACY_SCHEDULE_AUTOMATION", "").lower() in ("1", "true", "yes", "on"):
+        client.loop.create_task(_schedule_fire_loop())
 
     # Start resource manager (hibernates idle projects)
     client.loop.create_task(resource_manager_loop(client, registry, bridges))
