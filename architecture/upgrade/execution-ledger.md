@@ -1614,3 +1614,12 @@ actions disabled until their authority and postconditions are implemented.
   `ethos`, LinkedIn, Seedforthing, or Zuuro runtime/schedule to fence. The two
   products remain portfolio-active while their execution gates stay explicit
   and independently controlled.
+
+## Third explicit live soak window
+
+- A new eight-sample observation from `13:34:02Z` through `13:37:33Z` found
+  all four core services active at every sample, public anonymous `/mcp`
+  returning `401` at every sample, and zero service restarts. This adds roughly
+  three and a half minutes of clean evidence to the accumulated unattended
+  observation. It remains short-duration evidence and does not claim a
+  day-, week-, or month-scale soak.
