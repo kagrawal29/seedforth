@@ -783,3 +783,21 @@ actions disabled until their authority and postconditions are implemented.
   loop reviewable through the canonical board projection. It is not acceptance
   of any historical work, a product outcome, an archive decision, or useful
   autonomous execution.
+
+## Guarded portfolio archival operation
+
+- Added graph-authored `archive-project`. It requires the platform-scoped owner
+  control grant and an explicit project/decision/event/reason, refuses core and
+  active-product identities, and refuses projects with active SubAgents,
+  AgentProcesses, or queued/running execution sessions. It changes only
+  portfolio authority, sets new work disabled, holds pending work, and retains
+  service/process records and historical statuses.
+- Disposable live qualification passed: a synthetic active-agent attempt was
+  refused; after the agent was stopped, the project archived and its pending
+  work was held. The automated live test passed in 86.58s. The operation source
+  was then removed from the disposable fixture. Source hash after the syntax
+  correction: `aa6fb60c93aff58496467a4ba21a90a09d7d2bbe405720f02d1dffe3f84010dd`.
+- This operation is not yet promoted to production. Actual archival remains a
+  separate batch after the operation is deployed and each candidate's active
+  process/service obligations are resolved. No project was archived in this
+  step.

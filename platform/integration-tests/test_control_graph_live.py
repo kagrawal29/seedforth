@@ -271,6 +271,18 @@ def test_legacy_triage_preserves_state_and_never_admits_execution(graph, case):
     assert graph.operation('select-ready-work',case['worker'],case['scope'])==[]
 
 
+def test_archive_requires_quiet_project_and_holds_pending_work(graph, case):
+    create(graph, case)
+    graph.query("MATCH (a:Principal {node_id:$actor}) CREATE (a)-[:HAS_GRANT]->(:Grant {node_id:$scope+'-archive-grant',scope:'seedforth-platform',permissions:['work.control'],revoked:false})",case)
+    result=graph.operation('archive-project',case['actor'],'seedforth-platform',
+        project_id=case['scope'],decision_id=uuid4().hex,event_id=uuid4().hex,
+        reason='fixture archival qualification')
+    assert result[0]['portfolio_state']=='archived' and result[0]['new_work']=='disabled'
+    assert result[0]['pending_work']==1
+    assert graph.query("MATCH (p:Project {node_id:$scope}),(w:WorkItem {node_id:$id}) RETURN p.portfolio_state AS portfolio,w.hold AS hold",case)==[
+        {'portfolio':'archived','hold':True}]
+
+
 def test_full_migration_and_upgrade_plan_are_idempotent(graph):
     from control.migrate import migrate
     for node_id,name in [('proj-mycelium','mycelium'),('project-cajon-sensei','cajon-sensei'),('project-flowing-indian','flowing-indian')]:
