@@ -5,6 +5,7 @@ WHERE 'conversation.deliver' IN g.permissions
 MATCH (m:ConversationMessage {node_id:$message_id,scope_id:$scope,status:'delivering',
       delivery_attempt:$delivery_attempt})
 WHERE size($delivery_hash)=64 AND size($delivery_ref)>=1 AND size($delivery_ref)<=512
+WITH DISTINCT m
 SET m.status='delivered',m.delivery_hash=$delivery_hash,m.delivery_ref=$delivery_ref,
     m.delivered_at=datetime(),m.delivery_lease_until=null,m.updated_at=datetime(),
     m.execution_state='received_by_delta'

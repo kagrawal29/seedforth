@@ -302,6 +302,10 @@ def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case, 
                 "CREATE (p)-[:HAS_GRANT]->(:Grant {node_id:$processor+'-grant',scope:$scope,"
                 "permissions:['read','conversation.deliver','conversation.reconcile'],revoked:false})",
                 {**case,'processor':processor})
+    graph.query("MATCH (p:Principal {node_id:$processor}) "
+                "CREATE (p)-[:HAS_GRANT]->(:Grant {node_id:$processor+'-grant-duplicate',scope:$scope,"
+                "permissions:['read','conversation.deliver','conversation.reconcile'],revoked:false})",
+                {**case,'processor':processor})
     graph.query("CREATE (c:ScopedConversation {node_id:$scope+'-conversation',scope_id:$scope,originator:$actor,recipient:'delta',sequence:1}) "
                 "CREATE (m:ConversationMessage {node_id:$scope+'-message',scope_id:$scope,originator:$actor,recipient:'delta',"
                 "sequence:1,status:'queued',text:'untrusted direction',request_hash:'request-hash'}) "
