@@ -1129,3 +1129,17 @@ actions disabled until their authority and postconditions are implemented.
   streams as `partial`, preserving the last-success distinction.
 - This qualifies sensing and outage visibility, not project Graphify content.
   Project-specific extraction remains an explicit producer/coverage milestone.
+
+## Active-project Graphify producer qualification
+
+- Added a deterministic project-account producer for the approved Flowing Indian
+  and Cajon Sensei Markdown documents. It records the repository revision and
+  extractor revision, writes atomically to a service-owned state directory, and
+  emits only section identifiers plus document-order relationships.
+- Deployed producer timers and ran both producers live. Flowing Indian produced
+  3 documents / 51 facts at revision
+  `1b99ef60f005edf9d802c5fcfaf388b78e9a5224`; Cajon Sensei produced 2 documents /
+  116 facts at revision `20d0695a577f388a2f945bbc3f6f3b6a02b70d7a`.
+- The Graphify sensor then recorded both snapshots as complete, alongside the
+  platform's 112-fact snapshot. This qualifies deterministic source sensing and
+  freshness, not semantic/model extraction or product-business truth.
