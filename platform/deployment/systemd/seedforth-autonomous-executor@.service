@@ -7,7 +7,9 @@ Requires=seedforth-worker.service
 Type=oneshot
 User=root
 WorkingDirectory=/opt/seedforth/control-current
+LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
 LoadCredential=worker.token:/opt/seedforth/shared/env/worker-%i.token
+Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=PYTHONPATH=/opt/seedforth/control-current/platform
 Environment=SEEDFORTH_AUTONOMOUS_SCOPE=%i
 Environment=SEEDFORTH_AUTONOMOUS_PRINCIPAL=principal-%i-upgrade-worker
