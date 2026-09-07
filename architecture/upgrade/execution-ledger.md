@@ -749,3 +749,21 @@ actions disabled until their authority and postconditions are implemented.
 - The operation is not yet promoted to production. Next is to inventory and
   triage actual Flowing/Cajon legacy items in bounded batches, then separately
   assess archive candidates; no historical item is silently reactivated.
+
+## Control release 538c26e deployed
+
+- Immutable release `538c26e90adc61a9a58d30733ddfee9947d368c6` was cloned cleanly
+  on delta2 after passing the local focused suite and the disposable live control
+  qualification. The additive `control-v2` migration applied successfully with
+  the existing external graph credential and preserved the current backup and
+  main Delta target.
+- The control component switched from `2aed97e` to `538c26e`; control, runtime
+  sensing, and code sensing are active. The new Delta-event ingestion service and
+  timer were installed, verified with `systemd-analyze`, enabled, and ran once
+  successfully (`events=0`, `failed=0`). No autonomous executor timer was
+  enabled and all product scopes remain held/disabled.
+- This deploys the graph sensing/ingestion boundary, not the complete upgrade.
+  The Delta runtime itself remains on its retained main release, no product
+  work was dispatched, and no archive disposition or useful autonomous outcome
+  is claimed. Production triage requires this release's operation to be used
+  in a separately bounded, reversible batch.
