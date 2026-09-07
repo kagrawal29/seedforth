@@ -7,7 +7,7 @@ specific mandates; no budgets, recipients, or commercial targets are invented.
 
 Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
 Current known production release: abb677fe5ff81e7a188ad29ef49a869f0e9e9206.
-Separate control component: 0495e91d808a14548ec83ccc7bf87de18c19e33a,
+Separate control component: cf2d1082d8dd66a4fa2469c33da757ca23833a08,
 deployed via /opt/seedforth/control-current. Active end-to-end goal registered
 at the owner's explicit request. No token budget was requested.
 
@@ -1379,3 +1379,18 @@ actions disabled until their authority and postconditions are implemented.
 - The Cajon work gate was closed at version 10 after qualification. This is
   useful bounded autonomy and evidence-backed recovery, not deployment or
   unattended-soak evidence.
+
+## Scoped human direction panel
+
+- Added the first in-context conversation surface to the project board. An
+  authenticated human can read their scoped conversation and queue direction
+  to Delta using a bounded conversation key and idempotent request ID.
+- The UI renders role, delivery state, execution state, trust and timestamp as
+  text. It explicitly distinguishes durable `queued/not_started` direction
+  from execution or approval, and clears conversation content on disconnect.
+- Playwright CLI browser regression passed with the new journey plus the
+  existing stale-data, untrusted-text, version-conflict, outage, mobile,
+  response-order, logout and revocation checks.
+- The exact control release `cf2d1082d8dd66a4fa2469c33da757ca23833a08` is
+  live at `/opt/seedforth/control-current`; the control service is active and
+  the endpoint serves the new panel. Public MCP/HTTP ingress remains closed.
