@@ -1509,15 +1509,9 @@ def _init_hub() -> None:
         for d in [data_dir, data_dir / "inbox", data_dir / "outbox", data_dir / "logs"]:
             os.chmod(str(d), 0o777)
 
-        # Create settings.json in shared /root/.claude so ALL users skip the
-        # --dangerously-skip-permissions TUI prompt (symlinked from each user's home)
-        root_settings = Path("/root/.claude/settings.json")
-        if not root_settings.exists():
-            root_settings.write_text(json.dumps(
-                {"skipDangerousModePermissionPrompt": True}, indent=2
-            ))
-            os.chmod(str(root_settings), 0o666)
-            logger.info("Created /root/.claude/settings.json with skipDangerousModePermissionPrompt")
+        # The server service runs as the unprivileged `delta` user. Do not
+        # inspect or mutate root's home here. The current opencode runtime has
+        # no Claude permission-prompt setup requirement.
 
     # Hub runs as opencode SuperAgent (port 7700, supervisor-managed)
     if not LOCAL_MODE:
