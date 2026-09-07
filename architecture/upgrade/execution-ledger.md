@@ -1208,3 +1208,14 @@ actions disabled until their authority and postconditions are implemented.
   external worker credential/binding set is requalified. The live graph shows
   both active scopes paused, all non-done work held, and no live lease. This
   alignment improves deployment consistency but does not qualify autonomy.
+
+## Authoritative suite and active-fleet check
+
+- The control-plane integration suite was rerun in a disposable virtual
+  environment with its declared test dependencies: `112 passed, 66 skipped`.
+  The skips are environment-qualified integration cases, not converted to
+  passes.
+- A live process/service check found only the Cajon Sensei and Flowing Indian
+  product workers plus the retained Delta service running. Archived product
+  workers were not running. This agrees with the graph portfolio disposition;
+  it is fleet evidence, not proof of product progress.
