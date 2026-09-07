@@ -1563,6 +1563,14 @@ actions disabled until their authority and postconditions are implemented.
   future runs. The previously generated rejected artifact remains retained as
   private evidence of the security finding; it was never applied or sent.
 
+## Explicit live soak observation
+
+- A six-sample live observation over approximately `101` seconds found all four
+  core services (`worker`, `control`, `identity`, and `delta`) active at every
+  sample, public anonymous `/mcp` returning `401` at every sample, and zero
+  relevant failed SeedForth units. This is bounded short-window stability
+  evidence only; it does not claim a month-long unattended soak.
+
 ## Accepted autonomous Cajon outcome
 
 - After requalifying the deployed worker generations and reconciling the stale
