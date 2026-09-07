@@ -39,6 +39,16 @@ def test_response_alias_is_normalized_to_summary():
     assert result["summary"] == "bounded factual response"
 
 
+def test_mycelium_command_envelope_is_accepted():
+    result = validate_ack({**valid(), "command": "mycelium_ack"})
+    assert result["summary"] == "received"
+
+
+def test_other_command_is_rejected():
+    with pytest.raises(AckValidationError):
+        validate_ack({**valid(), "command": "forward"})
+
+
 def test_append_is_durable_and_deterministically_shaped(tmp_path):
     target = tmp_path / "acks.jsonl"
     timestamp = datetime(2026, 9, 7, tzinfo=timezone.utc)
