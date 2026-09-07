@@ -1562,3 +1562,17 @@ actions disabled until their authority and postconditions are implemented.
 - The detector rejects the Flowing source before candidate materialization on
   future runs. The previously generated rejected artifact remains retained as
   private evidence of the security finding; it was never applied or sent.
+
+## Accepted autonomous Cajon outcome
+
+- After requalifying the deployed worker generations and reconciling the stale
+  attempt, a fresh Cajon one-unit mandate produced a bounded candidate through
+  the live executor. The worker authenticated, claimed work, created a review
+  receipt, and made no production or external side effect.
+- An independent static artifact check verified the exact committed source,
+  exact `app/index.html` replacement, artifact hash, unapplied status, and
+  absence of the parked webhook-secret pattern. The graph-native independent
+  test record was then accepted by the owner review reducer.
+- Mycelium now records the work as `done/verified`; the Cajon scope was closed
+  again after completion. This is the first fresh post-rotation autonomous
+  outcome that satisfies execution, independent evidence, and review together.
