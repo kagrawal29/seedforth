@@ -1584,3 +1584,11 @@ actions disabled until their authority and postconditions are implemented.
 - Mycelium now records the work as `done/verified`; the Cajon scope was closed
   again after completion. This is the first fresh post-rotation autonomous
   outcome that satisfies execution, independent evidence, and review together.
+
+## Second explicit live soak window
+
+- A second six-sample observation over approximately `100` seconds again found
+  all four core services active and public anonymous `/mcp` returning `401` at
+  every sample. Together with the prior window this provides approximately
+  `200` seconds of explicit live stability evidence, not a long-duration or
+  month-long unattended qualification.
