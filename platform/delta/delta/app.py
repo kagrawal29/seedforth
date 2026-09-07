@@ -33,6 +33,7 @@ from delta.router import Router
 from delta.agent_runner import get_runner
 from delta.agent_lifecycle import is_agent_running
 from delta import connections
+from delta.mycelium_ack import AckValidationError, append_ack
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("delta")
@@ -44,6 +45,10 @@ ADMIN_DISCORD_ID = os.getenv("ADMIN_DISCORD_ID", "")
 REGISTRY_PATH = os.getenv("DELTA_REGISTRY_PATH", str(_delta_dir / "delta-registry.json"))
 _LAST_FIRED_PATH = Path(REGISTRY_PATH).parent / "delta-last-fired.json"
 DELTA_SERVER_HOST = os.getenv("DELTA_SERVER_HOST", "")
+MYCELIUM_ACK_STREAM = os.getenv(
+    "SEEDFORTH_MYCELIUM_ACK_STREAM",
+    "/opt/seedforth/shared/delta-conversation-acks.jsonl",
+)
 
 
 def _get_ttyd_url(project_name: str) -> str:
@@ -1542,6 +1547,15 @@ def _start_hub_watchers() -> None:
 
     def _hub_outbox_callback(data: dict) -> None:
         command = data.get("command")
+
+        if command == "mycelium_ack":
+            try:
+                digest = append_ack(MYCELIUM_ACK_STREAM, data)
+            except (AckValidationError, OSError) as exc:
+                logger.warning("[mycelium-ack] rejected handoff: %s", exc)
+            else:
+                logger.info("[mycelium-ack] recorded handoff %s", digest)
+            return
 
         if command == "onboarding_complete":
             # Personal agent finished onboarding via hub outbox
