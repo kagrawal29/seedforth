@@ -24,7 +24,7 @@ FIELDS = {
     'read-scoped-graph': {'cursor':str},
     'send-conversation-message': {'conversation_key':str,'request_id':str,'text':str},
     'read-conversation': {'conversation_key':str,'cursor':int},
-    'read-scope': {}, 'read-work': {}, 'read-sources': {}, 'read-legacy-work': {}, 'read-timeline': {'id':str}, 'read-evidence': {'id':str},
+    'read-scope': {}, 'read-portfolio': {}, 'read-work': {}, 'read-sources': {}, 'read-legacy-work': {}, 'read-timeline': {'id':str}, 'read-evidence': {'id':str},
     'create-work': {'id':str,'milestone':str,'title':str,'acceptance':str},
     'set-scope-work-enabled': {'version':int,'enabled':bool,'reason':str},
     'ready-work': {'id':str,'version':int},

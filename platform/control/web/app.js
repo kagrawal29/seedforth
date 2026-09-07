@@ -36,6 +36,27 @@ function fail(error) {
 async function refresh() {
   const requestGeneration = generation, requestVersion = ++refreshVersion;
   try {
+    if (scope === 'seedforth-platform') {
+      const portfolio = await operation('read-portfolio');
+      if (requestGeneration !== generation || requestVersion !== refreshVersion) return;
+      online = true; $('error').textContent = ''; $('connection').textContent = 'Connected';
+      $('login').hidden = true; $('workspace').hidden = false;
+      $('project-name').textContent = 'SeedForth portfolio';
+      $('freshness').textContent = `Graph read ${new Date(portfolio.as_of).toLocaleString()} · portfolio projection`;
+      $('portfolio').hidden = false; $('project-view').hidden = true;
+      $('portfolio-list').replaceChildren();
+      for (const item of portfolio.data) {
+        const row = text('article', '', 'portfolio-row');
+        row.append(text('h3', item.name || item.scope));
+        row.append(text('p', `${item.portfolio_state || 'unknown'} · ${item.work_enabled ? 'new work enabled' : 'new work held'} · ${item.work_count || 0} work items · ${item.attention_count || 0} need attention`));
+        row.append(text('p', `Process status: ${item.historical_status || 'unknown'} (historical only) · observation: ${item.latest_observation_at || 'unknown'}`, 'muted'));
+        $('portfolio-list').append(row);
+      }
+      $('authority').replaceChildren(text('p','Portfolio authority is graph-resident. Select a project to inspect work and evidence; process activity is not treated as progress.'));
+      $('attention').textContent = '';
+      return;
+    }
+    $('portfolio').hidden = true; $('project-view').hidden = false;
     const [project, work, sources, legacy] = await Promise.all([operation('read-scope'),operation('read-work'),operation('read-sources'),operation('read-legacy-work')]);
     if (requestGeneration !== generation || requestVersion !== refreshVersion) return;
     work.data.push(...legacy.data);
@@ -139,6 +160,7 @@ function disconnect() {
   credential='';scope='';selected=null;online=false;
   $('token').value='';$('workspace').hidden=true;$('login').hidden=false;
   $('board').replaceChildren();$('timeline').replaceChildren();$('actions').replaceChildren();$('evidence').replaceChildren();
+  $('portfolio-list').replaceChildren();$('portfolio').hidden=true;$('project-view').hidden=false;
   for (const id of ['project-name','freshness','authority','attention','inspect-title','criteria','verification']) $(id).textContent='';
   $('inspector').hidden=true;
   $('connection').textContent='Disconnected';
