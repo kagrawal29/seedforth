@@ -21,7 +21,7 @@ from control.graph import Graph
 BINDINGS = {
     'cajon-sensei': ('proj-cajon-sensei', '/home/proj-cajon-sensei/cajon-sensei', ('app/index.html',)),
     'flowing-indian': ('proj-flowing-indian', '/home/proj-flowing-indian/flowing-indian',
-                       ('app/api/order/route.ts', 'app/api/verify/route.ts')),
+                       ('app/api/register/route.ts',)),
 }
 LIMIT = 1024 * 1024
 

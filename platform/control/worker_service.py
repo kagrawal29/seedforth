@@ -20,7 +20,7 @@ from control.worker_transport import WorkerBoundary, WorkerServer
 
 SOURCE_PATHS = {
     'cajon-sensei': ['app/index.html'],
-    'flowing-indian': ['app/api/order/route.ts', 'app/api/verify/route.ts'],
+    'flowing-indian': ['app/api/register/route.ts'],
     'seedforth-platform': ['platform/control/worker_service.py', 'platform/control/broker.py'],
 }
 

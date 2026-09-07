@@ -1,7 +1,6 @@
 CREATE CONSTRAINT seedforth_source_stream_id IF NOT EXISTS FOR (n:SourceStream) REQUIRE n.node_id IS UNIQUE;
 UNWIND [{scope:'cajon-sensei',path:'app/index.html',key:'app-index'},
-{scope:'flowing-indian',path:'app/api/order/route.ts',key:'order-route'},
-{scope:'flowing-indian',path:'app/api/verify/route.ts',key:'verify-route'}] AS pilot
+{scope:'flowing-indian',path:'app/api/register/route.ts',key:'register-route'}] AS pilot
 MATCH (scope:ControlScope {node_id:pilot.scope})
 MERGE (s:SourceStream {node_id:'source-code-'+pilot.scope+'-'+pilot.key})
 ON CREATE SET s.scope_id=pilot.scope,s.adapter='local-git-file-hash-v1',s.path=pilot.path,
