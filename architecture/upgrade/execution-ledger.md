@@ -928,3 +928,26 @@ actions disabled until their authority and postconditions are implemented.
 - This makes the board's scope pause/resume primitive production-deployed; it
   does not enable either product scope, dispatch work, qualify useful
   autonomy, open public MCP, or satisfy unattended operation.
+
+## First current bounded autonomous product qualification
+
+- On 2026-09-07, an owner-only graph operation created one Cajon Sensei
+  qualification mandate (30-minute expiry, one budget unit) and one held
+  candidate work item. The scope remained held until the item was separately
+  released and readied through versioned transitions.
+- The protected worker credential was rotated without exposing its value;
+  `seedforth-worker.service` reloaded it and remained active. The executor then
+  selected the graph-ready item and completed one isolated
+  `capability-code-proposal-v1` invocation. The graph recorded a succeeded
+  invocation, a review receipt, and an unmodified product checkout.
+- The returned artifact was independently materialized and tested with the
+  pinned Playwright CLI against the exact candidate HTML. The timing,
+  restart/pause, tempo, count-in, responsive, and page-error checks passed.
+  The evidence was recorded by the graph-native independent-test-run operation
+  and the separate review transition accepted the work as `done` and
+  `verified`; artifact hash:
+  `d0d70edd965cb635e2621c8fb818b8fc5db92db2713dc37618356f9b83f3f619`.
+- The Cajon scope was then closed again (`work_enabled=false`, version 2).
+  This is the first current useful autonomous candidate loop with independent
+  evidence, not a claim that product code was deployed, that musical accuracy
+  is proven, or that unattended operation is qualified.
