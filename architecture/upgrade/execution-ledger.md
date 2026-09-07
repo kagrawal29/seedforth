@@ -880,3 +880,18 @@ actions disabled until their authority and postconditions are implemented.
   traversed it under customer traffic, nor does it qualify the old provider
   credential boundary. A fresh event-ingestion observation and Delta/Charlie
   processor isolation remain required before autonomous execution expands.
+
+## Current live checkpoint
+
+- Final read-only verification on 2026-09-07: control target `0872e22`, main
+  Delta target `8064363`, identity/worker/Delta/control services and all four
+  sensing timers active; 42 archived projects; only Flowing Indian and Cajon
+  Sensei non-core projects unarchived; both active product scopes held; runtime
+  sources report only those two product processes running and all five archived
+  legacy processes stopped; embedded Git remote credentials found: zero.
+- The honest program score is approximately **52/100**. This reflects strong
+  foundation, sensing, state reconciliation, archival, security containment,
+  and deployment evidence—not completion. The remaining score is dominated by
+  useful Flowing/Cajon autonomy, independent outcome measurement, Delta/Charlie
+  processor alignment, public scoped MCP/board operation, provider credential
+  rotation, recovery drills, and elapsed unattended qualification.
