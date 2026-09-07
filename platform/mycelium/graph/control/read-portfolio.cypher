@@ -3,6 +3,7 @@
 MATCH (:Principal {node_id:$actor,enabled:true})-[:HAS_GRANT]->(grant:Grant {scope:'seedforth-platform',revoked:false})
 WHERE 'read' IN grant.permissions AND (grant.expires_at IS NULL OR grant.expires_at>datetime())
 MATCH (s:ControlScope)
+WITH DISTINCT s
 OPTIONAL MATCH (s)-[:MAPS_PROJECT]->(p:Project)
 CALL {
   WITH s
