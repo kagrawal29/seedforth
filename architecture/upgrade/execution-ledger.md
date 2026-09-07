@@ -1012,3 +1012,10 @@ actions disabled until their authority and postconditions are implemented.
   on delta2, but the service is inactive and its timer disabled. The MCP
   `send_to_delta` gate remains closed until Delta-side prompt-injection,
   acknowledgement, and replay qualification is complete.
+
+## Regression checkpoint
+
+- The complete local `platform/integration-tests` suite passed on 2026-09-07:
+  **109 passed, 66 skipped**. Skips are explicit live/disposable or pinned
+  environment gates; this result is not being counted as production or
+  unattended-operation evidence.
