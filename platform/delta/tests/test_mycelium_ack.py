@@ -34,6 +34,11 @@ def test_summary_is_bounded():
         validate_ack(valid(summary="x" * 2001))
 
 
+def test_response_alias_is_normalized_to_summary():
+    result = validate_ack({**valid(), "response": "bounded factual response"})
+    assert result["summary"] == "bounded factual response"
+
+
 def test_append_is_durable_and_deterministically_shaped(tmp_path):
     target = tmp_path / "acks.jsonl"
     timestamp = datetime(2026, 9, 7, tzinfo=timezone.utc)

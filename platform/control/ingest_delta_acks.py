@@ -63,7 +63,7 @@ def collect_and_dispatch(graph: Graph, stream: Path=STREAM, state: Path=STATE) -
                         or not isinstance(message_id,str)
                         or not isinstance(data.get('ack_id'),str)
                         or data.get('ack_status') not in {'received','needs_review','rejected'}
-                        or not isinstance(data.get('summary'),str)):
+                        or not isinstance(data.get('summary', data.get('response')),str)):
                     raise ValueError('invalid_ack')
                 rows=graph.operation('record-conversation-ack',PROCESSOR,data['scope'],
                     message_id=message_id,ack_id=data['ack_id'],

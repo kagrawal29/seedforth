@@ -30,7 +30,7 @@ def validate_ack(data: dict[str, Any]) -> dict[str, str]:
     """Return a sanitized acknowledgement or raise ``AckValidationError``."""
     if not isinstance(data, dict):
         raise AckValidationError("ack must be an object")
-    if set(data) - (_REQUIRED | {"summary"}):
+    if set(data) - (_REQUIRED | {"summary", "response"}):
         raise AckValidationError("ack contains unsupported fields")
     if not _REQUIRED.issubset(data):
         raise AckValidationError("ack is missing required fields")
@@ -52,7 +52,7 @@ def validate_ack(data: dict[str, Any]) -> dict[str, str]:
         raise AckValidationError("invalid scope")
     result["scope"] = scope
 
-    summary = data.get("summary", "")
+    summary = data.get("response", data.get("summary", ""))
     if not isinstance(summary, str) or len(summary) > _MAX_SUMMARY:
         raise AckValidationError("invalid summary")
     # A summary is evidence for a human, not a second command channel.
