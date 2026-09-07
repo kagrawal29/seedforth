@@ -129,8 +129,10 @@ class HumanUI:
             body += hidden('code', '') + '<button>Enter SeedForth</button></form><p>This enrollment step expires in ten minutes.</p>'
             return self.page(request, 'Enter SeedForth', body)
         body = '<p>An invitation links your login to an existing graph identity. It does not grant new permissions.</p>'
+        invite = request.query_params.get('invite','')
+        invite_field = '<label>Invitation<input name="invite" type="password" value="'+escape(invite)+'" autocomplete="off" required maxlength="256"></label>'
         body += '<form method="post" action="/enroll/start">' + hidden('csrf', self.csrf(request))
-        body += field('Invitation', 'invite', 'password') + field('Username', 'username', autocomplete='username')
+        body += invite_field + field('Username', 'username', autocomplete='username')
         body += field('Passphrase (14–256 characters)', 'password', 'password', 'new-password')
         body += '<button>Continue to SeedForth</button></form><p><a href="/login">Back to sign in</a></p>'
         return self.page(request, 'Enroll your identity', body)
@@ -170,6 +172,40 @@ class HumanUI:
         body += '<form method="post" action="/sessions/revoke">'+hidden('csrf',self.csrf(request))+'<button class="danger">Revoke all sessions and clients</button></form>'
         body += '<p class="muted">Signing out does not cancel accepted background work. Use the work controls to stop execution.</p>'
         return self.page(request, 'Your access', body)
+
+    async def admin(self, request):
+        session = await self.io(self.identity.session, request.cookies.get(SESSION, ''))
+        if not session or session['principal'] != 'principal-seedforth-owner':
+            return RedirectResponse('/login?next=/admin', status_code=303) if not session else self.page(request, 'Access denied', '<p>Owner access is required.</p>', 403)
+        scopes = await self.io(self.identity.grants, session['principal'])
+        result = self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-read-access','scope':'seedforth-platform','params':{}})
+        rows = result['data']
+        body = '<p>Manage human identities and project grants. Changes are written through reviewed graph operations.</p>'
+        body += '<form method="post" action="/admin/invite">'+hidden('csrf',self.csrf(request))+field('Principal ID (principal-human-...)','principal')+field('Project scope','scope')+'<button>Create invitation</button></form>'
+        body += '<table><tr><th>Principal</th><th>Scope</th><th>Status</th><th>Action</th></tr>'
+        for row in rows:
+            if row['principal'] == 'principal-seedforth-owner': continue
+            body += '<tr><td><code>'+escape(row['principal'])+'</code></td><td>'+escape(row['scope'] or '')+'</td><td>'+('revoked' if row['revoked'] else 'active')+'</td><td>'
+            body += '<form method="post" action="/admin/grant">'+hidden('csrf',self.csrf(request))+hidden('principal',row['principal'])+hidden('scope',row['scope'])+hidden('revoked','1' if not row['revoked'] else '0')+'<button>'+('Restore' if row['revoked'] else 'Revoke')+'</button></form></td></tr>'
+        body += '</table><p><a href="/account">Back to account</a></p>'
+        return self.page(request, 'Access administration', body)
+
+    async def admin_invite(self, request):
+        form = await self.form(request, {'principal','scope'})
+        session = await self.io(self.identity.session, request.cookies.get(SESSION,''))
+        if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
+        scopes = await self.io(self.identity.grants, session['principal'])
+        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-provision-principal','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'scope':form.get('scope','')}})
+        invite = await self.io(self.identity.issue_invite, form.get('principal',''))
+        return self.page(request, 'Invitation created', '<p>Share this one-time link with the teammate:</p><p><code>/enroll?invite='+escape(invite)+'</code></p><p>It expires in 24 hours.</p>')
+
+    async def admin_grant(self, request):
+        form = await self.form(request, {'principal','scope','revoked'})
+        session = await self.io(self.identity.session, request.cookies.get(SESSION,''))
+        if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
+        scopes = await self.io(self.identity.grants, session['principal'])
+        self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-set-grant','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'scope':form.get('scope',''),'revoked':form.get('revoked')=='1'}})
+        return RedirectResponse('/admin',status_code=303)
 
     async def logout(self, request):
         await self.form(request, set())
@@ -270,6 +306,7 @@ class HumanUI:
             Route('/enroll/finish',self.enroll_finish,methods=['POST']),Route('/account',self.account),
             Route('/logout',self.logout,methods=['POST']),Route('/sessions/revoke',self.revoke,methods=['POST']),
             Route('/consent',self.consent),Route('/consent',self.decide,methods=['POST']),Route('/identity.css',css),
+            Route('/admin',self.admin),Route('/admin/invite',self.admin_invite,methods=['POST']),Route('/admin/grant',self.admin_grant,methods=['POST']),
             Route('/control',self.control_asset),Route('/control/',self.control_asset),
             Route('/control/app.js',self.control_asset),Route('/control/style.css',self.control_asset),
             Route('/control/api/operation',self.control_operation,methods=['POST'])]

@@ -31,6 +31,9 @@ FIELDS = {
     'hold-work': {'id':str,'version':int,'hold':bool},
     'review-work': {'id':str,'version':int,'receipt':str,'artifact_hash':str,
                     'test_run':(str,type(None)),'accept':bool},
+    'admin-read-access': {},
+    'admin-provision-principal': {'principal':str,'scope':str},
+    'admin-set-grant': {'principal':str,'scope':str,'revoked':bool},
 }
 
 
