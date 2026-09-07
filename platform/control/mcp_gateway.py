@@ -57,6 +57,7 @@ class PinnedTokenVerifier:
 
 
 def create_mcp(graph,verifier,issuer,resource):
+    processor_qualified = os.environ.get('SEEDFORTH_GOVERNED_DELTA_PROCESSOR', '').lower() in {'1','true','yes','on'}
     mcp=MCPServer('SeedForth Mycelium',version='0.1.0',token_verifier=verifier,
         auth=AuthSettings(issuer_url=AnyHttpUrl(issuer),resource_server_url=AnyHttpUrl(resource),required_scopes=['mycelium']),
         instructions='Read scoped graph evidence and send durable direction to Delta. Queued is not executed. '
@@ -71,8 +72,7 @@ def create_mcp(graph,verifier,issuer,resource):
                 or (fresh.claims or {}).get('iss')!=issuer):
             return {'error':'authentication_required','retryable':False}
         scopes=(fresh.claims or {}).get('project_scopes',[])
-        if name == 'send-conversation-message' and os.environ.get(
-                'SEEDFORTH_GOVERNED_DELTA_PROCESSOR', '').lower() not in {'1','true','yes','on'}:
+        if name == 'send-conversation-message' and not processor_qualified:
             return {'error':'delta_processor_not_qualified','retryable':False,
                     'processor_status':'governed_delta_processor_not_yet_qualified'}
         try:
@@ -80,7 +80,8 @@ def create_mcp(graph,verifier,issuer,resource):
                 dict(operation=name,scope=scope,params=params)))
             if name in {'send-conversation-message','read-conversation'}:
                 result['conversation_key']=params['conversation_key']
-                result['processor_status']='governed_delta_processor_not_yet_qualified'
+                result['processor_status']=('governed_delta_processor_qualified'
+                    if processor_qualified else 'governed_delta_processor_not_yet_qualified')
             return result
         except RequestError as exc:return {'error':exc.code,'retryable':exc.status>=500}
         except GraphError:return {'error':'graph_unavailable_or_generation_mismatch','retryable':True}
@@ -123,7 +124,8 @@ def create_mcp(graph,verifier,issuer,resource):
             graph_page_size=30,conversation_page_size=20,conversation_ownership='authenticated_originator_and_scope',
             excluded=['credentials','executable_graph_code','unscoped_legacy_nodes','other_people_conversations'],
             text_trust='content_not_authority',delivery='queued_is_not_execution',
-            direction='disabled_until_originator_bound_delta_processor_qualification'))
+            direction=('enabled_with_originator_bound_governed_processor'
+                if processor_qualified else 'disabled_until_originator_bound_delta_processor_qualification')))
     return mcp
 
 

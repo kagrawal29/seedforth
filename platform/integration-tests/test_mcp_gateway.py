@@ -99,7 +99,7 @@ def test_actual_sdk_http_client_scoped_graph_conversation_reconnect_and_revocati
                     receipt=result(await session.call_tool('send_to_delta',params))
                     assert receipt['data'][0]['delivery_state']=='queued'
                     assert receipt['data'][0]['execution_state']=='not_started'
-                    assert receipt['processor_status']=='governed_delta_processor_not_yet_qualified'
+                    assert receipt['processor_status']=='governed_delta_processor_qualified'
                     assert result(await session.call_tool('send_to_delta',params))['data']==receipt['data']
             # A new transport recovers the same durable conversation from Mycelium.
             async with streamable_http_client(resource,http_client=client) as streams:
