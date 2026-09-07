@@ -1740,3 +1740,14 @@ actions disabled until their authority and postconditions are implemented.
 - This is the longest explicit clean window since the board-release cutover,
   but remains short-duration evidence and does not satisfy the long unattended
   qualification gate.
+
+## Twenty-minute post-recovery graph health checkpoint
+
+- At `14:13:07Z`, the live graph held `230` successful service-health
+  observations, exactly one retained failed observation, and zero collection
+  failures. All eleven current service streams projected success; core
+  services and the health timer were active, and anonymous MCP returned `401`.
+- Systemd warnings since the previous checkpoint were limited to the already
+  recorded `13:50Z`–`13:51Z` Neo4j maintenance-window failures. No new warning
+  appeared after recovery. This extends the clean post-recovery observation
+  to roughly twenty minutes, but remains below the long unattended gate.
