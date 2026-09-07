@@ -1536,3 +1536,18 @@ actions disabled until their authority and postconditions are implemented.
   graph transitions. All core services remained active. The failed credential
   boundary is retained as an explicit release blocker; it is not counted as an
   autonomous outcome.
+
+## Worker credential rotation and candidate rejection
+
+- Added a root-only immutable-release rotation operation for the scoped worker
+  transport. It backs up the prior private credential files, atomically writes
+  fresh one-hour Flowing/Cajon tokens and broker digests, restarts the worker,
+  and verifies the service is active. The rotation completed successfully.
+- Retried the held Flowing candidate. The worker authenticated and produced a
+  real bounded artifact receipt, reaching graph state `review`; no deployment,
+  spend, or external webhook call occurred.
+- Independent inspection rejected the artifact because its proposed source
+  contained a hard-coded third-party webhook credential. The work item is now
+  `proposed/verification=rejected`, the Flowing scope is disabled again, and
+  the credential exposure is parked for explicit provider-secret remediation.
+  The secret is not reproduced in this ledger or in agent-facing output.
