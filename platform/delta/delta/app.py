@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from threading import Thread
@@ -149,6 +150,22 @@ def _hub_dir() -> Path:
     if LOCAL_MODE:
         return Path(LOCAL_PROJECTS_DIR) / _HUB_DIR_NAME
     return Path(_HUB_DIR_SERVER)
+
+
+def _existing_hub_session_id() -> str:
+    """Recover the durable opencode Hub session after a Delta restart."""
+    if not HUB_SERVE_PORT:
+        return ""
+    try:
+        request = urllib.request.Request(f"http://127.0.0.1:{HUB_SERVE_PORT}/session")
+        with urllib.request.urlopen(request, timeout=5) as response:
+            sessions = json.loads(response.read())
+        candidates = [s for s in sessions if isinstance(s, dict)
+                      and s.get("title") == HUB_NAME and isinstance(s.get("id"), str)]
+        candidates.sort(key=lambda s: s.get("time", {}).get("updated", 0), reverse=True)
+        return candidates[0]["id"] if candidates else ""
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return ""
 
 
 # -- Bridge management -------------------------------------------------------
@@ -1526,6 +1543,7 @@ def _init_hub() -> None:
         nudge_prefix="delta-config/inbox",
         runtime="opencode",
         serve_port=HUB_SERVE_PORT,
+        session_id=_existing_hub_session_id(),
     )
     bridges[HUB_NAME] = bridge
     logger.info("Hub initialized")
