@@ -1333,3 +1333,25 @@ actions disabled until their authority and postconditions are implemented.
   deduplication. The deployed live query now returns eight unique scopes and
   identifies exactly three active scopes: SeedForth Platform, Flowing Indian,
   and Cajon Sensei.
+
+## Fresh Flowing autonomous candidate with failure recovery
+
+- Prepared a new owner-bounded Flowing mandate for email-format validation in
+  the existing registration route. The scope was opened only for the versioned
+  run, and the held work was separately released and readied.
+- The first executor attempt claimed the work but the broker rejected the
+  invocation because the capability broker's Flowing settlement grant had
+  expired. The executor did not redispatch. After lease expiry,
+  `reconcile-expired-work` recorded the attempt as `unknown`, blocked and held
+  the work, and preserved the incident.
+- Added and promoted bounded Flowing settlement-authority renewal. A fresh
+  work item was then created rather than replaying the unknown attempt. The
+  executor produced a one-file `untrusted_candidate_code` artifact for
+  `app/api/register/route.ts`; it remained unapplied and no production route
+  was executed.
+- An independent exact-source verifier confirmed the artifact against its base
+  revision, unique replacement, path scope, and content hashes. Mycelium
+  recorded the passing test, owner review accepted the current version, and the
+  work reached `done/verified`. The Flowing scope was closed again at version
+  14. This proves useful bounded execution plus honest failure recovery for a
+  second Flowing candidate; it is not deployment or business-outcome evidence.
