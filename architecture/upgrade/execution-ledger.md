@@ -1649,3 +1649,25 @@ actions disabled until their authority and postconditions are implemented.
   soak for that interval; reducer/idempotency behavior and the exact historic
   conflict require a targeted follow-up before long-duration qualification can
   be accepted.
+
+## Graph-native service health sensing deployment
+
+- Added `systemd-unit-health-v1`, an allowlisted external adapter that records
+  one-shot unit outcome, exit status, and last-success projection as durable
+  Mycelium observations. It stores no raw journal or command output and cannot
+  execute graph-provided commands. Focused tests passed (`3 passed`), and the
+  disposable graph accepted both success and failure observations while
+  preserving the prior successful projection after a failed observation.
+- Production backup completed before migration: `281.7 MiB`, SHA-256
+  `c9bc411469978c5c5ae064abc66b2db3282e778e78c46bb942f9222094fbe877` in the
+  root-private service-health backup directory. Neo4j restarted and became
+  ready; the additive migration applied with source hash
+  `2e2b2bd3fcfd0280b951592ba871afffa939e3bcd943f7f4a551cb69b59a175e`.
+- Immutable control release `55060c081ef0717f7829558cfa8e4eb8c4f441e1` is
+  live, `seedforth-service-sensor.timer` is enabled, and its first graph
+  observation recorded all eleven allowlisted units. The Graphify sensor's
+  transient backup-window failure was captured; after Neo4j recovery, a manual
+  retry succeeded for platform, Flowing Indian, and Cajon Sensei, and a second
+  service-health pass projected all eleven units as successful. Future soak
+  reports can now distinguish process liveness from scheduler/control-loop
+  failure.
