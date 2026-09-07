@@ -1671,3 +1671,13 @@ actions disabled until their authority and postconditions are implemented.
   service-health pass projected all eleven units as successful. Future soak
   reports can now distinguish process liveness from scheduler/control-loop
   failure.
+
+## Post-deployment service-health observation window
+
+- Six live samples from `13:54:02Z` through `13:56:33Z` found the four core
+  services and the new service-health timer active at every sample, public
+  anonymous MCP returning `401` at every sample, and all eleven graph-projected
+  service streams reporting `success` (`11/11`) at every sample.
+- This is clean post-deployment evidence for the new health projection and
+  recovery from the maintenance-window outage. It is still a short window and
+  does not satisfy the required long-duration unattended qualification.
