@@ -1019,3 +1019,15 @@ actions disabled until their authority and postconditions are implemented.
   **109 passed, 66 skipped**. Skips are explicit live/disposable or pinned
   environment gates; this result is not being counted as production or
   unattended-operation evidence.
+
+## Delivery replay correction
+
+- Corrected the Delta adapter to use the graph's original message timestamp in
+  its deterministic inbox payload. Lease recovery now recreates byte-identical
+  content instead of using a new wall-clock timestamp and falsely reporting a
+  destination conflict.
+- Adapter and boundary tests remained green (`14 passed` for the focused
+  processor/boundary run). Control release
+  `1cb5aeb07b0477790944403f45f1dac9b198d4a8` was migrated and deployed with
+  rollback retained. The delivery service remains inactive and the timer
+  disabled.
