@@ -1404,3 +1404,15 @@ actions disabled until their authority and postconditions are implemented.
   portfolio-home-to-project transition. The live control release
   `9b9428fde0ccd830c4476403a30cf032293c8542` serves the change and the
   control service remained active after deployment.
+
+## Governed processor qualification boundary tightened
+
+- The MCP adapter now captures one explicit deployment qualification flag for
+  the originator-bound Delta processor. When absent, direction remains denied
+  and the schema reports the disabled state; when present, responses report
+  `governed_delta_processor_qualified` rather than a stale hard-coded status.
+- The change was syntax-checked and exercised in the isolated MCP dependency
+  environment. The existing official-SDK integration remains guarded behind
+  its explicit disposable-graph endpoint and was not falsely counted as a new
+  production qualification. The live identity service has not been opened or
+  granted this flag yet.
