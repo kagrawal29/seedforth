@@ -1721,3 +1721,11 @@ actions disabled until their authority and postconditions are implemented.
   allowlisted services as successful; core services stayed active and public
   anonymous MCP returned `401`. No new service-health or Graphify failures
   appeared. This remains short-duration evidence, not unattended completion.
+
+## Validated extended health window
+
+- A corrected eight-sample live observation from `14:02:20Z` through
+  `14:05:52Z` found all four core services and the service-health timer active,
+  graph-projected health at `11/11` successful streams, and public anonymous
+  MCP returning `401` at every sample. A preceding malformed shell observation
+  was discarded and is intentionally not counted as evidence.
