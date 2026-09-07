@@ -21,13 +21,13 @@ BINDINGS = {
         "repo": "/home/proj-flowing-indian/flowing-indian",
         "repository": "kartiksahu/flowing-indian-website",
         "documents": ["README.md", "docs/architecture.md", "docs/graph-multiagent-references.md"],
-        "output": "/home/proj-flowing-indian/.local/share/seedforth-graphify/output.json",
+        "output": "/var/lib/seedforth-graphify-proj-flowing-indian/output.json",
     },
     "cajon-sensei": {
         "repo": "/home/proj-cajon-sensei/cajon-sensei",
         "repository": "seedforth/cajon-sensei",
         "documents": ["CLAUDE.md", "memory/decisions.md"],
-        "output": "/home/proj-cajon-sensei/.local/share/seedforth-graphify/output.json",
+        "output": "/var/lib/seedforth-graphify-proj-cajon-sensei/output.json",
     },
 }
 ACCOUNT_SCOPES = {
