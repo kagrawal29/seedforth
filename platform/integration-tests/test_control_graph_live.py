@@ -312,6 +312,9 @@ def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case):
     committed=graph.operation('record-conversation-delivery',processor,case['scope'],message_id=message,
         delivery_attempt=attempt,delivery_hash='a'*64,delivery_ref='/bounded/inbox/'+message)
     assert committed[0]['delivery_state']=='delivered'
+    acknowledged=graph.operation('record-conversation-ack',processor,case['scope'],
+        message_id=message,ack_id='ack-'+uuid4().hex,ack_status='received',summary='received as untrusted content')
+    assert acknowledged[0]['execution_state']=='acknowledged'
     second=case['scope']+'-message-2'
     graph.query("CREATE (m:ConversationMessage {node_id:$id,scope_id:$scope,originator:$actor,recipient:'delta',"
                 "sequence:2,status:'queued',text:'second untrusted direction',request_hash:'request-hash-2'})",{**case,'id':second})

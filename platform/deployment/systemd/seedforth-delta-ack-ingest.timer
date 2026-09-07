@@ -1,0 +1,11 @@
+[Unit]
+Description=Promote Delta conversation acknowledgements every minute
+
+[Timer]
+OnBootSec=75s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=seedforth-delta-ack-ingest.service
+
+[Install]
+WantedBy=timers.target
