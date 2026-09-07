@@ -1480,7 +1480,17 @@ actions disabled until their authority and postconditions are implemented.
   and unknown-route closure. The candidate reached the identity process for
   `/mcp`, but HTML and OAuth routes produced Uvicorn `Invalid HTTP request`
   responses while direct loopback requests remained healthy.
-- The candidate was not accepted as production-ready. The server was restored
-  from the root-private pre-exposure backup and verified back in the closed
-  `503` posture. The local candidate remains uncommitted for further diagnosis;
-  no public human credential or MCP session was created.
+- The first candidate was not accepted as production-ready and was restored
+  from the root-private pre-exposure backup. Diagnosis isolated the issue to
+  the shared nginx `proxy_params` include; explicit upstream headers are now
+  used by the reviewed candidate.
+- The corrected candidate was deployed after nginx syntax validation. External
+  route qualification passed `15` tests: TLS/certificate, `/login`, both OAuth
+  discovery documents, anonymous `/mcp=401`, unknown-route closure, HTTP
+  application closure, foreign-host rejection, and internal-port refusal.
+  Playwright also rendered the live HTTPS login page with the expected title,
+  heading, and username control. No human credential was used.
+- Full public OAuth enrollment/token/MCP authorization is still a separate
+  qualification gate; the previously completed real browser journey remains
+  loopback-based. The public candidate is therefore deployed but not yet
+  counted as end-to-end human authorization proof.
