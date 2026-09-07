@@ -283,6 +283,18 @@ def test_archive_requires_quiet_project_and_holds_pending_work(graph, case):
         {'portfolio':'archived','hold':True}]
 
 
+def test_scope_work_gate_is_versioned_and_does_not_claim_work(graph, case):
+    graph.query("MATCH (s:ControlScope {node_id:$scope}) SET s.state_version=0",case)
+    assert graph.operation('set-scope-work-enabled',case['actor'],case['scope'],
+        version=0,enabled=False,reason='fixture pause',event_id=uuid4().hex)[0]['version']==1
+    assert graph.operation('set-scope-work-enabled',case['actor'],case['scope'],
+        version=0,enabled=True,reason='',event_id=uuid4().hex)==[]
+    result=graph.operation('set-scope-work-enabled',case['actor'],case['scope'],
+        version=1,enabled=True,reason='',event_id=uuid4().hex)
+    assert result[0]['enabled'] is True and result[0]['version']==2
+    assert graph.query("MATCH (w:WorkItem {node_id:$id}) RETURN count(w) AS n",case)==[{'n':0}]
+
+
 def test_full_migration_and_upgrade_plan_are_idempotent(graph):
     from control.migrate import migrate
     for node_id,name in [('proj-mycelium','mycelium'),('project-cajon-sensei','cajon-sensei'),('project-flowing-indian','flowing-indian')]:
