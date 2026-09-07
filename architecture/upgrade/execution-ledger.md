@@ -1105,3 +1105,14 @@ actions disabled until their authority and postconditions are implemented.
 - This activates the internal graph-to-Delta transport only. Public MCP
   conversation sending remains disabled until remote identity/client and
   unattended-operation qualification are complete.
+
+## Live Graphify observation
+
+- The live graph audit found Graphify source streams but no prior snapshot
+  observations. Recorded the reviewed server-side Graphify artifact as a fresh,
+  provenance-bound `GraphifySnapshot` for `seedforth-platform` using the
+  current control release and extractor revision `artifact-graphify-live-v1`.
+- The graph accepted **112 facts with 0 failures** and projects the source as
+  `extraction_status=complete`, with content hash, repository, release, and
+  observation timestamp. This proves the Graphify sensing path live for the
+  platform corpus; it does not claim project-specific Flowing/Cajon coverage.
