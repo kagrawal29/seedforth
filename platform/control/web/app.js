@@ -69,9 +69,11 @@ async function refresh() {
     online = true; $('error').textContent = ''; $('connection').textContent = 'Connected';
     $('login').hidden = true; $('workspace').hidden = false;
     $('project-name').textContent = project.data[0].name;
-    const sourceSummary=sources.data.length ? sources.data.map(s=>s.path
-      ? `${s.path}: ${s.code_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'}; selected file only, not repository or hosting health)`
-      : `${s.adapter}: ${s.process_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'})`).join(' · ') : 'Source not registered';
+    const sourceSummary=sources.data.length ? sources.data.map(s=>s.unit
+      ? `${s.unit}: ${s.unit_status || 'unknown'} (exit ${s.unit_exit_status ?? 'unknown'}, ${s.evidence_status}, last success ${s.last_success_at || 'never'})`
+      : s.path
+        ? `${s.path}: ${s.code_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'}; selected file only, not repository or hosting health)`
+        : `${s.adapter}: ${s.process_status} (${s.evidence_status}, last success ${s.last_success_at || 'never'})`).join(' · ') : 'Source not registered';
     $('freshness').textContent = `Graph read ${new Date(work.as_of).toLocaleString()} · ${sourceSummary}`;
     const p = project.data[0];
     $('authority').replaceChildren();

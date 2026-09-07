@@ -27,7 +27,8 @@ async (page) => {
     if (body.operation === 'read-sources') data = [
       {adapter:'fixture',process_status:'unknown',evidence_status:'stale',last_success_at:null},
       {adapter:'local-git-file-hash-v1',path:'app/index.html',code_status:'diverged_from_commit',evidence_status:'fresh',last_success_at:'fixture'},
-      {adapter:'local-git-file-hash-v1',path:'untrusted <img src=x onerror=alert(1)>',code_status:'unknown',evidence_status:'degraded',last_success_at:null}
+      {adapter:'local-git-file-hash-v1',path:'untrusted <img src=x onerror=alert(1)>',code_status:'unknown',evidence_status:'degraded',last_success_at:null},
+      {adapter:'systemd-unit-health-v1',unit:'seedforth-conversation-processor.service',unit_status:'success',unit_exit_status:0,evidence_status:'fresh',last_success_at:'fixture'}
     ];
     if (body.operation === 'read-legacy-work') data = [{id:'legacy',title:'Legacy <img src=x onerror=alert(1)>',legacy:true,status:'legacy_needs_triage',legacy_status:'done'}];
     if (body.operation === 'read-timeline' && body.params.id === 'a' && delayA) {
@@ -79,6 +80,7 @@ async (page) => {
   check((await page.locator('#freshness').innerText()).includes('stale'), 'Stale sensing hidden');
   check((await page.locator('#freshness').innerText()).includes('app/index.html: diverged_from_commit'), 'File drift hidden');
   check((await page.locator('#freshness').innerText()).includes('not repository or hosting health'), 'Partial source coverage hidden');
+  check((await page.locator('#freshness').innerText()).includes('seedforth-conversation-processor.service: success (exit 0'), 'Service health hidden');
   check(await page.locator('#freshness img').count() === 0, 'Source path interpreted as HTML');
   check(await page.locator('#board img').count() === 0, 'Graph text interpreted as HTML');
   checks.push('login, memory-only credential, stale sensing, file drift, partial coverage, graph-text escaping');
