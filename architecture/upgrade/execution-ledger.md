@@ -1437,3 +1437,21 @@ actions disabled until their authority and postconditions are implemented.
   sending a synthetic message to the real Delta inbox. The remote MCP flag is
   intentionally still disabled pending identity-release integration and final
   remote client qualification.
+
+## Identity release integration on loopback
+
+- Added a reproducible `deploy-identity-component` operation with immutable
+  release verification, symlink cutover, systemd validation, restart, and a
+  root-private deployment receipt.
+- Deployed identity release
+  `e35f39903b22aa82005d6ceb7a93d766b11025c4`, switching `identity-current`
+  from `6471b8a` to the release containing the qualified MCP processor state.
+  The governed processor flag is enabled only inside this loopback identity
+  service; public ingress remains closed.
+- Cutover initially failed closed with systemd `203/EXEC` because the existing
+  `/opt/seedforth/shared` parent was `750 root:delta` and the non-root identity
+  user could not traverse to its already-private virtualenv. The parent was
+  corrected to `751`; env, credential, operator, backup and security children
+  remain separately permissioned. Restart then returned the service to active.
+- Post-recovery checks observed loopback `/login=200` and loopback `/mcp=401`
+  as expected. No public OAuth/MCP request or human credential was created.
