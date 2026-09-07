@@ -1143,3 +1143,18 @@ actions disabled until their authority and postconditions are implemented.
 - The Graphify sensor then recorded both snapshots as complete, alongside the
   platform's 112-fact snapshot. This qualifies deterministic source sensing and
   freshness, not semantic/model extraction or product-business truth.
+
+## Flowing source reconciliation and credential finding
+
+- Live inspection found the deployed Flowing checkout differed from the local
+  project assumptions: the configured order/verify sensor paths were absent and
+  the actual registration route contained an embedded notification credential.
+- Disabled the two superseded source streams and promoted the actual
+  `app/api/register/route.ts` path. The live code sensor recovered cleanly and
+  recorded Cajon `app/index.html` and Flowing `app/api/register/route.ts` as
+  `matches_commit`.
+- Prepared a project-side remediation that reads `SLACK_WEBHOOK_URL` only from
+  runtime environment and returns 503 when it is absent. It is committed in the
+  local Flowing branch but not claimed as deployed: the configured GitHub remote
+  is inaccessible from the current owner account, and production secret
+  rotation/deployment still requires that project release path.
