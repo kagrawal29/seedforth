@@ -3,7 +3,8 @@ MATCH (legacy:SourceStream)
 WHERE legacy.node_id IN ['source-code-flowing-indian-order-route','source-code-flowing-indian-verify-route']
 SET legacy.enabled=false,legacy.disabled_reason='path_replaced_by_live_checkout_reconciliation',legacy.updated_at=datetime();
 UNWIND [{scope:'cajon-sensei',path:'app/index.html',key:'app-index'},
-{scope:'flowing-indian',path:'app/api/register/route.ts',key:'register-route'}] AS pilot
+{scope:'flowing-indian',path:'app/api/register/route.ts',key:'register-route'},
+{scope:'flowing-indian',path:'app/page.tsx',key:'home-page'}] AS pilot
 MATCH (scope:ControlScope {node_id:pilot.scope})
 MERGE (s:SourceStream {node_id:'source-code-'+pilot.scope+'-'+pilot.key})
 ON CREATE SET s.scope_id=pilot.scope,s.adapter='local-git-file-hash-v1',s.path=pilot.path,
