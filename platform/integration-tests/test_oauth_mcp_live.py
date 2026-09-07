@@ -30,7 +30,8 @@ from test_conversations import case
 from test_oauth_provider import VERIFIER, CHALLENGE
 
 
-def test_actual_oauth_issue_mcp_read_refresh_reconnect_graph_revoke(case, tmp_path):
+def test_actual_oauth_issue_mcp_read_refresh_reconnect_graph_revoke(case, tmp_path, monkeypatch):
+    monkeypatch.setenv('SEEDFORTH_GOVERNED_DELTA_PROCESSOR','1')
     graph, _, scope, actor = case
     tmp_path.chmod(0o700)
     sock = socket.socket(); sock.bind(('127.0.0.1', 0)); sock.listen(128)

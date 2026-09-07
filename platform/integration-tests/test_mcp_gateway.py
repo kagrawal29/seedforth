@@ -46,7 +46,8 @@ def test_verifier_rejects_wrong_audience_issuer_expiry_revocation_and_file_mode(
     assert asyncio.run(verifier.verify_token(TOKEN)) is None
 
 
-def test_actual_sdk_http_client_scoped_graph_conversation_reconnect_and_revocation(case,tmp_path):
+def test_actual_sdk_http_client_scoped_graph_conversation_reconnect_and_revocation(case,tmp_path,monkeypatch):
+    monkeypatch.setenv('SEEDFORTH_GOVERNED_DELTA_PROCESSOR','1')
     graph,boundary,scope,actor=case
     sock=socket.socket();sock.bind(('127.0.0.1',0));sock.listen(128)
     port=sock.getsockname()[1];origin=f'http://127.0.0.1:{port}'

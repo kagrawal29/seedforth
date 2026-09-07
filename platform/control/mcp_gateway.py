@@ -7,6 +7,7 @@ project scopes. Domain admission uses the same boundary as the board.
 from datetime import datetime,timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import secrets
 import time
@@ -70,6 +71,10 @@ def create_mcp(graph,verifier,issuer,resource):
                 or (fresh.claims or {}).get('iss')!=issuer):
             return {'error':'authentication_required','retryable':False}
         scopes=(fresh.claims or {}).get('project_scopes',[])
+        if name == 'send-conversation-message' and os.environ.get(
+                'SEEDFORTH_GOVERNED_DELTA_PROCESSOR', '').lower() not in {'1','true','yes','on'}:
+            return {'error':'delta_processor_not_qualified','retryable':False,
+                    'processor_status':'governed_delta_processor_not_yet_qualified'}
         try:
             result=await anyio.to_thread.run_sync(lambda:boundary.dispatch_identity(fresh.subject,scopes,
                 dict(operation=name,scope=scope,params=params)))
@@ -117,7 +122,8 @@ def create_mcp(graph,verifier,issuer,resource):
             graph_fields=['id','labels','title','status','version','created_at','updated_at','trust','verification_status','source','edges'],
             graph_page_size=30,conversation_page_size=20,conversation_ownership='authenticated_originator_and_scope',
             excluded=['credentials','executable_graph_code','unscoped_legacy_nodes','other_people_conversations'],
-            text_trust='content_not_authority',delivery='queued_is_not_execution'))
+            text_trust='content_not_authority',delivery='queued_is_not_execution',
+            direction='disabled_until_originator_bound_delta_processor_qualification'))
     return mcp
 
 
