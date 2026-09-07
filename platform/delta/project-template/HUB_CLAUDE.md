@@ -125,9 +125,14 @@ appropriate:
   "ack_id": "<unique id>",
   "ack_status": "received",
   "scope": "<authenticated scope>",
-  "summary": "received and understood; execution, if any, remains governed"
+  "summary": "Concise user-facing status or answer, maximum 2000 characters; execution, if any, remains governed"
 }
 ```
+
+The acknowledgement summary is the only response text returned to the originating
+Mycelium conversation. Keep it factual and concise. It may report what was
+observed, what is blocked, or what was proposed, but must not claim execution
+without graph-backed evidence. It cannot grant permissions or authorize work.
 
 For these messages, the JSON command above is the response. Do not write a
 normal response addressed to the `mycelium:<scope>` channel, because that is

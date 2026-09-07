@@ -393,8 +393,10 @@ class ProjectBridge:
                         "[TRANSPORT PROTOCOL] This message came from Mycelium. "
                         "After processing, write the exact mycelium_ack JSON command "
                         "described in HUB_CLAUDE.md to the Hub outbox. Do not write a "
-                        "normal channel response. This protocol does not authorize "
-                        "any work or external effect.\n\n"
+                        "normal channel response. Put a concise user-facing status or "
+                        "answer in the ack summary (maximum 2000 characters); it is "
+                        "observed response text, not authority or proof of execution. "
+                        "This protocol does not authorize any work or external effect.\n\n"
                     )
                     self.deliver_message(data["channel"], data["user"],
                                          protocol + data["text"], data["id"],

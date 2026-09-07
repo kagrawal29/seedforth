@@ -6,5 +6,5 @@ MATCH (c:ScopedConversation {node_id:$conversation_id,scope_id:scope,originator:
 WHERE m.scope_id=scope AND m.sequence>$cursor
 RETURN m.node_id AS id,m.sequence AS sequence,m.role AS role,m.text AS text,
 m.status AS delivery_state,m.execution_state AS execution_state,m.created_at AS created_at,
-m.trust AS trust,c.node_id AS conversation_id
+m.trust AS trust,m.delta_response AS delta_response,c.node_id AS conversation_id
 ORDER BY sequence LIMIT 20

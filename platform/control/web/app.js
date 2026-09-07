@@ -132,6 +132,7 @@ async function loadConversation() {
       const item = text('article','',`conversation-message ${message.role || 'unknown'}`);
       item.append(text('strong',message.role === 'direction' ? 'You' : (message.role || 'Delta')));
       item.append(text('p',message.text || '(no text)'));
+      if (message.delta_response) item.append(text('p',`Delta: ${message.delta_response}`));
       item.append(text('small',`${message.delivery_state || 'unknown'} · ${message.execution_state || 'unknown'} · ${message.created_at || 'time unknown'}`,'muted'));
       $('conversation-messages').append(item);
       if (Number.isInteger(message.sequence)) conversationCursor = Math.max(conversationCursor,message.sequence);
