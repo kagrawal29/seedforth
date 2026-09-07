@@ -801,3 +801,24 @@ actions disabled until their authority and postconditions are implemented.
   separate batch after the operation is deployed and each candidate's active
   process/service obligations are resolved. No project was archived in this
   step.
+
+## Portfolio archival batch and active-product identity repair
+
+- Release `1d3bd5a69357bc26b7432b0ad354064804484c54` promoted the guarded archive
+  operation and the explicit active-product projection. Control services and
+  all sensing timers are active at the new immutable control target.
+- The owner-directed batch archived 37 non-core Project identities. For each,
+  `portfolio_state=archived` and `new_work=disabled`; pending legacy work was
+  held, not deleted, and retained services were not stopped. The graph still
+  reports all 12 retained service records as verified.
+- Flowing Indian and Cajon Sensei now have explicit `portfolio_state=active`
+  on their mapped canonical Project nodes as well as active ControlScopes. Their
+  scopes remain `work_enabled=false`/held pending the next governed execution
+  qualification. Seven identities remain unarchived: those two product records
+  plus five records with active direct agents/processes (`ethos`, two LinkedIn
+  identities, `seedforthing`, and `zuuro`) that require runtime fencing before
+  archival.
+- This is portfolio state progress, not a claim that those remaining agents are
+  useful, that archived external obligations are cancelled, or that products
+  are deployed/operating autonomously. The remaining runtime fencing and
+  retained-service checks are explicit follow-up work.
