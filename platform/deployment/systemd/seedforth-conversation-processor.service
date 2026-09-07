@@ -11,7 +11,7 @@ LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
 Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=PYTHONPATH=/opt/seedforth/control-current/platform
 Environment=SEEDFORTH_DELTA_HUB_INBOX=/opt/delta/hub/delta-config/inbox
-Environment=SEEDFORTH_CONVERSATION_DELIVERY_ENABLED=0
+Environment=SEEDFORTH_CONVERSATION_DELIVERY_ENABLED=1
 ExecStart=/usr/bin/python3 -m control.delta_conversation_processor
 NoNewPrivileges=yes
 ProtectSystem=strict
