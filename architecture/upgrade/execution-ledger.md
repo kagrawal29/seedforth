@@ -1455,3 +1455,20 @@ actions disabled until their authority and postconditions are implemented.
   remain separately permissioned. Restart then returned the service to active.
 - Post-recovery checks observed loopback `/login=200` and loopback `/mcp=401`
   as expected. No public OAuth/MCP request or human credential was created.
+
+## Real loopback OAuth/MCP browser qualification
+
+- Added a test-only host-rewrite proxy and Playwright journey for the deployed
+  identity runtime. The proxy uses an SSH tunnel, rewrites only the reviewed
+  Host/Origin boundary, and never binds publicly; it is not a deployment
+  component.
+- A temporary read-only Cajon qualification principal completed real
+  enrollment and MFA, server-side session creation, OAuth client registration,
+  S256 PKCE consent, callback, token exchange, MCP `read_work`, and foreign
+  scope denial through the deployed identity service. Playwright reported all
+  checks passed; no public route was contacted.
+- The qualification account was reset to revoke its sessions and connected
+  clients, its graph principal was disabled and grants revoked, all temporary
+  invitation files were removed, and the local browser proxy/tunnel/secrets
+  were stopped or removed. The identity service remains active and the public
+  `/mcp` route still returns `503`.
