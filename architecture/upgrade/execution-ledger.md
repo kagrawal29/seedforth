@@ -864,3 +864,19 @@ actions disabled until their authority and postconditions are implemented.
   revocation/rotation in the account before any remote Flowing fetch, push, or
   pilot. `gh` is not installed on delta2, so revocation was not performed by
   introducing another credential path. No product or Git content was modified.
+
+## Delta event-boundary release cutover
+
+- Immutable main-platform release `8064363cf806249bcbdf5ec7ae3e9c383ada0463`
+  was cloned cleanly and passed server-side Python compilation. The
+  `/opt/seedforth/current` symlink switched atomically from `1770e7c` to this
+  release, then `seedforth-delta.service` restarted and returned active. The
+  prior release remains intact for rollback.
+- The deployed Delta build emits project/session/work events to the bounded
+  ingestion files, and its legacy schedule-fire, silence-nudge, and project
+  restore loops are disabled by default. Existing Discord connectivity resumed;
+  no agent was reactivated and no product work was dispatched.
+- This activates the event-boundary path but does not prove a real event has
+  traversed it under customer traffic, nor does it qualify the old provider
+  credential boundary. A fresh event-ingestion observation and Delta/Charlie
+  processor isolation remain required before autonomous execution expands.
