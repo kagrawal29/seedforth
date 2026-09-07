@@ -6,6 +6,7 @@ WHERE 'conversation.deliver' IN g.permissions
 MATCH (c:ScopedConversation {scope_id:$scope})-[:HAS_MESSAGE]->
       (m:ConversationMessage {node_id:$message_id,status:'queued'})
 WHERE c.originator=m.originator AND size($delivery_attempt)>=8 AND size($delivery_attempt)<=128
+WITH DISTINCT c,m
 SET m._lock=coalesce(m._lock,0)+1
 WITH c,m WHERE m.status='queued'
 SET m.status='delivering',m.delivery_attempt=$delivery_attempt,

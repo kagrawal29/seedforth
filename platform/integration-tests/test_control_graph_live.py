@@ -306,6 +306,10 @@ def test_conversation_delivery_is_claimed_committed_and_reconciled(graph, case, 
                 "CREATE (m:ConversationMessage {node_id:$scope+'-message',scope_id:$scope,originator:$actor,recipient:'delta',"
                 "sequence:1,status:'queued',text:'untrusted direction',request_hash:'request-hash'}) "
                 "CREATE (c)-[:HAS_MESSAGE]->(m)",case)
+    # Duplicate graph paths must not create duplicate claim signals with the
+    # same deterministic ID. The reducer is idempotent over relationship drift.
+    graph.query("MATCH (c:ScopedConversation {node_id:$scope+'-conversation'})-[:HAS_MESSAGE]->(m:ConversationMessage {node_id:$scope+'-message'}) "
+                "CREATE (c)-[:HAS_MESSAGE]->(m)",case)
     message=case['scope']+'-message'; attempt='delivery-'+uuid4().hex
     claimed=graph.operation('claim-conversation-message',processor,case['scope'],message_id=message,delivery_attempt=attempt)
     assert claimed[0]['message_id']==message and graph.operation('claim-conversation-message',processor,case['scope'],message_id=message,delivery_attempt=uuid4().hex)==[]
