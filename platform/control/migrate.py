@@ -11,6 +11,7 @@ SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cyph
            'seedforth-upgrade-pilot-scopes.cypher','seedforth-pilot-runtime-sources.cypher',
            'seedforth-pilot-code-sources.cypher',
            'seedforth-delta-event-sources-v1.cypher',
+           'seedforth-service-health-sources-v1.cypher',
            'seedforth-graphify-source-v1.cypher',
            'seedforth-conversation-model-v1.cypher',
            'seedforth-upgrade-work-plan.cypher','seedforth-control-owner.cypher',
