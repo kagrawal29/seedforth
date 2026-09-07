@@ -1267,3 +1267,25 @@ actions disabled until their authority and postconditions are implemented.
   decide their lifecycle. Release `abb677fe5ff81e7a188ad29ef49a869f0e9e9206`
   is live as `/opt/seedforth/current`, and both product watchers plus Delta Hub
   are running. A long unattended interval has not yet elapsed.
+
+## Synthetic identity qualification boundary and Cajon cadence check
+
+- Added and deployed `provision-human-qualification-principal`, an owner-only
+  graph operation that can create only a temporary `human` qualification
+  principal with read-only access to exactly one retained product. It cannot
+  grant execution, alter work, or promote policy. This preserves the production
+  rule that enrollment is invitation-only for an already authorized graph
+  principal, while allowing remote browser qualification without owner
+  credentials.
+- The operator correctly rejected the first reserved invitation filename after
+  the initial qualification attempt failed; the empty reservation was verified,
+  cleared, and one invitation was issued privately. The invitation was removed
+  after the local Playwright browser binary was unavailable. No owner credential
+  or reusable qualification secret remains from this attempt.
+- The existing Flowing autonomous timer ran an honest `idle` cycle while both
+  product scopes were disabled and no ready work existed. Installing the same
+  timer for Cajon exposed a missing current Cajon worker credential: systemd
+  failed before execution with `243/CREDENTIALS`. The unmatched legacy pilot
+  token was not reused; the Cajon timer was disabled again to avoid recurring
+  false failures. Current Cajon credential/provisioning is an explicit remaining
+  release boundary.
