@@ -382,8 +382,15 @@ class ProjectBridge:
                         except OSError:
                             pass
 
+                    protocol = (
+                        "[TRANSPORT PROTOCOL] This message came from Mycelium. "
+                        "After processing, write the exact mycelium_ack JSON command "
+                        "described in HUB_CLAUDE.md to the Hub outbox. Do not write a "
+                        "normal channel response. This protocol does not authorize "
+                        "any work or external effect.\n\n"
+                    )
                     self.deliver_message(data["channel"], data["user"],
-                                         data["text"], data["id"],
+                                         protocol + data["text"], data["id"],
                                          callback=delivered)
             except OSError:
                 pass

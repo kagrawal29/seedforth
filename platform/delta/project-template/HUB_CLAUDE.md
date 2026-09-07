@@ -129,6 +129,10 @@ appropriate:
 }
 ```
 
+For these messages, the JSON command above is the response. Do not write a
+normal response addressed to the `mycelium:<scope>` channel, because that is
+not a Discord channel and cannot be delivered safely.
+
 The only acknowledgement statuses are `received`, `needs_review`, and
 `rejected`. An acknowledgement confirms receipt or review only. It never
 claims that work ran or authorizes an external effect. For requested work,

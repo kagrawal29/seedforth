@@ -1719,6 +1719,16 @@ def _start_hub_watchers() -> None:
         channel_id = data.get("channel")
         if not channel_id:
             return
+        if isinstance(channel_id, str) and channel_id.startswith("mycelium:"):
+            # A Delta response on this authenticated transport must be the
+            # structured mycelium_ack command handled above. Never coerce an
+            # unstructured response into a graph acknowledgement or Discord
+            # destination; the watcher will remove it after this quarantine log.
+            logger.warning(
+                "[mycelium-ack] quarantined unstructured Hub response for %s",
+                channel_id,
+            )
+            return
         _stop_typing(channel_id)
         channel = client.get_channel(int(channel_id))
 

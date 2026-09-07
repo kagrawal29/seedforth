@@ -31,3 +31,4 @@ def test_authenticated_inbox_only_accepts_mycelium_source(tmp_path, monkeypatch)
 
     assert len(accepted) == 1
     assert accepted[0][0][0] == "mycelium:cajon-sensei"
+    assert accepted[0][0][2].startswith("[TRANSPORT PROTOCOL]")
