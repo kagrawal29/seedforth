@@ -1195,3 +1195,16 @@ actions disabled until their authority and postconditions are implemented.
   `error_code=lease_expired`, blocked/held the work item, and left zero
   `Invocation` or artifact records. The Flowing scope was paused again. This
   qualifies claim failure and recovery safety, not useful product progress.
+
+## Worker runtime alignment after failed Flowing qualification
+
+- The live protected worker was still running release `3d8feef` while the
+  control plane was on `6d26533`; this was a deployment-version split, not a
+  graph decision.
+- After verifying the target release existed, the worker component link was
+  atomically switched to `/opt/seedforth/releases/6d26533` and the socket and
+  service were restarted. Both are active and the process exited cleanly.
+- The worker remains intentionally unusable for new product work until its
+  external worker credential/binding set is requalified. The live graph shows
+  both active scopes paused, all non-done work held, and no live lease. This
+  alignment improves deployment consistency but does not qualify autonomy.
