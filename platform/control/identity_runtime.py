@@ -74,10 +74,13 @@ def admin_operation(identity, body, peer_uid):
         raise IdentityError('invalid_operator_request')
     if body == {'operation':'backup'}:
         return backup_credentials(identity.store)
-    if (set(body) != {'operation','principal'} or body['operation'] not in {'invite','reset'}
+    if (set(body) != {'operation','principal'} or body['operation'] not in {'invite','reset','access_link'}
             or not isinstance(body['principal'],str) or not re.fullmatch('[a-zA-Z0-9_-]{3,128}',body['principal'])):
         raise IdentityError('invalid_operator_request')
-    value = identity.issue_invite(body['principal'],reset=body['operation']=='reset')
+    if body['operation'] == 'access_link':
+        value = identity.issue_access_link(body['principal'])
+    else:
+        value = identity.issue_invite(body['principal'],reset=body['operation']=='reset')
     return {'invitation':value,'expires_in':86400,'principal':body['principal']}
 
 

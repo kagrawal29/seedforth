@@ -14,6 +14,7 @@ RuntimeDirectory=seedforth-identity
 RuntimeDirectoryMode=0700
 UMask=0077
 LoadCredential=neo4j.json:/opt/seedforth/shared/env/control-neo4j.json
+EnvironmentFile=-/opt/seedforth/shared/env/seedforth-email.env
 Environment=CONTROL_GRAPH_CREDENTIALS=%d/neo4j.json
 Environment=PYTHONPATH=/opt/seedforth/identity-current/platform
 Environment=SEEDFORTH_GOVERNED_DELTA_PROCESSOR=1

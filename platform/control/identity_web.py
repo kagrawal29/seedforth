@@ -17,6 +17,7 @@ from starlette.routing import Route, Mount
 
 from control.graph import GraphError
 from control.human_identity import IdentityError
+from control.invitation_email import InvitationEmailError, send_invitation
 from control.oauth_http import auth_routes
 from control.oauth_provider import project_scopes
 from control.server import Boundary, RequestError
@@ -195,7 +196,7 @@ class HumanUI:
         result = self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-read-access','scope':'seedforth-platform','params':{}})
         rows = result['data']
         body = '<p>Manage human identities and project grants. Changes are written through reviewed graph operations.</p>'
-        body += '<form method="post" action="/admin/invite">'+hidden('csrf',self.csrf(request))+field('Principal ID (principal-human-...)','principal')+field('Project scope','scope')+'<button>Create invitation</button></form>'
+        body += '<form method="post" action="/admin/invite">'+hidden('csrf',self.csrf(request))+field('Email address','email','email')+field('Principal ID (principal-human-...)','principal')+field('Project scope','scope')+'<button>Send access link</button></form>'
         body += '<table><tr><th>Principal</th><th>Scope</th><th>Status</th><th>Action</th></tr>'
         for row in rows:
             if row['principal'] == 'principal-seedforth-owner': continue
@@ -205,13 +206,18 @@ class HumanUI:
         return self.page(request, 'Access administration', body)
 
     async def admin_invite(self, request):
-        form = await self.form(request, {'principal','scope'})
+        form = await self.form(request, {'email','principal','scope'})
         session = await self.io(self.identity.session, request.cookies.get(SESSION,''))
         if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
         scopes = await self.io(self.identity.grants, session['principal'])
         self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-provision-principal','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'target_scope':form.get('scope','')}})
         invite = await self.io(self.identity.issue_access_link, form.get('principal',''))
-        return self.page(request, 'Access link created', '<p>Share this one-time sign-in link with the teammate:</p><p><code>/enroll?invite='+escape(invite)+'</code></p><p>It expires in 24 hours and opens SeedForth without a password.</p>')
+        link = self.origin.rstrip('/') + '/enroll?invite=' + invite
+        try:
+            await self.io(send_invitation, form.get('email',''), link, form.get('principal',''), form.get('scope',''))
+        except InvitationEmailError as exc:
+            return self.page(request, 'Invitation not sent', '<p>The access link was created but email delivery failed: <code>'+escape(str(exc))+'</code></p><p>Use this link manually:</p><p><code>'+escape(link)+'</code></p>', 503)
+        return self.page(request, 'Invitation sent', '<p>Access link sent to <strong>'+escape(form.get('email',''))+'</strong>.</p><p>It expires in 24 hours and opens SeedForth without a password.</p>')
 
     async def admin_grant(self, request):
         form = await self.form(request, {'principal','scope','revoked'})
