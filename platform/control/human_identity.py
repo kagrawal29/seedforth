@@ -81,6 +81,18 @@ class HumanIdentity:
             self._event(db, principal, 'operator_reenrollment' if reset else 'operator_invitation')
         return token
 
+    def issue_access_link(self, principal, *, lifetime=86400):
+        """Issue a one-time sign-in link for an existing or new graph identity."""
+        if not self.grants(principal) or not 60 <= lifetime <= 86400:
+            raise IdentityError('principal_not_enrollable')
+        token = secrets.token_urlsafe(32)
+        with self.store.transaction() as db:
+            db.execute('UPDATE human_invites SET used=1 WHERE principal=? AND used=0', (principal,))
+            db.execute('INSERT INTO human_invites(hash,principal,expires) VALUES (?,?,?)',
+                       (digest(token), principal, self.clock() + lifetime))
+            self._event(db, principal, 'access_link_issued')
+        return token
+
     def start_enrollment(self, invite, username, password, peer):
         self.rate('enrollment-peer:' + peer, 10, 3600)
         username = username.strip().lower()
@@ -166,6 +178,42 @@ class HumanIdentity:
             db.execute('DELETE FROM human_pending WHERE hash=?', (digest(pending),))
             session = self._new_session(db, row['principal'])
             self._event(db, row['principal'], 'password_enrollment_completed')
+        return session
+
+    def accept_invite(self, invite, peer):
+        """Consume a one-time access link and create a browser session.
+
+        The link is the human authentication factor for the simple product
+        path. It never changes graph grants; it only binds a session to the
+        already-authorized principal in the invitation.
+        """
+        self.rate('invite-login-peer:' + peer, 20, 600)
+        if not isinstance(invite, str) or not 32 <= len(invite) <= 128:
+            raise IdentityError('invalid_invitation', 401)
+        with self.store.transaction() as db:
+            row = db.execute('SELECT * FROM human_invites WHERE hash=? AND used=0 AND expires>?',
+                             (digest(invite), self.clock())).fetchone()
+            if not row or not self.grants(row['principal']):
+                raise IdentityError('invalid_invitation', 401)
+            user = db.execute('SELECT * FROM human_users WHERE principal=?',
+                              (row['principal'],)).fetchone()
+            if user:
+                username = user['username']
+                db.execute('UPDATE human_sessions SET revoked=1 WHERE principal=?',
+                           (row['principal'],))
+            else:
+                username = row['principal'].lower()[:64]
+                if not re.fullmatch('[a-z0-9][a-z0-9._-]{2,63}', username):
+                    raise IdentityError('invalid_invitation', 401)
+                password = self._hash(secrets.token_urlsafe(32))
+                db.execute('INSERT INTO human_users(username,principal,password,otp_secret,last_step) VALUES (?,?,?,?,?)',
+                           (username, row['principal'], password, '', -1))
+            changed = db.execute('UPDATE human_invites SET used=1 WHERE hash=? AND used=0 AND expires>?',
+                                 (digest(invite), self.clock())).rowcount
+            if changed != 1:
+                raise IdentityError('invalid_invitation', 401)
+            session = self._new_session(db, row['principal'])
+            self._event(db, row['principal'], 'link_login')
         return session
 
     def login(self, username, password, code, peer):

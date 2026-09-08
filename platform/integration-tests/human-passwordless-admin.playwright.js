@@ -2,14 +2,9 @@ async (page) => {
   const check = (value, message) => { if (!value) throw new Error(message); };
   const base = 'http://localhost:18789';
   const state = await (await page.request.get(base+'/__fixture/state')).json();
-  const password = 'passwordless-admin-qualification-2026';
   await page.setViewportSize({width:390,height:844});
   await page.goto(base+'/enroll?invite='+encodeURIComponent(state.owner_invite));
-  await page.getByLabel('Username',{exact:true}).fill('owner-passwordless-e2e');
-  await page.getByLabel('Passphrase (14–256 characters)',{exact:true}).fill(password);
   await page.getByRole('button',{name:'Continue to SeedForth',exact:true}).click();
-  await page.getByRole('heading',{name:'Enter SeedForth'}).waitFor();
-  await page.getByRole('button',{name:'Enter SeedForth',exact:true}).click();
   await page.goto(base+'/control');
   await page.locator('#project-name').waitFor();
   check((await page.locator('#project-name').innerText()) === 'SeedForth portfolio','Owner did not enter portfolio');

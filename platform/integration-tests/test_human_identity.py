@@ -113,6 +113,15 @@ def test_login_rate_limit_is_durable_and_unknown_users_fail_uniformly(human):
     assert exc.value.status == 429
 
 
+def test_access_link_reissues_without_deleting_identity(human):
+    identity,_,_,_ = human
+    first = identity.issue_invite('person')
+    session = identity.accept_invite(first, 'fixture')
+    second = identity.issue_access_link('person')
+    assert identity.accept_invite(second, 'fixture')
+    assert identity.session(session) is None
+
+
 def csrf(response):
     return re.search(r'name="csrf" value="([^"]+)"',response.text).group(1)
 
@@ -121,14 +130,15 @@ def test_http_csrf_host_cookie_enrollment_and_recovery_login(human):
     identity,provider,now,_ = human
     app = create_identity_app(identity,provider)
     with TestClient(app,base_url='https://identity.example') as http:
-        response = http.get('/enroll')
+        invite = identity.issue_invite('person')
+        response = http.get('/enroll?invite=' + invite)
         assert response.status_code == 200
         assert response.headers['referrer-policy'] == 'same-origin'
         assert 'frame-ancestors' in response.headers['content-security-policy']
         token = csrf(response)
         assert http.cookies.get(CSRF) == token
         assert 'Secure' in response.headers['set-cookie'] and 'HttpOnly' in response.headers['set-cookie']
-        form = dict(csrf=token,invite=identity.issue_invite('person'),username='operator',password=PASSWORD)
+        form = dict(csrf=token,invite=invite,username='operator',password=PASSWORD)
         assert http.post('/enroll/start',data=form).status_code == 403
         assert http.post('/enroll/start',data=form,headers={'Origin':'https://hostile.example'}).status_code == 403
         headers = {'Origin':'https://identity.example'}
@@ -143,10 +153,12 @@ def test_http_csrf_host_cookie_enrollment_and_recovery_login(human):
         assert http.post('/logout',data=dict(csrf=csrf(account),principal='another'),headers=headers).status_code == 400
         response = http.post('/logout',data=dict(csrf=csrf(account)),headers=headers)
         assert 'Sign in' in response.text
-        login = http.get('/login')
-        response = http.post('/login',data=dict(csrf=csrf(login),username='operator',password=PASSWORD,code=''),headers=headers)
-        assert 'Your access' in response.text
-        response = http.post('/sessions/revoke',data=dict(csrf=csrf(response)),headers=headers)
+        replacement = identity.issue_invite('person',reset=True)
+        login = http.get('/login?invite=' + replacement)
+        response = http.post('/enroll/accept',data=dict(csrf=csrf(login),invite=replacement),headers=headers,follow_redirects=False)
+        assert response.status_code == 303 and response.headers['location'] == '/control'
+        account = http.get('/account')
+        response = http.post('/sessions/revoke',data=dict(csrf=csrf(account)),headers=headers)
         assert 'Sign in' in response.text
         assert http.get('/account',follow_redirects=False).status_code == 303
         assert http.get('/login',headers={'Host':'evil.example'}).status_code == 421

@@ -97,13 +97,15 @@ class HumanUI:
         next_path = request.query_params.get('next', '')
         if not (next_path.startswith('/') and not next_path.startswith('//')):
             next_path = ''
-        body = '<p>Sign in with the passphrase you chose when you accepted your invitation.</p>'
-        body += '<form method="post" action="/login">' + hidden('csrf', self.csrf(request)) + hidden('request', request_id) + hidden('next', next_path)
-        body += field('Username', 'username', autocomplete='username')
-        body += field('Passphrase', 'password', 'password', 'current-password')
-        body += hidden('code', '')
-        body += '<button>Sign in</button></form><p><a href="/enroll">Use an enrollment invitation</a></p>'
-        body += '<p class="muted">Lost all factors or your passphrase? An authorized operator must reset enrollment. No agent message can reset access.</p>'
+        invite = request.query_params.get('invite','')
+        if invite:
+            body = '<p>Your access link is ready. Continue to enter SeedForth without a password.</p>'
+            body += '<form method="post" action="/enroll/accept">' + hidden('csrf', self.csrf(request)) + hidden('invite', invite)
+            body += '<button>Continue to SeedForth</button></form>'
+        else:
+            body = '<p>SeedForth uses a one-time access link. Open the link shared by your administrator to sign in.</p>'
+            body += '<p><a href="/enroll">Have an access link?</a></p>'
+        body += '<p class="muted">Access is scoped by the Mycelium graph and sessions can be revoked by an administrator.</p>'
         return self.page(request, 'Sign in', body)
 
     async def login(self, request):
@@ -128,14 +130,26 @@ class HumanUI:
             body += '<form method="post" action="/enroll/finish">' + hidden('csrf', self.csrf(request))
             body += hidden('code', '') + '<button>Enter SeedForth</button></form><p>This enrollment step expires in ten minutes.</p>'
             return self.page(request, 'Enter SeedForth', body)
-        body = '<p>An invitation links your login to an existing graph identity. It does not grant new permissions.</p>'
+        body = '<p>Your access link is your sign-in. It is single-use, expires soon, and does not grant permissions.</p>'
         invite = request.query_params.get('invite','')
-        invite_field = '<label>Invitation<input name="invite" type="password" value="'+escape(invite)+'" autocomplete="off" required maxlength="256"></label>'
-        body += '<form method="post" action="/enroll/start">' + hidden('csrf', self.csrf(request))
-        body += invite_field + field('Username', 'username', autocomplete='username')
-        body += field('Passphrase (14–256 characters)', 'password', 'password', 'new-password')
-        body += '<button>Continue to SeedForth</button></form><p><a href="/login">Back to sign in</a></p>'
+        if invite:
+            body += '<form method="post" action="/enroll/accept">' + hidden('csrf', self.csrf(request))
+            body += hidden('invite', invite)
+            body += '<button>Continue to SeedForth</button></form>'
+        else:
+            body += '<p>Ask your SeedForth administrator for a fresh access link.</p>'
+        body += '<p><a href="/login">Back to sign in</a></p>'
         return self.page(request, 'Enroll your identity', body)
+
+    async def enroll_accept(self, request):
+        form = await self.form(request, {'invite'})
+        session = await self.io(self.identity.accept_invite, form.get('invite',''), request.client.host)
+        await self.io(self.identity.logout, request.cookies.get(SESSION,''))
+        response = RedirectResponse('/control', status_code=303)
+        cookie(response, SESSION, session)
+        clear(response, PENDING)
+        cookie(response, CSRF, secrets.token_urlsafe(32))
+        return response
 
     async def enroll_start(self, request):
         form = await self.form(request, {'invite','username','password'})
@@ -196,8 +210,8 @@ class HumanUI:
         if not session or session['principal'] != 'principal-seedforth-owner': raise IdentityError('authentication_required',401)
         scopes = await self.io(self.identity.grants, session['principal'])
         self.control.dispatch_identity(session['principal'], scopes, {'operation':'admin-provision-principal','scope':'seedforth-platform','params':{'principal':form.get('principal',''),'target_scope':form.get('scope','')}})
-        invite = await self.io(self.identity.issue_invite, form.get('principal',''))
-        return self.page(request, 'Invitation created', '<p>Share this one-time link with the teammate:</p><p><code>/enroll?invite='+escape(invite)+'</code></p><p>It expires in 24 hours.</p>')
+        invite = await self.io(self.identity.issue_access_link, form.get('principal',''))
+        return self.page(request, 'Access link created', '<p>Share this one-time sign-in link with the teammate:</p><p><code>/enroll?invite='+escape(invite)+'</code></p><p>It expires in 24 hours and opens SeedForth without a password.</p>')
 
     async def admin_grant(self, request):
         form = await self.form(request, {'principal','scope','revoked'})
@@ -306,7 +320,8 @@ class HumanUI:
         async def css(request):
             return Response(Path(__file__).with_name('identity.css').read_text(), media_type='text/css')
         return [Route('/login', self.login_page, methods=['GET']), Route('/login',self.login,methods=['POST']),
-            Route('/enroll',self.enrollment),Route('/enroll/start',self.enroll_start,methods=['POST']),
+            Route('/enroll',self.enrollment),Route('/enroll/accept',self.enroll_accept,methods=['POST']),
+            Route('/enroll/start',self.enroll_start,methods=['POST']),
             Route('/enroll/finish',self.enroll_finish,methods=['POST']),Route('/account',self.account),
             Route('/logout',self.logout,methods=['POST']),Route('/sessions/revoke',self.revoke,methods=['POST']),
             Route('/consent',self.consent),Route('/consent',self.decide,methods=['POST']),Route('/identity.css',css),
@@ -368,7 +383,8 @@ def create_identity_app(identity, provider, graph=None):
     async def problem(request, exc):
         code = exc.code if isinstance(exc,(IdentityError,RequestError)) else 'consent_not_authorized' if isinstance(exc,AuthorizeError) else 'service_unavailable'
         status = exc.status if isinstance(exc,(IdentityError,RequestError)) else 400 if isinstance(exc,AuthorizeError) else 503
-        messages = {'invalid_credentials':'Sign-in failed. Check your credentials or try a remaining recovery code.',
+        messages = {'invalid_credentials':'Sign-in failed. Check your credentials or request a fresh access link.',
+            'invalid_invitation':'This access link is invalid, expired, or already used. Request a fresh link.',
             'invalid_authenticator_code':'That authenticator code is not valid. Try the current code.',
             'consent_expired_or_used':'This connection request expired or was already used. Start again from your client.',
             'try_again_later':'Too many attempts. Please wait before trying again.'}
