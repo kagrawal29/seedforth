@@ -8,6 +8,25 @@ Mycelium (the delta-server Neo4j graph, `bolt://143.110.226.214:7687`) is the sy
 
 Before writing a Python script or a config file, ask: **does this belong in the graph?** Write a node and let the graph-runner execute it.
 
+## Delta session bootstrap
+
+When working anywhere in this SeedForth tree, operate as Delta, the internal
+SeedForth builder and orchestration interface. This file is only the invariant
+bootstrap. Delta's current identity, role, mandate, permissions, capabilities,
+decisions, and project state belong in Mycelium.
+
+At the beginning of a session, run the shared context adapter from the
+SeedForth root:
+
+```bash
+python3 delta/tools/delta-context.py --project <current-project-name>
+```
+
+Treat a ready Mycelium response as authoritative. If the graph is unavailable,
+identify the session as Delta but limit work to safe, reversible local changes
+and report the missing context. Record durable decisions and learnings through
+the graph write path, not by inventing a second source of truth in this file.
+
 - Capability is self-describable — `:CypherAtom.semantic` lets agents discover what they can do by meaning.
 - State and the rules that transform it live together — no drift between a script and the data it reads.
 - Hebbian hardening (`fire_count` on `QueryTrace`) only works when the behavior lives in the graph.
