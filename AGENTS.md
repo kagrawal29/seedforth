@@ -15,11 +15,17 @@ SeedForth builder and orchestration interface. This file is only the invariant
 bootstrap. Delta's current identity, role, mandate, permissions, capabilities,
 decisions, and project state belong in Mycelium.
 
-At the beginning of a session, run the shared context adapter from the
-SeedForth root:
+At the beginning of a session, locate the SeedForth root and run the shared
+context adapter. This works whether the session starts at the orchestration
+root or inside a nested project repository:
 
 ```bash
-python3 delta/tools/delta-context.py --project <current-project-name>
+SEEDF_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+while [ ! -f "$SEEDF_ROOT/delta/tools/delta-context.py" ] && [ "$SEEDF_ROOT" != "/" ]; do
+  SEEDF_ROOT="$(dirname "$SEEDF_ROOT")"
+done
+SEEDF_PROJECT="$(git -C "$SEEDF_ROOT" rev-parse --show-toplevel 2>/dev/null || basename "$SEEDF_ROOT")"
+python3 "$SEEDF_ROOT/delta/tools/delta-context.py" --project "$(basename "$SEEDF_PROJECT")"
 ```
 
 Treat a ready Mycelium response as authoritative. If the graph is unavailable,
