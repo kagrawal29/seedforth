@@ -14,7 +14,9 @@ SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cyph
            'seedforth-service-health-sources-v1.cypher',
            'seedforth-graphify-source-v1.cypher',
            'seedforth-conversation-model-v1.cypher',
-           'seedforth-upgrade-work-plan.cypher','seedforth-control-owner.cypher',
+           'seedforth-upgrade-work-plan.cypher',
+           'system-awareness-metabolism-workstream.cypher',
+           'seedforth-control-owner.cypher',
            'seedforth-owner-conversations-v1.cypher']
 
 
