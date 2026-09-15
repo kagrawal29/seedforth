@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import stat
 import time
 from pathlib import Path
 
@@ -67,23 +68,29 @@ def _register_rube_mcp(project_dir: str, linux_user: str = "") -> bool:
     logger.info(f"Registered Rube MCP in {project_dir}")
     return True
 
-def _write_project_event(project_name: str, event_type: str):
-    import subprocess
+def _append_project_event(project_name: str, event_type: str, payload: dict | None = None) -> None:
+    """Write project lifecycle evidence for later graph ingestion."""
+    event_root = Path('/opt/seedforth/shared')
+    event_root.mkdir(mode=0o700, exist_ok=True)
+    mode = event_root.stat().st_mode
+    if stat.S_ISLNK(mode) or mode & 0o077:
+        raise RuntimeError('shared_root_not_safe')
+
+    record = {
+        "ts": time.time(),
+        "scope": "seedforth-platform",
+        "project": project_name,
+        "event_type": event_type,
+        "payload": payload or {},
+    }
+    path = event_root / "provision-events.jsonl"
+    with open(path, "a") as stream:
+        stream.write(json.dumps(record) + "\n")
+
+
+def _write_project_event(project_name: str, event_type: str, payload: dict | None = None):
     try:
-        cypher = (
-            f'CREATE (pe:ProjectEvent {{'
-            f'node_id:"evt-{project_name}-{int(time.time())}", '
-            f'project:"{project_name}", '
-            f'event_type:"{event_type}", '
-            f'created_at:datetime()'
-            f'}})'
-        )
-        subprocess.run(
-            ["docker", "exec", "mycelium-neo4j", "cypher-shell",
-             "-u", "neo4j", "-p", os.environ.get("NEO4J_PASSWORD", ""),
-             "--format", "plain", cypher],
-            capture_output=True, text=True, timeout=10
-        )
+        _append_project_event(project_name, event_type, payload)
     except Exception:
         pass
 
@@ -283,20 +290,10 @@ def _write_opencode_jsonc(info) -> None:
 
     # Sync role into the fleet graph :Subagent node (best-effort)
     try:
-        import urllib.request
-        import base64
-        _auth = base64.b64encode(
-            f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()).decode()
-        _body = json.dumps({"statements": [{"statement":
-            "MERGE (sa:SubAgent {name:$nm}) SET sa.role=$role, sa.model=$model, "
-            "sa.project='system', sa.updated_at=datetime()",
-            "parameters": {"nm": info.name, "role": role, "model": model}}]}).encode()
-        _req = urllib.request.Request(
-            "http://127.0.0.1:7474/db/neo4j/tx/commit", data=_body,
-            headers={"Content-Type": "application/json",
-                     "Authorization": f"Basic {_auth}"})
-        with urllib.request.urlopen(_req, timeout=5) as _r:
-            _r.read()
+        _append_project_event(info.name, "subagent_role_sync", {
+            "role": role,
+            "model": model,
+        })
     except Exception as e:
         logger.warning(f"Subagent role sync failed for {info.name}: {e}")
 
@@ -942,23 +939,7 @@ def hibernate(name: str, registry, bridges: dict) -> bool:
     # 4. Mark as hibernated in registry + graph
     from datetime import datetime as _dt, timezone as _tz
     registry.update(name, status="hibernated", hibernated_at=_dt.now(_tz.utc).isoformat())
-    _write_project_event(name, "hibernated")
-    try:
-        import urllib.request, base64, json as _json
-        _auth = base64.b64encode(
-            f"neo4j:{os.environ.get('NEO4J_PASSWORD', '')}".encode()).decode()
-        _body = _json.dumps({"statements": [{"statement":
-            "MATCH (p:Project {node_id:$pid}) SET p.hibernated_at=datetime(), "
-            "p.status='hibernated', p.updated_at=datetime()",
-            "parameters": {"pid": f"project-{name}"}}]}).encode()
-        _req = urllib.request.Request(
-            "http://127.0.0.1:7474/db/neo4j/tx/commit", data=_body,
-            headers={"Content-Type": "application/json",
-                     "Authorization": f"Basic {_auth}"})
-        with urllib.request.urlopen(_req, timeout=5) as _r:
-            _r.read()
-    except Exception:
-        pass
+    _write_project_event(name, "hibernated", {"status": "hibernated"})
 
     logger.info(f"{name} hibernated")
     return True

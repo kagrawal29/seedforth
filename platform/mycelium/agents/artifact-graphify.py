@@ -3,11 +3,11 @@
 Artifact Graphify — pulls team docs from repos and extracts graph structure.
 
 Reads signals/artifacts/ to find recently changed docs, pulls content via
-GitHub API, uses Sonnet to extract entities + relationships, and writes
-Document nodes to Neo4j.
+GitHub API, uses Sonnet to extract entities + relationships, and records a
+bounded, provenance-bearing observation through Mycelium's control boundary.
 
-The extracted concepts connect to existing Knowledge nodes — team docs
-become semantically queryable through the same MCP tools.
+The extracted concepts remain untrusted facts until an explicit reviewed
+promotion establishes a stronger relationship.
 
 Model: Sonnet. Cost: ~$0.30-0.50 per changed doc.
 Runs in pipeline after ingest, before demand.
@@ -222,31 +222,22 @@ async def main():
         print("[artifact-graphify] No artifact content fetched. Skipping.")
         return
 
-    # Get existing node labels for linking
+    # Existing graph nodes are optional context, never an implicit authority.
+    # Use the same scoped operation boundary as every other client.
     existing_nodes = []
     try:
-        from neo4j import GraphDatabase
-
-        def _get_neo4j_uri():
-            """Get Neo4j bolt URI, with deprecation path for legacy FALKORDB_HOST."""
-            neo4j_bolt = os.environ.get("NEO4J_BOLT")
-            if neo4j_bolt:
-                return neo4j_bolt
-            falkordb_host = os.environ.get("FALKORDB_HOST")
-            if falkordb_host:
-                print(f"[artifact-graphify] WARNING: FALKORDB_HOST is deprecated. Use NEO4J_BOLT instead.")
-                return f"bolt://{falkordb_host}:7687"
-            return "bolt://localhost:7687"
-
-        uri = _get_neo4j_uri()
-        user = os.environ.get("NEO4J_USER", "neo4j")
-        pw = os.environ.get("NEO4J_PASS", "localtest12")
-        driver = GraphDatabase.driver(uri, auth=(user, pw))
-        session = driver.session()
-        result = session.run("MATCH (n:Knowledge) RETURN n.node_id LIMIT 100")
-        existing_nodes = [row[0] for row in result]
-        driver.close()
+        platform_root = Path(__file__).resolve().parents[2]
+        sys.path.insert(0, str(platform_root))
+        from control.graph import Graph
+        rows = Graph().operation(
+            "read-scoped-graph",
+            os.environ.get("SEEDFORTH_GRAPHIFY_PRINCIPAL", "principal-graphify-sensor"),
+            os.environ.get("GRAPHIFY_SCOPE", "seedforth-platform"),
+            cursor="",
+        )
+        existing_nodes = [row["id"] for row in rows if isinstance(row.get("id"), str)]
     except Exception:
+        # Extraction can still produce an observation with no linking context.
         pass
 
     prompt = build_prompt(artifacts_with_content, existing_nodes)
@@ -289,168 +280,27 @@ async def main():
         print("  No graphify output produced.")
 
 
-def snapshot_and_clear_docs(session):
-    """Snapshot current Document + Concept nodes, then wipe them.
-
-    Same pattern as Demand: wipe and replace each cycle.
-    Previous state lives in the JSONL snapshots (sync-layers handles those
-    for Intent/Convergence/Phase; we handle Doc/Concept here).
-    """
-    snapshot_dir = Path(__file__).parent.parent / "knowledge" / "meta" / "layer-snapshots"
-    snapshot_dir.mkdir(parents=True, exist_ok=True)
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    snapshot_file = snapshot_dir / f"{date_str}.jsonl"
-
-    # Snapshot
-    records = 0
-    try:
-        result = session.run(
-            "MATCH (d:Document) "
-            "OPTIONAL MATCH (d)-[:CONTAINS_CONCEPT]->(c:Concept) "
-            "RETURN d.node_id, d.label, d.source, collect(c.node_id) AS concepts"
-        )
-        with open(snapshot_file, "a") as f:
-            ts = datetime.now(timezone.utc).isoformat()
-            for row in result:
-                record = {
-                    "snapshot_ts": ts, "node_type": "Document",
-                    "node_id": row[0], "label": row[1],
-                    "source": row[2], "concepts": row[3],
-                }
-                f.write(json.dumps(record, default=str) + "\n")
-                records += 1
-    except Exception:
-        pass
-
-    # Wipe Document and Concept nodes (they get recreated from fresh extraction)
-    try:
-        session.run("MATCH (c:Concept) DETACH DELETE c")
-        session.run("MATCH (d:Document) DETACH DELETE d")
-    except Exception:
-        pass
-
-    return records
-
-
 def sync_to_graph(output_file: Path):
-    """Sync extracted document concepts to Neo4j as Document nodes.
+    """Record Graphify output through the bounded control-plane operation."""
+    platform_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(platform_root))
+    from control.graph import Graph
+    from control.graphify_snapshot import build_snapshot, record
 
-    Wipes previous Document + Concept nodes first (snapshot preserved in JSONL).
-    """
-    try:
-        from neo4j import GraphDatabase
-
-        def _get_neo4j_uri():
-            """Get Neo4j bolt URI, with deprecation path for legacy FALKORDB_HOST."""
-            neo4j_bolt = os.environ.get("NEO4J_BOLT")
-            if neo4j_bolt:
-                return neo4j_bolt
-            falkordb_host = os.environ.get("FALKORDB_HOST")
-            if falkordb_host:
-                print(f"[artifact-graphify] WARNING: FALKORDB_HOST is deprecated. Use NEO4J_BOLT instead.")
-                return f"bolt://{falkordb_host}:7687"
-            return "bolt://localhost:7687"
-
-        uri = _get_neo4j_uri()
-        user = os.environ.get("NEO4J_USER", "neo4j")
-        pw = os.environ.get("NEO4J_PASS", "localtest12")
-        driver = GraphDatabase.driver(uri, auth=(user, pw))
-        session = driver.session()
-    except Exception as e:
-        print(f"  Neo4j unavailable: {e}. Skipping graph sync.")
-        return
-
-    # Snapshot and clear previous docs/concepts
-    snapped = snapshot_and_clear_docs(session)
-    if snapped:
-        print(f"  Snapshot: {snapped} doc nodes archived before replacement")
-
-    data = json.loads(output_file.read_text())
-    total_concepts = 0
-    total_rels = 0
-    total_links = 0
-
-    def esc(s):
-        if s is None:
-            return ""
-        return str(s).replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ")
-
-    for doc in data.get("documents", []):
-        source = esc(doc.get("source", ""))
-        title = esc(doc.get("title", ""))
-
-        # Create Document node
-        doc_id = esc(re.sub(r'[^a-z0-9-]', '-', doc.get("source", "").lower().replace("/", "-")))
-        session.run(
-            f"MERGE (d:Document {{node_id: '{doc_id}'}}) "
-            f"SET d.label = '{title[:200]}', "
-            f"d.source = '{source}', "
-            f"d.file_type = 'document'"
-        )
-
-        # Create concept nodes and link to document
-        for concept in doc.get("concepts", []):
-            cid = esc(concept.get("id", ""))
-            if not cid:
-                continue
-            clabel = esc(concept.get("label", ""))
-            ctype = esc(concept.get("type", ""))
-            csummary = esc(concept.get("summary", "")[:300])
-
-            session.run(
-                f"MERGE (c:Concept {{node_id: '{cid}'}}) "
-                f"SET c.label = '{clabel}', "
-                f"c.concept_type = '{ctype}', "
-                f"c.summary = '{csummary}', "
-                f"c.file_type = 'concept'"
-            )
-
-            # Link document → concept
-            try:
-                session.run(
-                    f"MATCH (d:Document {{node_id: '{doc_id}'}}), "
-                    f"(c:Concept {{node_id: '{cid}'}}) "
-                    f"MERGE (d)-[:CONTAINS_CONCEPT]->(c)"
-                )
-            except Exception:
-                pass
-
-            total_concepts += 1
-
-        # Create inter-concept relationships
-        for rel in doc.get("relationships", []):
-            src = esc(rel.get("source", ""))
-            tgt = esc(rel.get("target", ""))
-            rtype = esc(rel.get("relation", "RELATES_TO"))
-            if src and tgt:
-                try:
-                    session.run(
-                        f"MATCH (a:Concept {{node_id: '{src}'}}), "
-                        f"(b:Concept {{node_id: '{tgt}'}}) "
-                        f"MERGE (a)-[r:{rtype}]->(b)"
-                    )
-                    total_rels += 1
-                except Exception:
-                    pass
-
-        # Link concepts to existing Knowledge nodes
-        for link in doc.get("links_to_existing", []):
-            cid = esc(link.get("concept_id", ""))
-            existing = esc(link.get("existing_node_id", ""))
-            ltype = esc(link.get("relation", "REFERENCES"))
-            if cid and existing:
-                try:
-                    session.run(
-                        f"MATCH (c:Concept {{node_id: '{cid}'}}), "
-                        f"(k:Knowledge {{node_id: '{existing}'}}) "
-                        f"MERGE (c)-[r:{ltype}]->(k)"
-                    )
-                    total_links += 1
-                except Exception:
-                    pass
-
-    driver.close()
-    print(f"  Graph sync: {total_concepts} concepts, {total_rels} relationships, {total_links} links to existing nodes")
+    snapshot = build_snapshot(
+        output_file,
+        os.environ.get("GRAPHIFY_REPOSITORY", "seedforth/mycelium-artifacts"),
+        os.environ.get("GRAPHIFY_INPUT_REVISION", "unresolved"),
+        os.environ.get("GRAPHIFY_EXTRACTOR_REVISION", "artifact-graphify-unpinned-v0"),
+    )
+    rows = record(
+        Graph(),
+        os.environ.get("SEEDFORTH_GRAPHIFY_PRINCIPAL", "principal-graphify-sensor"),
+        os.environ.get("GRAPHIFY_SCOPE", "seedforth-platform"),
+        snapshot,
+    )
+    print(f"  Graphify observation: {len(snapshot['facts'])} bounded facts, {len(snapshot['failures'])} failures")
+    return rows
 
 
 if __name__ == "__main__":

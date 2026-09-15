@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from threading import Thread
@@ -33,6 +34,7 @@ from delta.router import Router
 from delta.agent_runner import get_runner
 from delta.agent_lifecycle import is_agent_running
 from delta import connections
+from delta.mycelium_ack import AckValidationError, append_ack, append_ack_once
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("delta")
@@ -44,6 +46,10 @@ ADMIN_DISCORD_ID = os.getenv("ADMIN_DISCORD_ID", "")
 REGISTRY_PATH = os.getenv("DELTA_REGISTRY_PATH", str(_delta_dir / "delta-registry.json"))
 _LAST_FIRED_PATH = Path(REGISTRY_PATH).parent / "delta-last-fired.json"
 DELTA_SERVER_HOST = os.getenv("DELTA_SERVER_HOST", "")
+MYCELIUM_ACK_STREAM = os.getenv(
+    "SEEDFORTH_MYCELIUM_ACK_STREAM",
+    "/opt/seedforth/shared/delta-conversation-acks.jsonl",
+)
 
 
 def _get_ttyd_url(project_name: str) -> str:
@@ -144,6 +150,22 @@ def _hub_dir() -> Path:
     if LOCAL_MODE:
         return Path(LOCAL_PROJECTS_DIR) / _HUB_DIR_NAME
     return Path(_HUB_DIR_SERVER)
+
+
+def _existing_hub_session_id() -> str:
+    """Recover the durable opencode Hub session after a Delta restart."""
+    if not HUB_SERVE_PORT:
+        return ""
+    try:
+        request = urllib.request.Request(f"http://127.0.0.1:{HUB_SERVE_PORT}/session")
+        with urllib.request.urlopen(request, timeout=5) as response:
+            sessions = json.loads(response.read())
+        candidates = [s for s in sessions if isinstance(s, dict)
+                      and s.get("title") == HUB_NAME and isinstance(s.get("id"), str)]
+        candidates.sort(key=lambda s: s.get("time", {}).get("updated", 0), reverse=True)
+        return candidates[0]["id"] if candidates else ""
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return ""
 
 
 # -- Bridge management -------------------------------------------------------
@@ -1503,16 +1525,19 @@ def _init_hub() -> None:
         # Ensure delta-config dirs are writable by hub user (root writes inbox, hub reads/deletes)
         for d in [data_dir, data_dir / "inbox", data_dir / "outbox", data_dir / "logs"]:
             os.chmod(str(d), 0o777)
+        # The Hub agent and Delta service both need the audit log, but neither
+        # should require root or broad world access to it.
+        try:
+            run_as_user(
+                hub_linux_user,
+                f"chgrp proj-delta-hub {data_dir}/logs && chmod 2770 {data_dir}/logs",
+            )
+        except Exception as exc:
+            logger.warning("Could not establish Hub log group boundary: %s", exc)
 
-        # Create settings.json in shared /root/.claude so ALL users skip the
-        # --dangerously-skip-permissions TUI prompt (symlinked from each user's home)
-        root_settings = Path("/root/.claude/settings.json")
-        if not root_settings.exists():
-            root_settings.write_text(json.dumps(
-                {"skipDangerousModePermissionPrompt": True}, indent=2
-            ))
-            os.chmod(str(root_settings), 0o666)
-            logger.info("Created /root/.claude/settings.json with skipDangerousModePermissionPrompt")
+        # The server service runs as the unprivileged `delta` user. Do not
+        # inspect or mutate root's home here. The current opencode runtime has
+        # no Claude permission-prompt setup requirement.
 
     # Hub runs as opencode SuperAgent (port 7700, supervisor-managed)
     if not LOCAL_MODE:
@@ -1527,6 +1552,7 @@ def _init_hub() -> None:
         nudge_prefix="delta-config/inbox",
         runtime="opencode",
         serve_port=HUB_SERVE_PORT,
+        session_id=_existing_hub_session_id(),
     )
     bridges[HUB_NAME] = bridge
     logger.info("Hub initialized")
@@ -1542,6 +1568,15 @@ def _start_hub_watchers() -> None:
 
     def _hub_outbox_callback(data: dict) -> None:
         command = data.get("command")
+
+        if command == "mycelium_ack":
+            try:
+                digest = append_ack(MYCELIUM_ACK_STREAM, data)
+            except (AckValidationError, OSError) as exc:
+                logger.warning("[mycelium-ack] rejected handoff: %s keys=%s", exc, sorted(data))
+            else:
+                logger.info("[mycelium-ack] recorded handoff %s", digest)
+            return
 
         if command == "onboarding_complete":
             # Personal agent finished onboarding via hub outbox
@@ -1711,6 +1746,16 @@ def _start_hub_watchers() -> None:
         channel_id = data.get("channel")
         if not channel_id:
             return
+        if isinstance(channel_id, str) and channel_id.startswith("mycelium:"):
+            # A Delta response on this authenticated transport must be the
+            # structured mycelium_ack command handled above. Never coerce an
+            # unstructured response into a graph acknowledgement or Discord
+            # destination; the watcher will remove it after this quarantine log.
+            logger.warning(
+                "[mycelium-ack] quarantined unstructured Hub response for %s",
+                channel_id,
+            )
+            return
         _stop_typing(channel_id)
         channel = client.get_channel(int(channel_id))
 
@@ -1756,6 +1801,29 @@ def _start_hub_watchers() -> None:
 
     t2 = Thread(target=bridge.watch_inbox, daemon=True)
     t2.start()
+
+    def _authenticated_message_seen(data: dict) -> None:
+        message_id = data.get("conversation_message_id", "")
+        scope = data.get("scope", "")
+        try:
+            digest = append_ack_once(MYCELIUM_ACK_STREAM, {
+                "conversation_message_id": message_id,
+                "ack_id": "ack-" + message_id,
+                "ack_status": "received",
+                "scope": scope,
+                "summary": "Delta Hub session received the message; no execution is implied",
+            })
+        except (AckValidationError, OSError) as exc:
+            logger.warning("[mycelium-ack] receipt handoff failed for %s: %s", message_id, exc)
+        else:
+            logger.info("[mycelium] Hub session receipt for %s (%s)", message_id, digest)
+
+    t3 = Thread(
+        target=bridge.watch_authenticated_inbox,
+        args=(_authenticated_message_seen,),
+        daemon=True,
+    )
+    t3.start()
 
     logger.info("Hub watchers started")
 
@@ -2403,6 +2471,9 @@ async def _schedule_fire_loop():
 
     Polls every 30s for sub-60s delivery accuracy.
     """
+    if not os.getenv("DELTAV1_LEGACY_SCHEDULE_AUTOMATION", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy schedule fire loop disabled by configuration")
+        return
     await client.wait_until_ready()
     # Track which tasks have been fired today to prevent double-firing
     fired_today: dict[str, str] = {}  # "project:task_id:date" -> iso timestamp
@@ -2608,6 +2679,9 @@ async def _silence_nudge_loop():
     the opencode prompt (not mid-turn). Caps at 5 nudges per user message
     with 25s cooldown between nudges per project.
     """
+    if not os.getenv("DELTAV1_LEGACY_SILENCE_NUDGE", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy silence nudge loop disabled by configuration")
+        return
     await client.wait_until_ready()
 
     while not client.is_closed():
@@ -2670,6 +2744,10 @@ def _restore_active_projects() -> int:
     but any stopped ones need to be restarted.
     Returns the number of projects restored.
     """
+    if not os.getenv("DELTAV1_LEGACY_RESTORE", "").lower() in ("1", "true", "yes", "on"):
+        logger.info("Legacy project restore loop disabled by configuration")
+        return 0
+
     restored = 0
     booted = 0
     for name in registry.list_projects():
@@ -2723,10 +2801,12 @@ async def on_ready():
     client.loop.create_task(_admin_steering_digest_loop())
 
     # Start silence nudge loop (pokes agents that go dark)
-    client.loop.create_task(_silence_nudge_loop())
+    if os.getenv("DELTAV1_LEGACY_SILENCE_NUDGE", "").lower() in ("1", "true", "yes", "on"):
+        client.loop.create_task(_silence_nudge_loop())
 
     # Start general-purpose schedule fire loop (fires tasks from schedule.json)
-    client.loop.create_task(_schedule_fire_loop())
+    if os.getenv("DELTAV1_LEGACY_SCHEDULE_AUTOMATION", "").lower() in ("1", "true", "yes", "on"):
+        client.loop.create_task(_schedule_fire_loop())
 
     # Start resource manager (hibernates idle projects)
     client.loop.create_task(resource_manager_loop(client, registry, bridges))

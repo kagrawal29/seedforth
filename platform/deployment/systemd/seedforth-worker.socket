@@ -1,0 +1,13 @@
+[Unit]
+Description=SeedForth protected worker broker socket
+
+[Socket]
+ListenStream=/run/seedforth-worker/broker.sock
+SocketMode=0660
+SocketGroup=seedforth-workers
+DirectoryMode=0700
+Accept=no
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

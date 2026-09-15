@@ -1,0 +1,11 @@
+[Unit]
+Description=Observe selected SeedForth source files every five minutes
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=300s
+AccuracySec=5s
+Unit=seedforth-code-sensor.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,41 @@
+{
+  "kind": "staged_candidate_browser_qualification",
+  "source_revision": "2a518d957bb1fbd39b02a8dcbc3e1f2890630b93",
+  "source_path": "app/index.html",
+  "source_sha256": "56b092507f73ff644f742f63f3bd43802f3638df85895000c37282644a1b83b0",
+  "candidate_sha256": "dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85",
+  "broker_artifact_sha256": "93bf2be4d83789e9f2f39b09551e38050b102679146d2d68f6b1e753a31581a5",
+  "graph_kind": "disposable",
+  "fixture_scope": "fixture-5b07211a3ce448fe9181c9a6bc65fcd0",
+  "attempt": "443930566a2042f099e2cd486a88a86f",
+  "invocation": "ac75c27effee49d6b05318bbb782c277",
+  "candidate_authorship": "upgrade_agent_explicit_edit_proposal",
+  "execution": "trusted_staging_broker_harness",
+  "verifier": "upgrade_agent_using_playwright_cli",
+  "cli_version": "0.1.19",
+  "test_source": "platform/integration-tests/cajon-current-acceptance.playwright.js",
+  "test_sha256": "b9a268679a102cee568c1eabc65d8ac657e04b392f2739db4f64f6b8745a1b67",
+  "checks_passed": 12,
+  "status": "passed",
+  "checks": [
+    "first beat does not credit a loop",
+    "one complete 80bpm cycle credits exactly one",
+    "pause preserves total without adding loops",
+    "restart first beat does not credit a loop",
+    "restart full cycle credits exactly one",
+    "keyboard tempo control reaches 200bpm",
+    "tempo change discards partial cycle credit",
+    "full cycle at new tempo credits once",
+    "pause and resonance render without JavaScript errors",
+    "count-in does not count as played groove",
+    "post-count-in cycle credits once",
+    "desktop/mobile resize renders without errors"
+  ],
+  "product_modified": false,
+  "limitations": [
+    "Not production worker execution or product deployment",
+    "Not personal owner acceptance",
+    "Browser time simulated; musical accuracy and elapsed practice not measured",
+    "Mobile screenshot inspected; not a comprehensive responsive or accessibility audit"
+  ]
+}

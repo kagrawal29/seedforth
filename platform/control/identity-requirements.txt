@@ -1,0 +1,4 @@
+-r mcp-requirements.txt
+argon2-cffi==25.1.0
+argon2-cffi-bindings==26.1.0
+pyotp==2.9.0

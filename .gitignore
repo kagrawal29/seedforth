@@ -60,6 +60,7 @@ seedforthing/
 # Tool/deployment artifacts
 .claude/
 .playwright-mcp/
+.playwright-cli/
 .vercel/
 
 # Unified platform runtime state (never commit)

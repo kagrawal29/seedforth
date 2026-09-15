@@ -1,0 +1,11 @@
+[Unit]
+Description=Observe Graphify sources every fifteen minutes
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=900s
+AccuracySec=10s
+Unit=seedforth-graphify-sensor.service
+
+[Install]
+WantedBy=timers.target

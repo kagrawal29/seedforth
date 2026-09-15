@@ -8,6 +8,31 @@ Mycelium (the delta-server Neo4j graph, `bolt://143.110.226.214:7687`) is the sy
 
 Before writing a Python script or a config file, ask: **does this belong in the graph?** Write a node and let the graph-runner execute it.
 
+## Delta session bootstrap
+
+When working anywhere in this SeedForth tree, operate as Delta, the internal
+SeedForth builder and orchestration interface. This file is only the invariant
+bootstrap. Delta's current identity, role, mandate, permissions, capabilities,
+decisions, and project state belong in Mycelium.
+
+At the beginning of a session, locate the SeedForth root and run the shared
+context adapter. This works whether the session starts at the orchestration
+root or inside a nested project repository:
+
+```bash
+SEEDF_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+while [ ! -f "$SEEDF_ROOT/delta/tools/delta-context.py" ] && [ "$SEEDF_ROOT" != "/" ]; do
+  SEEDF_ROOT="$(dirname "$SEEDF_ROOT")"
+done
+SEEDF_PROJECT="$(git -C "$SEEDF_ROOT" rev-parse --show-toplevel 2>/dev/null || basename "$SEEDF_ROOT")"
+python3 "$SEEDF_ROOT/delta/tools/delta-context.py" --project "$(basename "$SEEDF_PROJECT")"
+```
+
+Treat a ready Mycelium response as authoritative. If the graph is unavailable,
+identify the session as Delta but limit work to safe, reversible local changes
+and report the missing context. Record durable decisions and learnings through
+the graph write path, not by inventing a second source of truth in this file.
+
 - Capability is self-describable — `:CypherAtom.semantic` lets agents discover what they can do by meaning.
 - State and the rules that transform it live together — no drift between a script and the data it reads.
 - Hebbian hardening (`fire_count` on `QueryTrace`) only works when the behavior lives in the graph.
@@ -25,7 +50,7 @@ Before writing a Python script or a config file, ask: **does this belong in the 
 
 ```
 SeedForth/
-  CLAUDE.md              # This file — the orchestration brain
+  AGENTS.md              # This file — the orchestration brain
   .gitignore
   website/               # Git clone of kagrawal29/seedforth-website
   docs/                  # PDFs, docx, loose research docs
@@ -96,27 +121,27 @@ SeedForth/
 - **Messaging channels:** **WhatsApp** via `whatsapp_webhook.py` + `whatsapp_config.json` on delta-server (agent number `+48 739 478 485`, routing in `/opt/delta/tools/whatsapp_config.json`). **LinkedIn + Instagram** via **Unipile** (`api38.unipile.com:16885`). Separate mechanisms.
 - **Charlie OS** is the "one CEO agent over divisions" pattern, first deployed in **Heritage Food Diary**. Its intelligence layer is the mycelium graph — agents read/write it via `graph-tool.py`.
 
-### Per-Project CLAUDE.md — Session Continuity
+### Per-Project AGENTS.md — Session Continuity
 
-Each project with active development MUST have its own `CLAUDE.md` at its root. This is how project-specific agents pick up and continue without losing context.
+Each project with active development MUST have its own `AGENTS.md` at its root. This is how OpenCode and other coding agents pick up and continue without losing context.
 
-A project CLAUDE.md must include:
+A project AGENTS.md must include:
 - **Current State** — what phase the project is in, what exists, what doesn't
 - **Next Steps** — ordered list of what to do next, so a fresh session knows exactly where to start
 - Project overview, architecture, conventions, data models
 - Infrastructure details (APIs, MCP servers, storage)
 
-When setting up a new project, always create a CLAUDE.md with current state and next steps. When finishing a work session on a project, update the current state and next steps before stopping. This way, `cd <project> && claude` starts a session that can continue autonomously.
+When setting up a new project, always create an AGENTS.md with current state and next steps. When finishing a work session on a project, update the current state and next steps before stopping. This way, any supported coding tool starts a session that can continue autonomously.
 
-MCP servers and tools should be configured in `<project>/.claude/settings.json` so they auto-connect when working from that directory.
+Tool-specific MCP configuration belongs in the tool's native configuration; the shared behavioral contract belongs in AGENTS.md. Delta's Mycelium bootstrap is the source of truth for identity, protocols, and current state.
 
 ## Workflows
 
 ### Adding a new project
 1. Create folder in SeedForth root (or clone existing repo)
 2. `git init` if new, or ensure `.git/` exists
-3. Create `CLAUDE.md` with current state, next steps, and project overview
-4. Configure MCP servers in `<project>/.claude/settings.json` if the project needs external APIs
+3. Create `AGENTS.md` with current state, next steps, and project overview
+4. Configure external tools using the selected coding tool's native settings if required
 5. Add entry to the Project Registry table above
 6. Add folder to `.gitignore`
 7. Optionally create remote: `gh repo create kagrawal29/<name> --private --source=. --push`

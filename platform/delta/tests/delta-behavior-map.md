@@ -272,7 +272,7 @@ Comprehensive mapping of all behavior paths in the Delta Discord bot codebase.
 1. Creates hub directory (LOCAL_MODE: `LOCAL_PROJECTS_DIR/delta-hub`, Server: `/opt/tetrahedron/hub`).
 2. Creates `delta-config/{inbox,outbox,logs}` dirs.
 3. Writes `CLAUDE.md` from `HUB_CLAUDE.md` template.
-4. Server mode: creates Linux user `proj-delta-hub`, sets dir permissions to 777, creates `/root/.claude/settings.json` for skip-permissions.
+4. Server mode: creates Linux user `proj-delta-hub` and prepares the hub data directories; it does not access root's home.
 5. Creates tmux session `delta-hub` with window "lead".
 6. Starts Claude Code in hub pane.
 7. Creates ProjectBridge for hub (stored in bridges dict as `__hub__`, NOT in registry).
@@ -517,7 +517,7 @@ Hub answers from registry-snapshot.json -> writes outbox -> Discord
 | Followups | `<data>/followups/*.json` | same |
 | Schedule | `<data>/schedule.json` | same |
 | Snapshot | `<hub>/delta-config/registry-snapshot.json` | same |
-| Settings | n/a | `/root/.claude/settings.json` |
+| Settings | n/a | Not used by the opencode runtime |
 
 ---
 

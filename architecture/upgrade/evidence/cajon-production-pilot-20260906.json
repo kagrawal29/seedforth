@@ -1,0 +1,32 @@
+{
+  "kind": "bounded_production_code_pilot",
+  "worker_release": "3d8feef7c4a6a37c4c723d9b5d9735dcf68f9579",
+  "work": "wi-cajon-partial-loop-credit",
+  "attempt": "attempt-cajon-pilot-v1",
+  "invocation": "invocation-cajon-pilot-v1",
+  "receipt": "a269f0ed-2eea-46b0-be86-6e911c3706bd",
+  "artifact_hash": "d0d70edd965cb635e2621c8fb818b8fc5db92db2713dc37618356f9b83f3f619",
+  "candidate_sha256": "dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85",
+  "verifier": "playwright-cli-0.1.19",
+  "verification": "qualification-cajon-production-pilot-v1",
+  "browser_checks_passed": 12,
+  "review": "review-cajon-production-pilot-v1",
+  "review_mode": "owner_delegated_upgrade_operator",
+  "accepted_work_state": "done",
+  "budget_units_spent": 1,
+  "budget_units_reserved": 0,
+  "monetary_spend": 0,
+  "pull_request": "https://github.com/Seedforth/cajon-sensei/pull/1",
+  "merged_commit": "9f694ee4d544927b7df109d6f2f5c739ec78ab0d",
+  "server_file_applied": "/home/proj-cajon-sensei/cajon-sensei/app/index.html",
+  "server_git_head_unchanged": true,
+  "prior_file_backup": "/opt/seedforth/shared/backups/cajon-production-candidate-v1/before-index.html",
+  "followup": "wi-cajon-checkout-reconcile",
+  "limitations": [
+    "Agent-authored explicit proposal; deterministic isolated executor, not generalized model-driven autonomy",
+    "Source promotion and review performed separately by the delegated upgrade operator",
+    "Pre-existing operational edits preserved; server Git checkout reconciliation remains pending",
+    "Public hosting/deployment URL not verified",
+    "Does not establish long-term unattended reliability or measured musical accuracy"
+  ]
+}

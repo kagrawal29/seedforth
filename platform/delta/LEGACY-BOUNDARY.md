@@ -27,5 +27,14 @@ not be scheduled, copied into a production unit, or used with real credentials.
 Any future reactivation must first replace command-line password handling with
 the shared HTTP helper and add a release-gate test.
 
+Runtime guardrails for the last legacy in-process Delta loops are currently
+disabled by default:
+
+- `DELTAV1_LEGACY_SCHEDULE_AUTOMATION`
+- `DELTAV1_LEGACY_SILENCE_NUDGE`
+- `DELTAV1_LEGACY_RESTORE`
+
+Set any of these to `1`/`true`/`on`/`yes` only during controlled maintenance.
+
 This boundary is separate from the active graph program. Graph behavior belongs
 in Mycelium protocols; only external I/O belongs in scripts.

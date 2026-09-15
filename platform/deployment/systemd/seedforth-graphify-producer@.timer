@@ -1,0 +1,11 @@
+[Unit]
+Description=Run project Graphify producer every fifteen minutes (%i)
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=900s
+AccuracySec=10s
+Unit=seedforth-graphify-producer@%i.service
+
+[Install]
+WantedBy=timers.target

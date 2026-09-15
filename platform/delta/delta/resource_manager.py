@@ -13,6 +13,13 @@ from delta.provisioner import hibernate
 logger = logging.getLogger(__name__)
 
 
+def should_auto_hibernate(info) -> bool:
+    """Return whether the legacy idle policy may hibernate this project."""
+    if not info or info.status != "active":
+        return False
+    return getattr(info, "project_type", "standard") not in {"persistent", "product"}
+
+
 async def resource_manager_loop(client, registry, bridges,
                                 check_interval: int = 60,
                                 idle_timeout_minutes: int = 10):
@@ -28,7 +35,7 @@ async def resource_manager_loop(client, registry, bridges,
         try:
             for name in list(registry.list_projects()):
                 info = registry.get(name)
-                if not info or info.status != "active":
+                if not should_auto_hibernate(info):
                     continue
 
                 bridge = bridges.get(name)

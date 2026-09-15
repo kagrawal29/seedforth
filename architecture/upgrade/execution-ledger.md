@@ -1,0 +1,1753 @@
+# Autonomous upgrade execution ledger
+
+Authorization: on 2026-09-06 the owner instructed end-to-end autonomous execution,
+including implementation, deployment, and verification. The previous planning-only
+boundary is superseded for this upgrade. Business-side effects still require
+specific mandates; no budgets, recipients, or commercial targets are invented.
+
+Source branch: codex/seedforth-system-upgrade. Preserve unrelated local work.
+Current known production release: abb677fe5ff81e7a188ad29ef49a869f0e9e9206.
+Separate control component: 657115103078391f6de00b202975093c3ac81664,
+deployed via /opt/seedforth/control-current. Active end-to-end goal registered
+at the owner's explicit request. No token budget was requested.
+
+## Progress
+
+- Prepared full review package and recorded authorization to proceed.
+- Live baseline B01–B17 established target identity and significant execution gaps.
+- Implementation starting with trustworthy runner evidence and graph contracts.
+- Runner, graph, and gateway tests: 29 passed on the isolated delta2 test graph
+  in 3.72 seconds. Earlier platform boundary suite: 9 passed. New suite includes
+  live concurrent claims, denied scope, expired leases, late results, holds,
+  independent review, altered operation source, and credential revocation.
+- Production preflight found nine duplicate historical ProtocolRun IDs and two
+  enabled heartbeat protocols without FIRST_ATOM chains. Preserve historical IDs;
+  v2 evidence uses a separately constrained VersionedProtocolRun label.
+- Root cron still invokes legacy heartbeat (30 minutes), dream (4 hours), deep,
+  long, fleet ingest, and context ingest alongside the new 1-minute timer.
+- Consistent production snapshot completed; live Neo4j restarted successfully.
+  Snapshot: /opt/seedforth/shared/backups/upgrade-20260906.I8ocj1Ch/neo4j.dump,
+  mode 0600, SHA256 0ce702f4f5196c6efd6d6ec1543790ebfe0726613d95a30df23e8d5a86165d3e.
+  Isolated restore verified 47 projects and 26,403 historical ProtocolRuns.
+- Disposable test container seedforth-upgrade-test-20260906 uses delta2 loopback
+  port 27474; restored snapshot seedforth-upgrade-restore-20260906 uses 28474.
+  Tests now execute on the remote scratch venv (no fragile local SSH test tunnel).
+  Scratch directory: /tmp/seedforth-upgrade.Eb1GkXTC.
+- Authored additive v2 migration succeeded twice against restored production data.
+  Most recent source hash: 01268043a5e5457434033a16d6817ccb42249bba1aba6e8241c6cde91c934b72.
+  This migration is now applied and verified in production from immutable commit
+  6f232e9b599ba9e22322f0eda8524dc76c2acfb1 (also pushed to the upgrade branch).
+  Both pilot scopes are active but held for new execution, 11 reviewed graph
+  operations exist, all 47 project records remain, and Delta/heartbeat stay active.
+  Main platform symlink remains on 1770e7c. No scheduler cutover has run yet.
+- Initial loopback gateway and responsive board implemented. Per-principal scoped
+  bootstrap credentials are not OAuth. Public remote MCP is not delivered yet.
+- Browser fixture checks passed: desktop project/inspector, 390px mobile layout,
+  no browser credential storage, and clearing work data on disconnect. This is
+  fixture UX validation, not production browser-to-worker acceptance.
+- Restored-data container stopped after migration verification to close the
+  temporary loopback read surface. Its dedicated volume and backup are retained.
+- Next component includes runtime SourceStreams and append-only Observations with
+  idempotency, late-event preservation, failed-collection visibility, and stale
+  projection. Process observation never changes owner-directed portfolio state.
+- Sensing/gateway/runner suite: 32 passed in the disposable graph. Updated schema,
+  sources, and owner bootstrap grants applied twice to the restored snapshot;
+  source hash edc37dbc8d3ed87d7de4c814a71fb98f08d7d591d79f85b61aa1a1bcf622b54f.
+  Restore container stopped again. Separate hardened loopback services deployed
+  and verified. Both pilots report fresh process observations, unauthorized scope
+  returns 403, the board serves HTTP 200 with CSP, and port 8787 binds only loopback.
+  Automatic second sensor cadence succeeded. Source polling is not useful project
+  execution. Bootstrap access expires seven days after provisioning and is not OAuth.
+- Full runtime cutover, public remote interface, and autonomy trials remain
+  incomplete. Do not describe this ledger as completion of the upgrade.
+- Goal tracking is now active at the owner's request. The authored graph backlog
+  contains W00–W21 with phase milestones, goal links, dependencies, and acceptance.
+  Plan admission leaves all packages proposed until qualifying execution/review.
+- Release 6fe3ee4 adds legacy-work triage, evidence inspection, platform scope,
+  and real JUnit qualification admission. 35 tests passed from the immutable
+  release on the disposable graph. Migration hash
+  006b3bdbedb5fa29aa5cdb2cb10c59924b8c1ceb1d3c901f4bb1650dbe352185
+  passed twice on the restored production graph, then was deployed live.
+  Gateway smoke checks verified 22 platform work packages, the actual 35-test
+  qualification, six unverified legacy Flowing Indian work items, and fresh sensing.
+  Owner bootstrap scope now includes the platform, without changing token/expiry.
+  Qualification artifact SHA256:
+  a764860a246716c3fa36eaef428eaad0f939bebd8a5d1b2432ee0ee079c5510d.
+  It is linked to W21 as release evidence, not credited as product progress.
+  The old Graphify experiment remains unrecovered: a different desktop graphify-out
+  was inspected by counts only (107/116 through 418/667), not the audit's 973/1980
+  code slice. No legacy Maverick graph or CLI was used. Original historical
+  handoff docs contain plaintext credentials: keep them out of release material
+  and include dependent-service rotation/redaction in security remediation.
+
+- 2026-09-07 local upgrade slice: Delta event ingestion now has explicit source
+  adapters, graph operations, durable per-file cursors, partial-line retry,
+  quarantine for malformed/unsupported records, and cursor preservation on graph
+  failure. Graphify output now has a bounded snapshot adapter with content hash,
+  repository/revision/extractor provenance, extracted-vs-inferred fact classes,
+  coverage/failure counts, and no raw model summaries in graph facts. The legacy
+  Graphify direct delete/recreate writer was removed from the runtime agent path.
+  Focused sensing/Graphify tests pass 17; complete platform integration suite
+  passes 102 with 62 explicit infrastructure skips; Delta bridge/registry/lifecycle
+  tests pass 31. Playwright CLI 0.1.19 control-board regression passes all listed
+  synthetic human journeys. These changes are local and not deployed to delta2.
+- 2026-09-07 live read-only baseline: delta2 host `vmi3556896` reports immutable
+  release `1770e7c`; seedforth Delta, control, worker, and identity services are
+  active; heartbeat/runtime/code timers are scheduled. The new event-ingest files
+  and timer are absent from that release. No live mutation was performed.
+- The dedicated disposable Neo4j on delta2 accepted the new additive migration
+  and operation promotion twice through the loopback tunnel. Synthetic session,
+  work-item, provision, and Graphify snapshot events were recorded; session replay
+  returned the same node without duplication, and a Graphify fact linked to its
+  snapshot. This is staging evidence only; the disposable graph was not used as
+  production evidence and the tunnel was closed afterward.
+- The Graphify reducer was corrected and re-promoted on the disposable graph:
+  an empty extraction now still records a successful snapshot and updates source
+  health. The staging operation returned `facts=0`, `failures=0`, and the source
+  projection pointed to the snapshot. The new operation source hash is
+  `c58ea4e0438f33a3e11cc3c7b31fdeeb08d503c0815c812706baed1c538c5331`.
+
+## Immediate continuation
+
+Continue the active end-to-end goal, not another planning-only pass. Next priority:
+stage the new source/Graphify slice in a disposable/restored graph, then promote it
+only after migration and rollback checks. In parallel continue the protected
+capability broker and useful governed executor (W12/W13), including monetary/model
+budgets, durable invocation/outcome reconciliation, and strict promotion controls
+before replacing the unsafe legacy division path. Continue remote TLS/OAuth/MCP,
+portfolio archival, and richer board controls. The loopback board is an early
+interface, not the complete UX or remote-access promise.
+No autonomous product outcome, archival, public MCP, scheduler retirement, or
+30-day soak has been demonstrated. Preserve this distinction in progress reports.
+
+Current deployment update: control release 7b433aa is live (see promotion evidence
+below). Worker component 3d8feef is live and the first bounded Cajon code pilot has
+completed through production invocation, fresh browser verification, delegated
+review and source application. This is a deterministic executor of an agent-authored
+proposal, not generalized model-driven autonomy. Next address the explicit checkout
+follow-up, Flowing Indian's pilot, model/cost controls, remote MCP, Graphify and
+the remaining full-plan phases. Do not confuse one accepted code artifact with
+completion of the system upgrade or proof of long-term autonomous operation.
+
+## Broker implementation qualification
+
+- Added graph-native invocation admission, dispatch, and settlement. Admission
+  reserves bounded action units once per intent. Mandate ID/version, scope, lease,
+  capability generation, cost, deadline, and holds are enforced. Claims now bind
+  an explicit mandate and current assignee rather than silently accepting no mandate.
+- Separate broker authority admits results after worker revocation, including
+  unknown outcomes that retain reservations. Failed executions are charged their
+  reserved bound conservatively. Cancellation before dispatch releases it.
+- Trusted dispatch uses immutable adapter bindings, never graph-supplied imports
+  or shell commands. The concrete Git adapter only inspects pinned commit/tree IDs.
+- Durable private receipt journal supports recovery without redispatch. Real Git
+  fixture tests cover connection loss before and after the graph commits settlement.
+- Full current suite: 44 passed on disposable Neo4j in 5.89s. Local unit suite:
+  25 passed. Production read-only preflight: Mandate/Budget/InvocationResult have
+  zero records, Capability has 21 records with zero duplicate non-null node IDs.
+- These broker changes are not yet promoted to production or exposed to workers.
+  Runtime remains on control release 6fe3ee4. Before promotion, test against restored
+  production data and finish concurrency/revocation/deadline qualification. Next
+  integrate the isolated worker/executor and actual project workflows. This is
+  execution-foundation progress, not a completed autonomous product outcome.
+
+## Execution rules
+
+Implement graph-native domain behavior in authored Cypher; external adapters and
+enforcement machinery remain versioned code. Test in disposable Neo4j on delta2
+bound only to loopback because local Docker is unavailable. Never use production
+as a fixture. Record exact test results and release/migration receipts here.
+
+Before each live migration: inventory affected writers, snapshot and verify restore,
+test idempotency and denied operations, and retain rollback. Keep new external
+actions disabled until their authority and postconditions are implemented.
+
+## Isolated worker path qualification
+
+- Added a private Unix worker interface, expiring scoped identity binding,
+  recoverable attempt reads, and atomic per-scope claim concurrency (default one).
+  Worker operation allowlist excludes owner controls, policy, grants, and review.
+- Added complete-invocation-work: worker success derives artifact identity from
+  an actual successful broker invocation and enters review without progress credit.
+- Qualified the actual path in disposable Neo4j through a non-root Docker worker:
+  no network, read-only filesystem, dropped capabilities, no-new-privileges,
+  resource caps, and only a broker socket plus fixture input/credential mounts.
+  Scope/identity forgery and policy/review/settlement calls are rejected.
+- Official test image pinned as
+  python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254.
+- Full suite including the actual Docker worker: 57 passed in 12.74s. Local
+  transport/broker tests: 14 passed. No product outcome or production worker
+  activation is claimed. Current production control release remains 6fe3ee4.
+- Next: promote the qualified schema after restored-data checks, provision the
+  protected production worker/broker service, add useful bounded model/code adapters
+  with monetary budgets and independent verification, and qualify actual product
+  work. Keep remote MCP, Graphify, archival, and wider reliability scope active.
+
+## Human-interface browser qualification
+
+- Owner requires Playwright CLI for every human interface and delegates imitating
+  the human operator in testing. Full-plan readiness by the next-day return is the
+  target; no acceptance gate or honest soak requirement is removed.
+- Added pinned Playwright CLI 0.1.19 journeys for the shipped UI. Synthetic-response
+  regression passed login/storage, stale source visibility, HTML escaping, legacy
+  non-actionability, versioned hold/conflict, outage recovery, mobile/desktop,
+  concurrent inspectors, in-flight logout and revocation scenarios.
+- Fixed response ordering so stale inspector/refresh results cannot replace the
+  current selection; logout invalidates in-flight work and clears scoped content.
+  Access denial remains visible without restoring an invalid session.
+- Real browser -> HTTP gateway -> authored Cypher -> disposable Neo4j passed:
+  22 work packages, persisted hold across logout/reload, restoration of initial
+  hold disposition, and cross-scope denial. Independent graph read confirmed W00
+  hold=false, state_version=2, two accepted dispatch_hold_changed signals.
+- Desktop and 390px mobile screenshots captured locally; mobile visually inspected.
+  Local boundary/worker/broker/runner/sensor suite: 35 passed in 5.13s.
+- These tests simulate the owner in staging, not personal owner sign-off or
+  useful product progress. No production UI deployment in this step. Runtime
+  control release remains 6fe3ee4; additive broker promotion and actual governed
+  project execution remain next, alongside remote MCP, Graphify and archival.
+
+## Broker pre-promotion checks
+
+- Added eight real-Cypher negative scenarios for revoked grants, disabled identity
+  or scope, insufficient lease or mandate time for the full capability duration,
+  changed mandate version, removed capability permission, and policy generation
+  changes. Admission and dispatch both deny; the separate broker refunds an
+  admitted-but-never-dispatched reservation even after revocation.
+- Added six-way concurrent admission against a two-unit budget and concurrent
+  dispatch of one invocation. Exactly two reservations and one dispatch succeed.
+- Full disposable suite including the pinned isolated Docker worker: 66 passed
+  in 13.34s. Restored-data checks and immutable-release qualification follow;
+  this entry does not claim production promotion or useful product execution.
+
+## Live control promotion — 2026-09-06 15:39 UTC
+
+- Immutable release 7b433aa77b3a8758d85c06e66ea3a5c48294132f passed all 66 tests
+  in 18.65s, including the pinned actual Docker worker. JUnit SHA256:
+  ad1395da1ad9ccd5e376fa118bec8db88e7e2026ff4781cbed48fccb90c0add5.
+- Migration applied twice on the earlier restored snapshot and twice on a fresh
+  restored backup, preserving all 47 projects and exposing the 22 plan packages.
+  Migration hash: c2639ed98c231a12c5b2052f4817691f8a2213936fa0eade26c3fe71d5cdcf4f.
+- Fresh consistent backup (brief authorized offline maintenance):
+  /opt/seedforth/shared/backups/upgrade-20260906.YpoVAtt0/neo4j.dump,
+  SHA256 73f48dd8d9bb3ea2795eb9eb4eaa4147d42d83eb72d637b8db001739a08d5873.
+  New isolated restore container/volume seedforth-restore-7b433aa retained, stopped
+  after successful verification. Production restarted and HTTP/graph checks passed.
+- Applied production migration and switched only control-current from 6fe3ee4 to
+  7b433aa. Main platform remains 1770e7c. Control, sensing timer and Delta active.
+  A deployment receipt records the prior target; full backup remains available.
+- Live gateway verified 22 platform items, six unverified legacy Flowing items,
+  both runtime sources fresh, all scopes held, and the linked 66-test qualification.
+  Served app.js exactly matches the Playwright-qualified release. No production
+  Invocation exists; production worker execution has not been enabled.
+- Next focus is the actual protected production executor with useful bounded
+  model/code capabilities and independent project acceptance, plus the remote
+  MCP, Graphify, portfolio/lifecycle and reliability work already in the full plan.
+
+## Protected service entry point qualification
+
+- Added Linux socket-activated broker entry point, restricted external repository
+  bindings, systemd sandbox units and durable receipt reconciliation before new
+  dispatch. The broker's socket survives process replacement without unlinking
+  another process's endpoint. The inherited descriptor cannot leak to adapters.
+- Exact worker identity remains credential-bound, and execution/budget/mandate
+  behavior remains in the authored graph operations. Startup cannot promote code,
+  grant access, create mandates or activate work. Recovery conflicts fail closed.
+- Full disposable Linux suite: 71 passed in 11.64s, including actual Docker worker,
+  inherited descriptor validation, two service instances over the same socket,
+  and recovery-before-dispatch checks. Systemd unit syntax validation passed.
+  Linux-only activation tests are explicitly skipped on macOS; their delta2
+  execution, not a local skip, is the qualifying evidence.
+- Service is source-only pending explicit provisioning. Current live control
+  remains 7b433aa. The first adapter still only inspects Git provenance. Next add
+  useful isolated code/model capabilities and scoped launcher provisioning with
+  monetary budgets and independent product acceptance; full-plan scope remains.
+
+## Product-grounded source and acceptance baseline
+
+- Rechecked live scopes: Flowing Indian and Cajon remain held. Actual agent working
+  directories are /home/proj-flowing-indian/flowing-indian and
+  /home/proj-cajon-sensei/cajon-sensei, not /opt/delta/projects paths. A running
+  opencode process still does not establish useful execution or a deployed app.
+- Local Flowing Indian has preexisting tracked/untracked edits, preserved untouched.
+  Existing webhook tests read local secrets and call Clerk; do not run them as
+  isolated tests or send synthetic payment webhooks to production by accident.
+- Added explicit-path, exact-commit Git blob snapshots for worker/source-sensing
+  inputs. No working-tree reads, symlinks, submodules, history enumeration, mutable
+  revision names, arbitrary paths or repository execution. Coverage and untrusted
+  source status are explicit. Size/deadline bounds and secret-pattern tripwires
+  are defense-in-depth, not exhaustive secret classification.
+- Local tests: 12 passed. Full disposable Linux suite: 83 passed in 12.28s.
+  Actual local snapshots succeeded for Cajon app/index.html at
+  498b17acbd832b37744b9138abf3e4d52bc81f57 and Flowing API order/verify at
+  c84e0fa4453f02a60ac992f403cfa8f79900004c. These are local-checkout provenance,
+  not an assertion that remote runtime or production serves those revisions.
+- Playwright CLI reproduced a real Cajon defect: after 200ms simulated time at
+  80bpm the app credits one complete loop (expected zero, full cycle 3000ms).
+  New cajon-loop.playwright.js fails on the current app as expected. No app fix
+  has been made. Playback-only milestone unlocks also lack clean-playing evidence
+  and need a separate honest UX decision rather than silently claiming mastery.
+- Admitted authored pilot finding twice in staging, then to live Mycelium:
+  wi-cajon-partial-loop-credit is proposed/held, with an independent failed
+  baseline TestRun and acceptance criteria. Verified through scoped read-work and
+  read-evidence. Admission source hash:
+  d9904103615656e0e367b69e9ade017054165f78ff346b5e01328c85e2c0a206.
+- Snapshot adapter and worker service remain source-only. Next connect scoped
+  artifact delivery and bounded model/code proposal execution, then use this
+  real failing case to qualify the complete product loop. Do not count the
+  baseline finding or source snapshots as a fixed product or accepted outcome.
+
+## Worker artifacts and governed code proposals
+
+- Added own-invocation artifact reads through the private worker interface. Graph
+  checks enabled identity, unexpired read/execute grant, scope, ownership and
+  successful result. Broker validates exact capability-bound filename and hash,
+  rejects symlinks/nonregular files and oversized responses, and returns untrusted
+  content without host paths. Revocation denies subsequent reads.
+- Added bounded old/new code proposals against exact Git source. Unique match,
+  promoted path coverage, revision, request/output size and deadline are enforced.
+  Candidate artifact records base and proposed hashes, with applied=false and
+  verification_status=not_run. No repository mutation, execution or self-acceptance.
+- Service registry now includes code snapshot and proposal capabilities, still
+  inactive until explicit production provisioning/promotion. Bounds accommodate
+  the real newer Cajon file: 256KiB/file, 512KiB total, 1.2MB serialized artifact.
+- Full disposable Linux suite: 95 passed in 14.05s. Actual isolated Docker worker
+  read its own artifact. Real graph code-proposal fixture produced/read candidate
+  code and entered review while leaving repository unchanged and ProgressEvent
+  count zero. Source-only progress, not a useful accepted production outcome.
+- Remote census found newer product revisions: Cajon
+  2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and Flowing
+  54ced2fe429b90576d59f005e9d6ebf9d8d69a6a. Cajon app/index.html hash
+  56b092507f73ff644f742f63f3bd43802f3638df85895000c37282644a1b83b0
+  differs from the local tested app and still contains the suspect credit condition.
+  Remote working trees contain operational edits/history; preserve them.
+- Added the remote source baseline to live Mycelium after twice-applied staging
+  admission. The held Cajon task keeps its original failed local baseline and
+  separately records the newer candidate revision as not_browser_tested. Do not
+  present a local-copy fix as a verified change to the current remote product.
+- Next: qualify the current remote app, produce the candidate through the governed
+  worker path, independently test its exact artifact with Playwright CLI, review
+  and apply it safely. Model-driven work, monetary budgets, public MCP, Graphify,
+  archival, full UX and unattended qualification remain part of the active goal.
+
+## Current Cajon candidate browser qualification
+
+- Rechecked remote HEAD 2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and copied only
+  app/index.html for isolated browser qualification. Its hash matches the recorded
+  remote baseline. Updated browser entry to choose Basic Rock in the current UX.
+  The first-beat regression fails on this current build too (expected 0, actual 1).
+- Playwright additionally exposed a real pause-rendering ReferenceError:
+  resonanceMult is read before its block-scoped declaration in drawDojoCanvas.
+- The agent-authored explicit edit proposal was executed through the real broker
+  on disposable Mycelium using the current remote Git source, not a hand-edited
+  product checkout. It fixes cycle-boundary accounting, initial beat/count-in,
+  partial cycles on tempo changes, and resonance declaration ordering.
+  Fixture scope fixture-5b07211a3ce448fe9181c9a6bc65fcd0,
+  invocation ac75c27effee49d6b05318bbb782c277. This was a trusted staging harness,
+  not an isolated production worker or generalized model-driven autonomy.
+- Candidate app SHA256:
+  dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  All 12 actual Playwright CLI acceptance scenarios passed: initial beat, full
+  cycle, pause, restart, keyboard tempo change, count-in, and error-free rendering
+  through desktop/mobile resize. Mobile screenshot visually inspected; broader
+  responsive/accessibility and musical-accuracy claims are not made.
+- Qualification metadata is versioned in evidence/cajon-candidate-20260906.json.
+  Exact candidate, metadata and test source retained root-private at
+  /opt/seedforth/shared/backups/cajon-candidate-dad62bbc229a. Content hashes and the
+  successful staging Invocation artifact hash were checked before archival.
+- Added staged-candidate TestRun evidence to the actual Cajon task in live graph.
+  Work remains proposed/held and candidate explicitly not applied. Product checkout
+  and runtime unchanged. Full platform suite remains 95 passed (12.70s latest).
+- Next land this verified candidate through the production governed attempt,
+  separate exact-artifact verification/review and safe source/deployment promotion.
+  Then expand useful work to Flowing Indian and continue the full upgrade scope.
+
+## Production protected broker provisioned
+
+- Worker component ae992b14d9e398de2a0f36a1a789ffc7e9ca2d99 is installed at
+  /opt/seedforth/worker-current. Main Delta remains 1770e7c and control remains
+  7b433aa. Both worker socket/service and existing Delta/control services are active.
+- Uses an unprivileged static broker account, private StateDirectory, source-read
+  group and root-private worker socket directory. Socket mode 0660 grants only
+  seedforth-workers. The broker's pinned shallow source copy is root-owned and
+  group-readable, not writable by workers or the broker. No legacy project mount
+  or Docker/Neo4j credential is exposed to workers.
+- Qualified authority twice on disposable and restored graph, preserving 47
+  projects and all scope holds. Immutable-release suite: 95 passed in 14.79s.
+  Qualification JUnit admitted to the live platform plan as release evidence.
+- Provisioning initially stopped at Git's cross-owner local transport check before
+  creating credentials/grants. Exact upload-pack source trust (not global wildcard
+  trust) allowed the private clone; provisioning then resumed from inspected state.
+  Installer source now includes that exact-path fix for future reconstruction.
+- Pilot worker principal has Cajon-only read/execute grants, two bounded artifact
+  invocation units, and no monetary authorization. Credential and mandate expire
+  2026-09-06T17:08:00.013208+00:00. Secrets are root-private external files; never
+  copy them into tool output or the repository. Work scope is still disabled/held.
+- Live private API read-work succeeded; other-scope read and review were denied;
+  claiming the held task was denied. Service restart retained the same listening
+  socket inode and recovered API access. Graph independently confirms zero pilot
+  attempts, zero spent/reserved units. No product work has executed in production.
+- Next run the reviewed candidate via the isolated production worker under this
+  bounded mandate, verify its exact artifact independently, review and safely
+  promote the source/deployment. If authority expires first, inspect graph/receipt
+  state and explicitly renew the bounded pilot; never silently bypass expiry.
+
+## First bounded production code pilot completed
+
+- Worker release 3d8feef7c4a6a37c4c723d9b5d9735dcf68f9579 qualified with 99 tests
+  in 14.34s, including the actual graph-authored executor inside the restricted
+  Docker worker. Worker release updated separately; control/Delta unchanged.
+- Job contains only scope/work/attempt/invocation identities. Actual instruction
+  is admitted to Mycelium, read by the claimant, and enforced by broker capability,
+  mandate, lease and budget checks. Existing/uncertain attempts are not restarted.
+- Production attempt attempt-cajon-pilot-v1 executed invocation-cajon-pilot-v1 and
+  generated Receipt a269f0ed-2eea-46b0-be86-6e911c3706bd, entering review. One
+  artifact action unit spent, zero reserved and no monetary spending. Worker has
+  no network, repository mount, Docker socket or graph/provider credentials.
+- Its exact candidate file matches the staged verified hash. Fresh Playwright CLI
+  run against the actual production artifact passed all 12 scenarios. Linked
+  TestRun qualification-cajon-production-pilot-v1 verifies the exact Receipt hash.
+- Delegated source-promotion Decision guards the before Git blob and after file
+  hash. GitHub master had advanced from the server copy but its app blob was
+  identical to the tested base. One-file PR #1 merged as
+  9f694ee4d544927b7df109d6f2f5c739ec78ab0d in Seedforth/cajon-sensei.
+- Server fast-forward did not complete. It has pre-existing operational edits;
+  those were preserved. Only app/index.html was atomically replaced after two
+  before-image checks, preserving ownership/mode and retaining root-private backup.
+  After hash verified dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  Git HEAD was deliberately not rewritten; public hosting is not yet verified.
+- Review transitioned wi-cajon-partial-loop-credit to done/version 5 and recorded
+  one verified accepted_artifact ProgressEvent. Review is explicitly owner-delegated
+  operator action, not personal owner acceptance. The scope is held again.
+- Created held follow-up wi-cajon-checkout-reconcile to preserve operational edits
+  while restoring a coherent source checkout/release and checking hosting state.
+  Evidence summary: evidence/cajon-production-pilot-20260906.json.
+- This establishes a real bounded code-fix loop. It does not establish generalized
+  model planning, continuous useful autonomy, other product outcomes, secure public
+  MCP, full human UX, Graphify, safe portfolio archival or unattended soak success.
+
+## Selected source-file sensing deployed
+
+- Control component 5bda38cd2a95693e84ac22a1f9a70af875a803e6 is live as of
+  2026-09-06T16:38:58Z. Main Delta remains 1770e7c; worker remains 3d8feef.
+  Immutable-release suite passed 107 tests in 14.60s, including the real isolated
+  Docker executor and graph reducers. JUnit SHA-256
+  eaf32534a6ff780f6ee013ce6e841b240de0b07d53c73404897b7490fa5020e0
+  is admitted as a ReleaseQualification linked to W21; no product progress credit.
+- New graph-authored record-code-observation reducer and three registered streams
+  retain event time, ingestion time, exact committed/working hashes, repository and
+  adapter revisions, coverage and latest successful evidence. Late events, duplicate
+  IDs, conflicts, revocation, stale/degraded reads and absent paths are tested.
+- Sensor parent retains graph credentials, while file/Git probes run as project
+  users without inherited environment, extra groups or descriptors. Probes refuse
+  symlinks, unsupported files, oversized content and unstable reads. Effective and
+  ambient capabilities are checked to be zero in the child. No source contents or
+  environment values are stored in observations. This does not fence legacy writers.
+- Initial service deployment reported collection_failed (no invented fresh state).
+  Hardened transient-service diagnosis established that the parent lacked effective
+  CAP_SETUID. Explicit ambient identity-switch capabilities fixed the parent; child
+  privilege checks and an actual hardened service probe passed. Failed observations
+  remain in history; successful observations now supersede them in the projection.
+- Actual gateway readback confirms Cajon app/index.html is diverged_from_commit:
+  HEAD 2a518d957bb1fbd39b02a8dcbc3e1f2890630b93 and applied file hash
+  dad62bbc229af2cb827326608660bb23ef64381caa7a48909cddc000ffc53a85.
+  Flowing server HEAD is 54ced2fe429b90576d59f005e9d6ebf9d8d69a6a; both
+  app/api/order/route.ts and app/api/verify/route.ts are missing there, although
+  present in the previously inspected local source. Public Vercel state is not
+  established by these server-file observations; no hosting failure is inferred.
+- Timer runs every five minutes; freshness limit is fifteen minutes. Only these
+  selected paths are covered, not full repository cleanliness or public hosting.
+  Automatic repair, source incidents/escalation, retention policy and Graphify
+  extraction remain incomplete. No portfolio or work permission changes occur.
+- Updated board explicitly displays code drift, freshness and partial coverage.
+  Playwright CLI 0.1.19 passed both synthetic-response regression (including mobile,
+  escaping and race/denial cases) and real HTTP/Cypher disposable-graph journey with
+  graph-reduced drift displayed. One early navigation failed because the fixture
+  gateway was not ready; after readiness the full journey passed. No production
+  credentials entered browser CLI traces. Test browser, gateway and tunnel stopped.
+- Migration applied twice to restored production data; all 47 projects and scope
+  holds preserved. Restored container stopped again, volume retained. Production
+  checks confirm all 47 projects, all holds, completed Cajon work and existing
+  Delta/control/broker/runtime-sensor services are intact.
+- Continue the complete upgrade: reconcile source/hosting provenance, inventory and
+  fence legacy writers/schedulers, close source failures through scoped incidents,
+  qualify Graphify, deliver scoped remote MCP and the richer human experience,
+  then broader bounded useful work, safe archival and unattended recovery tests.
+  Do not keep expanding metadata-only fixtures as a substitute for these outcomes.
+
+## Legacy scheduler census and exact fence
+
+- Live inspection found six root cron jobs, including a duplicate heartbeat and
+  the deep/long scripts explicitly forbidden by the platform legacy boundary.
+  `/opt/delta` is not the canonical release symlink. Long-cycle source retains
+  password command-line handling. All eight old opencode agents also have broad
+  provider credential keys in their environments; values were never printed.
+- Qualified release f81e8498dd1162917a9b086c1368b1ff359e9d6f: 111 tests passed
+  in 16.34s. Graph Decision authorizes four exact hashes; external I/O adapter
+  preserves the complete configuration, refuses changed state and comments only
+  duplicate root heartbeat plus ungoverned root dream/deep/long execution.
+- Applied and independently read back; graph observation verifies four fenced
+  LegacySchedule records. Root-private before/after backup retained. Both source
+  ingestion jobs, supported heartbeat, Delta, WhatsApp, control and broker remain.
+  No services, projects, users, scripts, logs or customer data were deleted.
+- Detailed evidence and backup hashes: writer-census-20260906.md. Release TestRun
+  qualification:f81e8498dd1162917a9b086c1368b1ff359e9d6f:f5de57f5df56cb22e939e15cd42c96d92684accca1552e9c7c8b9f7accdedd8e
+  informs W21. Runtime release pointers unchanged (control5bda38c, worker3d8feef,
+  main1770e7c); only the reviewed cron configuration and additive graph records changed.
+- Held cadences still require governed replacements. Application schedule/nudge
+  loops and legacy credential distribution remain unfenced. Wildcard Neo4j/VNC/
+  webhook listener bindings require exposure checks and hardening. This is concrete
+  risk reduction, not complete writer isolation or useful autonomous readiness.
+
+## Internal graph/browser ingress guard deployed
+
+- External IPv4 probes confirmed public reachability of Neo4j 7474/7687 and
+  noVNC6083 before the change. All now explicitly refuse connections; SSH22 still
+  connects and SSH-tunneled Neo4j HTTP returns200. Local graph/port access, all47
+  projects, scope holds and existing service liveness are preserved.
+- Security component afcc87be9b899b66b874d6410899401aaa429dc1 is deployed via
+  security-current. Approved graph NetworkPolicy has a root-private offline kernel
+  projection. IPv4/IPv6 INPUT and DOCKER-USER rules target only eth0 and three ports.
+  Docker now requires the guard before startup. No Docker/service restart or shared
+  firewall flush occurred. Root-private before-rule snapshots are retained.
+- Immutable-release suite:116passed in18.65s, including real dual-stack namespace
+  forwarding/denial/private-access tests. Hardened isolated systemd test also passed.
+  JUnit8f85bd70062354fe9a7750eb944cd265da11211bfdd35ee7c36f1b09e85ec33f
+  admitted as ReleaseQualification informing W21. Reapplication leaves exactly8
+  guard rules across both families. Temporary namespaces/listeners cleaned up.
+- Detailed evidence, recovery cautions and SSH access: network-guard-20260906.md.
+  External IPv6 probe, full reboot/Docker restart/UFW reload drills and loopback
+  Docker port bindings remain open. This does not isolate legacy local writers.
+- Retained noVNC HTTP fails locally and through SSH; configured web root is absent.
+  Prior application working state was not established, and noVNC was not modified.
+  Do not confuse TCP/service liveness with a usable browser interface.
+- Continue toward scoped remote MCP and full human UX, while completing legacy
+  dispatch/credential migration, governed cadence replacement, Graphify, second
+  useful product pilot, archival and unattended qualification. The entire goal
+  remains incomplete; this security milestone is not a substitute for that scope.
+
+## MCP boundary and durable conversation intake
+
+- Control release2aed97e3ced22735f8281d24d6c866daeba044c1 is live, deployed
+  2026-09-06T17:12:01Z. Main1770e7c, worker3d8feef and securityafcc87b unchanged.
+  Shared Boundary now accepts bounded scoped graph reads and private durable
+  conversation admission/readback. Owner has conversation-only grants for the
+  three existing scopes, with no new execution/spend/model authority.
+- Official MCP SDK2.1.1 adapter uses the same boundary after independent token
+  verification. Four tools and a schema resource provide scoped metadata, current
+  work, direction intake and conversation recovery. Qualified dependencies are
+  pinned separately from the running Delta environment. SDK is installed only in
+  test environments so far; no public or persistent production MCP server exists.
+- Conversation keys are originator/scope-bound. Graph reducers serialize message
+  sequence and idempotence, reject changed intent on replay, exclude other people,
+  and store direction as uninterpreted content. Intake returns queued/not_started
+  and explicitly states the governed Delta processor is not yet qualified. It does
+  not fabricate an answer, WorkItem, Invocation, spend or progress.
+- Actual official SDK client over TCP HTTP passed discovery/401 metadata, Origin
+  rejection, graph/work reads, cross-scope denial, durable reconnect, graph-grant
+  revocation and credential removal. Separate graph tests passed concurrent
+  admission, request collision, cross-person privacy and hostile text containment.
+  Initial SDK test exposed unstructured return typing; explicit typed structured
+  output fixed it. No tests use real provider or owner credentials.
+- Immutable release:123passed in26.45s. Qualification JUnit hash
+  57b383b37bc541b66233dec8023792f185f9ff8edfe7e19c03a68b0396aa06e2
+  is recorded in live Mycelium against W21. Playwright CLI control-board regression
+  also passed after the shared-boundary change. Browser and fixture server stopped.
+- Migration applied twice to the restored production graph with zero prior nodes
+  carrying the new conversation labels. All47 projects and scope holds preserved.
+  Live migration and authenticated HTTP readback returned30 bounded metadata rows
+  per existing scope. No synthetic conversation was left queued in production.
+  Restore container stopped again; data volume retained.
+- The digest-file MCP verifier is a private qualification/enrollment adapter, not
+  an OAuth authorization server. Public login/consent, PKCE/client registration,
+  refresh/narrowed scopes, TLS, abuse limits, actual desktop/mobile agent trials
+  and the originator-bound Delta processor are still required. Do not publish this
+  adapter with a fictitious issuer or shared administrator credential as a shortcut.
+- Continue by completing actual remote identity/access and the governed conversation
+  processor, then integrating the richer board/Charlie experience with useful
+  autonomous work. Legacy credential/writer isolation, Graphify, Flowing pilot,
+  portfolio archival, recovery and unattended qualification remain in the full goal.
+
+## Public TLS with closed application ingress
+
+- Public https://185.192.96.100 now has a trusted Let's Encrypt IP certificate.
+  Certificate expiry2026-09-13T08:21:27Z, SHA256
+  100602d53854e1c4687981e6136cec6e378b12b8d8d01b5cb8f504ae391717d5.
+  Application routes deliberately return503. HTTP serves only ACME challenges,
+  foreign Host headers return421, and internal graph/browser ports remain refused.
+  This is not a working public MCP or human control interface yet.
+- Isolated Certbot5.4 installation with exact dependency lock avoids the broken
+  system Certbot2.9/OpenSSL environment. Staging and production issuance passed.
+  Certificates/account keys remain root-private under shared/acme-* and are not
+  stored in the graph/repo. The existing system certbot.timer is unrelated and
+  cannot be relied on to renew this custom certificate directory.
+- Source release2fb1a5fc023a4edb4ca9aa0014ffd59259ac5843 supplies ingress and renewal
+  service. No Delta/control/worker/security component source pointer changed.
+  Nginx reloaded, not restarted. Only labeled443 firewall allowance added.
+  seedforth-tls-renew.timer enabled, checks every six hours with systemd jitter.
+- Qualification exposed and fixed two failures: Certbot's extra random sleep
+  could exceed the service timeout, and nginx validation needed narrowly writable
+  /run/nginx.pid. More importantly, Certbot returnedzero despite a failed deploy
+  hook. Validation and reload now use mandatory ExecStartPost steps so systemd
+  observes failure. First sleeping dry run was cancelled, second issued staging
+  successfully but failed its hook, third passed full sandboxed webroot issuance
+  and reload in11.085s. No production renewal has yet elapsed or been forced.
+- External read-only suite14passed in5.24s, JUnit SHA256
+  4cb15978c9143bbd63543e19cc703b5fd5ce100834a248fdae825054ff2444f1.
+  Playwright CLI Chromium verified TLS without ignoring certificate errors, the
+  closed response, no cookie and390px layout. Browser closed. This only tests
+  transport/closed ingress, not a completed application UX. Existing services
+  and sensor timers remain active. Reboot/publicIPv6/recurring expiry sensing are
+  not qualified. Public authenticated access still requires real OAuth and consent.
+- Next: build durable scoped identity/login/consent and real authorization-server
+  behavior, qualify all human paths with Playwright, then enable narrow ingress
+  routes. Continue the governed Delta processor and full remaining upgrade scope.
+
+## Durable OAuth provider and actual transport qualification
+
+- Source c38bb809fde4f207246f20b5f748e168ba677928 implements the OAuth provider,
+  protocol routes and graph-native current identity-scope read. The credential
+  store is private SQLite external I/O, containing digests of opaque codes/tokens,
+  not a competing task/permission graph. Issuer/resource binding persists across
+  restart. Grant authority remains Mycelium and is rechecked at token use.
+- Single-use authorization codes, transactional refresh rotation, absolute family
+  expiry, replay-triggered family revocation, explicit resource checks, S256 PKCE,
+  callback validation, client-bound revocation, narrowed project selection and
+  bounded registration/body sizes are implemented. Public PKCE clients only are
+  advertised; no unsupported confidential-client or metadata-fetch claims.
+- Tests exposed and corrected SDK resource enforcement omissions, public-client
+  revocation validation, inaccurate supported-auth-method metadata, canonical root
+  issuer formatting and frozen-error rollback handling. External calls are moved
+  off the event loop. Graph outage fails closed; revocation can still reduce access.
+- Ten provider/HTTP tests and one actual TCP HTTP OAuth→official MCP SDK→disposable
+  graph journey passed. The latter issued credentials, read scoped work, queued
+  direction without inventing execution, refreshed/reconnected, rejected the old
+  token and foreign scope, then denied requests after actual graph-grant revocation.
+  Internal synthetic human consent was explicitly used; no public bypass exists.
+- Immutable release qualification:134passed in24.02s, no skipped tests, one SDK
+  deprecation warning. JUnit hash28f5746cd337e01f48d564ba48c7dcb440f3d643c8adaefa7c4949c06cde0b19
+  admitted in live Mycelium as a ReleaseQualification informingW21. Temporary
+  transport server and namespace fixtures cleaned up. Live read confirmed only
+  existing owner/sensor read identities and retained service/timer health.
+- This release is tested source, not a production OAuth deployment. Current live
+  control2aed97e, worker3d8feef, securityafcc87b and main1770e7c unchanged. Public
+  application ingress remains503. No human interface was added by this provider
+  slice, so its tests do not count as Playwright login/consent acceptance.
+- Immediate next work: real enrollment/login/session/consent/recovery surface and
+  abuse boundaries, tested with Playwright, then scoped public routing and client
+  trials. Continue originator-bound Delta processing, legacy credential isolation,
+  Graphify/full sensing, richer board/Charlie, Flowing useful autonomy, archival,
+  recovery and unattended qualification. Entire goal remains incomplete.
+
+## Human identity, consent and recovery browser qualification
+
+- Source58040afe7325d98b63f8208a529bf9c6d1f2ae68 implements invitation-bound human
+  enrollment, Argon2id passphrases, TOTP with transactional replay prevention,
+  one-use recovery codes, durable eight-hour sessions, explicit project consent,
+  account connection visibility, logout and all-session/client revocation. Existing
+  graph grants determine eligible identities/projects; login cannot create grants.
+- Credentials and pending enrollment live in the private external OAuth database.
+  Session/recovery/invitation values are digested. TOTP shared secrets and password
+  hashes remain private credential data, never graph properties. Browser cookies
+  are Secure/HttpOnly/__Host- scoped; no browser storage or URL bearer credentials.
+  Bound request bodies, durable peer/account limits, two concurrent hash slots,
+  exact Origin/CSRF checks, metadata escaping, host validation and CSP are enforced.
+- Actual Playwright CLI on the exact revision passed the complete human journey
+  into OAuth and an MCP scoped read against disposable Neo4j. It rejected TOTP and
+  recovery replay, forged project/principal fields, cross-origin consent, stale
+  consent reuse and refreshed credentials after all-client revocation. It verified
+  the separate-origin callback/state, explicit deny, reconnect and390px rendering.
+  Synthetic identity/clock only, not personal owner approval or elapsed MFA soak.
+- Browser testing found no-referrer causing rejected form Origin and long-ID
+  fieldset overflow, both fixed. The browser also verified an injected graph-read
+  outage fails closed while allowing credential/session revocation independent
+  of graph reads. That is targeted fault injection, not an actual Neo4j shutdown
+  or full combined-failure drill. Final screenshot visually inspected.
+- Playwright source SHA256a42d366d8b06da922afee5ee0b72619a78786f7d1a4afb7db5efbe59bb88d502.
+  Final mobile screenshot SHA2561654eb8283734d80448e7d3560f3175a6ffc817bff62ec7888364fe51fa2a21f.
+  All140 server-side tests passed in28.87s on immutable server release58040af.
+  JUnit SHA2562ff204266a6596893c3ed5837577e96d396c83641be7437adce7c041b81e1de6
+  admitted to live Mycelium as ReleaseQualification informingW21. One SDK
+  deprecation warning, no skips. Temporary browsers, HTTP/callback servers and
+  SSH fixture tunnel closed; private synthetic credential directories cleaned up.
+- This is qualified source, not public deployment. Live control2aed97e, worker3d8feef,
+  securityafcc87b and main1770e7c unchanged. New public HTTP application routes stay
+  503. No actual owner's login credentials or provider credentials were created.
+- Next: package/deploy the identity service and protected bootstrap/recovery path,
+  close legacy credential/writer isolation before public scoped launch, integrate
+  the board's session-backed controls, and qualify real remote clients. Continue
+  governed Delta processing/useful execution, Graphify/full graph sensing, Flowing
+  pilot, safe archival, source/release recovery and unattended qualification. The
+  full objective remains active and incomplete.
+
+## Identity runtime deployed privately; legacy credential gate confirmed
+
+- Private identity service8dd42c0 is deployed, enabled and running as UID997/GID984
+  on127.0.0.1:8788. Graph DeploymentPolicy and identity-scope reader promoted.
+  Existing main1770e7c/control2aed97e/worker3d8feef/securityafcc87b remain unchanged.
+- Root-only kernel-peer-credential operator channel verified live; service-UID
+  requests denied. Bootstrap clientd6bf2f8 writes the owner's invitation only to a
+  new root-private file. Shared env750 root:delta was preserved after the initial
+  preflight correctly refused it. No actual human account/MFA was enrolled.
+- Normal restart and forced-process-crash recovery passed with invitation state
+  preserved and operator socket recreated. Live private SQLite snapshots passed
+  integrity checks and a root-private copy was retained. Tested restore sanitization
+  prevents resurrected sessions/tokens/factors; complete off-host recovery and
+  recurring identity/backup sensing are still pending.
+- 145test full qualification passed in29.02s with no skips, one SDK warning.
+  JUnit0f36e1363996bf2032fc1daf7fa6a71afd8702ac41574998d38e3bfdb287eecc
+  admitted in live Mycelium. No new human UI in this deployment; its prior full
+  Playwright evidence remains scoped to synthetic human acceptance.
+- Live exact-value comparison found the current graph password in12 legacy tools;
+  actual Cajon and Flowing project UIDs could read neo4j_helper.py. No credential
+  value/fingerprint was output. Public HTTP application routes remain503 pending
+  legacy writer/credential isolation, not merely a missing TLS/login implementation.
+- See identity-deployment-20260906.md for paths, evidence and limitations. Next:
+  migrate retained credential consumers and message handling, fence old privileged
+  model workers/schedulers, rotate graph/provider access safely, and then qualify
+  public identity/MCP/board routing. The governed Delta processor, Graphify/full
+  sensing, useful Flowing autonomy, archival and unattended qualification remain
+  in the complete objective.
+
+## Disposable live control qualification
+
+- On 2026-09-07, the staging-only Neo4j fixture at localhost:27474 passed
+  `test_control_graph_live.py`: 31 passed, 2 skipped in 644.66s. The suite
+  exercised live graph promotion, capability/mandate/fence checks, receipt and
+  idempotency behavior, loss/retry paths, and control-state transitions through
+  the disposable delta2 container.
+- The temporary Cajon authority fixture was restored and re-verified after the
+  run: `cajon-sensei.work_enabled=false`,
+  `wi-cajon-partial-loop-credit.status=proposed`, `hold=true`,
+  `state_version=0`. The SSH tunnel was closed. Production was not contacted
+  or changed.
+- This materially strengthens staging evidence for the control substrate, but
+  does not qualify useful product autonomy, production deployment, public
+  scoped MCP access, project archival, or an unattended soak. The full goal
+  remains active and incomplete.
+
+## Legacy work triage boundary
+
+- Live inventory on 2026-09-07 found legacy work items with `scope_id=null` and
+  overloaded states (`todo`, `in_progress`, `in_review`, and `open`). This is a
+  real source-of-truth gap: the canonical selector cannot safely reason about
+  such items, while treating their old states as executable would fabricate
+  authority and progress.
+- Added graph-authored `triage-legacy-work`. With a current scoped
+  `work.control` grant it maps exactly one unscoped item to the scope's mapped
+  canonical project, preserves its prior state in `legacy_status`, sets the
+  canonical state to `proposed`, applies `hold=true`, initializes the version,
+  marks verification unverified, and appends a transition. It cannot admit the
+  item to execution.
+- Disposable live Neo4j execution passed for a synthetic `in_review` item and
+  verified scope mapping, `proposed`/held state, version zero, and preserved
+  legacy status. The fixture and promoted operation were deleted afterward.
+  Source hash: `d8e710af4cab3a1aaff922ee4f5643e51d449e6b94ae5204e30e34efb237f50d`.
+- The behavior is now covered by the live control test
+  `test_legacy_triage_preserves_state_and_never_admits_execution` (1 passed in
+  86.79s) against the dedicated disposable endpoint. The tunnel was closed
+  after the test.
+- The operation is not yet promoted to production. Next is to inventory and
+  triage actual Flowing/Cajon legacy items in bounded batches, then separately
+  assess archive candidates; no historical item is silently reactivated.
+
+## Control release 538c26e deployed
+
+- Immutable release `538c26e90adc61a9a58d30733ddfee9947d368c6` was cloned cleanly
+  on delta2 after passing the local focused suite and the disposable live control
+  qualification. The additive `control-v2` migration applied successfully with
+  the existing external graph credential and preserved the current backup and
+  main Delta target.
+- The control component switched from `2aed97e` to `538c26e`; control, runtime
+  sensing, and code sensing are active. The new Delta-event ingestion service and
+  timer were installed, verified with `systemd-analyze`, enabled, and ran once
+  successfully (`events=0`, `failed=0`). No autonomous executor timer was
+  enabled and all product scopes remain held/disabled.
+- This deploys the graph sensing/ingestion boundary, not the complete upgrade.
+  The Delta runtime itself remains on its retained main release, no product
+  work was dispatched, and no archive disposition or useful autonomous outcome
+  is claimed. Production triage requires this release's operation to be used
+  in a separately bounded, reversible batch.
+
+## Flowing Indian legacy work reconciled
+
+- Using the deployed operation and the owner principal's existing `work.control`
+  grant, six actual unscoped Flowing Indian work items were reconciled on
+  2026-09-07. The operation hash matched the immutable control release before
+  any write.
+- All six now carry `scope_id=flowing-indian`, `state_version=0`,
+  `status=proposed`, `hold=true`, and `verification_status=unverified`; their
+  prior states (`in_progress`, `in_review`, `todo`, and historical `done`) are
+  retained in `legacy_status`. No item became ready or executable, and the
+  product scope remains disabled.
+- This closes a real graph visibility/state-machine gap and makes the legacy
+  loop reviewable through the canonical board projection. It is not acceptance
+  of any historical work, a product outcome, an archive decision, or useful
+  autonomous execution.
+
+## Guarded portfolio archival operation
+
+- Added graph-authored `archive-project`. It requires the platform-scoped owner
+  control grant and an explicit project/decision/event/reason, refuses core and
+  active-product identities, and refuses projects with active SubAgents,
+  AgentProcesses, or queued/running execution sessions. It changes only
+  portfolio authority, sets new work disabled, holds pending work, and retains
+  service/process records and historical statuses.
+- Disposable live qualification passed: a synthetic active-agent attempt was
+  refused; after the agent was stopped, the project archived and its pending
+  work was held. The automated live test passed in 86.58s. The operation source
+  was then removed from the disposable fixture. Source hash after the syntax
+  correction: `aa6fb60c93aff58496467a4ba21a90a09d7d2bbe405720f02d1dffe3f84010dd`.
+- This operation is not yet promoted to production. Actual archival remains a
+  separate batch after the operation is deployed and each candidate's active
+  process/service obligations are resolved. No project was archived in this
+  step.
+
+## Portfolio archival batch and active-product identity repair
+
+- Release `1d3bd5a69357bc26b7432b0ad354064804484c54` promoted the guarded archive
+  operation and the explicit active-product projection. Control services and
+  all sensing timers are active at the new immutable control target.
+- The owner-directed batch archived 37 non-core Project identities. For each,
+  `portfolio_state=archived` and `new_work=disabled`; pending legacy work was
+  held, not deleted, and retained services were not stopped. The graph still
+  reports all 12 retained service records as verified.
+- Flowing Indian and Cajon Sensei now have explicit `portfolio_state=active`
+  on their mapped canonical Project nodes as well as active ControlScopes. Their
+  scopes remain `work_enabled=false`/held pending the next governed execution
+  qualification. Seven identities remain unarchived: those two product records
+  plus five records with active direct agents/processes (`ethos`, two LinkedIn
+  identities, `seedforthing`, and `zuuro`) that require runtime fencing before
+  archival.
+- This is portfolio state progress, not a claim that those remaining agents are
+  useful, that archived external obligations are cancelled, or that products
+  are deployed/operating autonomously. The remaining runtime fencing and
+  retained-service checks are explicit follow-up work.
+
+## Legacy runtime sensing, fencing, and final non-core archival batch
+
+- Release `0872e22` expanded deterministic process sensing from the two pilot
+  ports to all seven supervised product ports and projects observed status onto
+  `AgentProcess`. Migration and control deployment succeeded after correcting a
+  source-file variable collision; the first live collection reported Flowing
+  Indian/Cajon running and the five legacy targets stopped, with fresh evidence
+  on every source.
+- Supervisor then stopped exactly `ethos`, `linkedin-himanshu-ghiya`,
+  `linkedin-kshitiz-agarwal`, `seedforthing`, and `zuuro`. After the fresh
+  stopped observations, the guarded archive operation archived those five
+  historical Project identities, disabled new work, held their pending items,
+  and preserved history. No shared service was stopped.
+- Current graph verification: 42 Project identities have
+  `portfolio_state=archived`; the only non-core, non-archived product identities
+  are canonical Flowing Indian and Cajon Sensei. Their portfolio state is
+  explicit `active`, while both scopes remain work-disabled/held. Supervisor
+  retains only Cajon, Flowing, and the shared Delta Hub product processes in
+  running/ready state. Control, worker, Delta, and all sensing timers are active.
+- This closes portfolio disposition and runtime visibility for the current
+  inventory, but does not cancel external accounts, delete repositories, prove
+  business outcomes, or qualify unattended autonomy. Archived retained services
+  still require an obligations/recovery review, and useful two-product execution
+  remains the next major gate.
+
+## Credential exposure during Flowing checkout inspection
+
+- On 2026-09-07, a read-only inspection revealed that the Flowing Indian server
+  checkout stored a GitHub bearer credential inside its `origin` URL. The value
+  was not persisted to the repository or ledger by this work, and it is omitted
+  from this record. The remote URL was immediately rewritten to the same
+  credential-free HTTPS URL; checkout revision and nine pre-existing working
+  changes were preserved.
+- A bounded audit then found six embedded-credential Git remotes across server
+  project checkouts. All six persisted URLs were sanitized in place to their
+  credential-free HTTPS equivalents, preserving repository paths, ownership,
+  modes, revisions, and working changes; a second audit found zero remaining
+  embedded credentials. The upstream GitHub credential(s) still require
+  revocation/rotation in the account before any remote Flowing fetch, push, or
+  pilot. `gh` is not installed on delta2, so revocation was not performed by
+  introducing another credential path. No product or Git content was modified.
+
+## Delta event-boundary release cutover
+
+- Immutable main-platform release `8064363cf806249bcbdf5ec7ae3e9c383ada0463`
+  was cloned cleanly and passed server-side Python compilation. The
+  `/opt/seedforth/current` symlink switched atomically from `1770e7c` to this
+  release, then `seedforth-delta.service` restarted and returned active. The
+  prior release remains intact for rollback.
+- The deployed Delta build emits project/session/work events to the bounded
+  ingestion files, and its legacy schedule-fire, silence-nudge, and project
+  restore loops are disabled by default. Existing Discord connectivity resumed;
+  no agent was reactivated and no product work was dispatched.
+- This activates the event-boundary path but does not prove a real event has
+  traversed it under customer traffic, nor does it qualify the old provider
+  credential boundary. A fresh event-ingestion observation and Delta/Charlie
+  processor isolation remain required before autonomous execution expands.
+
+## Current live checkpoint
+
+- Final read-only verification on 2026-09-07: control target `0872e22`, main
+  Delta target `8064363`, identity/worker/Delta/control services and all four
+  sensing timers active; 42 archived projects; only Flowing Indian and Cajon
+  Sensei non-core projects unarchived; both active product scopes held; runtime
+  sources report only those two product processes running and all five archived
+  legacy processes stopped; embedded Git remote credentials found: zero.
+- The honest program score is approximately **52/100**. This reflects strong
+  foundation, sensing, state reconciliation, archival, security containment,
+  and deployment evidence—not completion. The remaining score is dominated by
+  useful Flowing/Cajon autonomy, independent outcome measurement, Delta/Charlie
+  processor alignment, public scoped MCP/board operation, provider credential
+  rotation, recovery drills, and elapsed unattended qualification.
+
+## MCP direction fail-closed alignment
+
+- Control/identity release `6471b8aea2b535884284c841b62383afc5ba208a` is now
+  deployed to both `control-current` and `identity-current`; migration applied
+  successfully and the identity service restarted with `/login` returning 200
+  on its host-bound loopback check.
+- MCP `send_to_delta` now refuses by default unless the explicit
+  `SEEDFORTH_GOVERNED_DELTA_PROCESSOR` feature gate is enabled. Synthetic tests
+  opt into that gate to verify durable queue/reconnect semantics; the live
+  service does not. This prevents remote text from entering the legacy Delta
+  processor as executable direction before originator-bound processing is
+  qualified.
+- Public TLS ingress remains deliberately 503. Scoped graph reads, board
+  controls, OAuth client trials, and remote MCP still require the final
+  originator-bound processor, owner credential rotation, and public-client
+  qualification. No public access is claimed.
+
+## Versioned human scope gate
+
+- The authored `set-scope-work-enabled` operation was live-qualified against
+  the dedicated disposable Neo4j graph on 2026-09-07. It passed the pause,
+  stale-version rejection, and resume path while creating no WorkItem and
+  claiming no execution lease (`1 passed, 35 deselected`).
+- Control release `73a55d867bd681722ef7060c122525f94d796907` was fetched into
+  a clean immutable server release and deployed atomically. The migration
+  applied with source hash `b9d99ddc6bd4cfe906d83af1cc60a3e3ec625a5fbea11733031af470509a9d50`;
+  the graph's promoted operation hash matched the release source. Control and
+  both sensing timer units returned active, with the previous control release
+  retained for rollback.
+- This makes the board's scope pause/resume primitive production-deployed; it
+  does not enable either product scope, dispatch work, qualify useful
+  autonomy, open public MCP, or satisfy unattended operation.
+
+## First current bounded autonomous product qualification
+
+- On 2026-09-07, an owner-only graph operation created one Cajon Sensei
+  qualification mandate (30-minute expiry, one budget unit) and one held
+  candidate work item. The scope remained held until the item was separately
+  released and readied through versioned transitions.
+- The protected worker credential was rotated without exposing its value;
+  `seedforth-worker.service` reloaded it and remained active. The executor then
+  selected the graph-ready item and completed one isolated
+  `capability-code-proposal-v1` invocation. The graph recorded a succeeded
+  invocation, a review receipt, and an unmodified product checkout.
+- The returned artifact was independently materialized and tested with the
+  pinned Playwright CLI against the exact candidate HTML. The timing,
+  restart/pause, tempo, count-in, responsive, and page-error checks passed.
+  The evidence was recorded by the graph-native independent-test-run operation
+  and the separate review transition accepted the work as `done` and
+  `verified`; artifact hash:
+  `d0d70edd965cb635e2621c8fb818b8fc5db92db2713dc37618356f9b83f3f619`.
+- The Cajon scope was then closed again (`work_enabled=false`, version 2).
+  This is the first current useful autonomous candidate loop with independent
+  evidence, not a claim that product code was deployed, that musical accuracy
+  is proven, or that unattended operation is qualified.
+
+## Board scope-control deployment
+
+- The human control board now exposes the graph's `work_enabled`,
+  `state_version`, and hold reason, with explicit versioned Pause/Enable
+  actions. The server allowlist exposes only the authored scope-gate
+  operation; graph grants still decide whether a human can perform it.
+- The pinned Playwright CLI human journey passed the new scope pause/resume
+  interaction plus the existing stale-version, outage recovery, mobile,
+  escaping, concurrent inspection, logout, and revocation checks.
+- Control release `d4276215b3c746141a2d480f22999799f812004e` was deployed
+  atomically after migration; the prior release remains available for
+  rollback. This is a deployed board primitive, not yet public remote access
+  or a complete multi-project operating surface.
+
+## Honest progress estimate after current qualification
+
+- The working estimate is now approximately **62/100**. The increase reflects
+  one current end-to-end bounded autonomous candidate loop with independent
+  browser evidence, graph-recorded verification/review, and a deployed
+  versioned human scope control. It does not count the candidate as deployed
+  product code or count any unattended time that has not elapsed.
+- The remaining work is still substantial: Delta/Charlie originator-bound
+  processing, Flowing source/credential reconciliation and useful autonomy,
+  public scoped MCP with qualified clients, richer multi-project board UX,
+  recovery/security drills, continuity, and an elapsed unattended-operation
+  qualification.
+
+## Governed conversation delivery boundary
+
+- Added graph-native claim, commit, and lease-recovery reducers for
+  authenticated `ConversationMessage` direction. A delivery claim is scoped
+  to the authenticated originator's conversation, carries a short lease, and
+  returns content only as untrusted data. The commit records a deterministic
+  delivery hash/reference; recovery returns an expired delivery to `queued`
+  while preserving prior signals.
+- The disposable live graph qualification passed claim single-winner,
+  duplicate-claim refusal, deterministic commit, and expired-lease recovery.
+  The test also caught and fixed a misleading empty-result recovery path
+  before deployment.
+- Control release `3e9d5061867be21bbc27f7c39fae912845d1d561` was migrated and
+  deployed atomically. The Delta conversation processor identity is present in
+  the graph with scoped delivery/reconciliation grants, but no external writer
+  or MCP send path has been enabled yet. Injection handling and Delta-side
+  acknowledgement remain required before opening direction.
+
+## Disabled Delta delivery adapter
+
+- Added a bounded external adapter that reads only graph-listed queued message
+  identifiers, claims each message through the delivery reducer, writes one
+  deterministic hub inbox file, fsyncs and hashes it, and commits delivery back
+  to Mycelium. Destination drift, symlink substitution, invalid message
+  identity, and failed graph commits fail closed. Direction text is explicitly
+  wrapped as authenticated-origin but untrusted content; it carries no graph
+  permissions or approval semantics.
+- Local adapter qualification passed 14 tests, including injection content
+  preservation, deterministic replay, destination conflict refusal, and exact
+  claim/write/commit ordering. Systemd definitions were installed and verified
+  on delta2, but the service is inactive and its timer disabled. The MCP
+  `send_to_delta` gate remains closed until Delta-side prompt-injection,
+  acknowledgement, and replay qualification is complete.
+
+## Regression checkpoint
+
+- The complete local `platform/integration-tests` suite passed on 2026-09-07:
+  **109 passed, 66 skipped**. Skips are explicit live/disposable or pinned
+  environment gates; this result is not being counted as production or
+  unattended-operation evidence.
+
+## Delivery replay correction
+
+- Corrected the Delta adapter to use the graph's original message timestamp in
+  its deterministic inbox payload. Lease recovery now recreates byte-identical
+  content instead of using a new wall-clock timestamp and falsely reporting a
+  destination conflict.
+- Adapter and boundary tests remained green (`14 passed` for the focused
+  processor/boundary run). Control release
+  `1cb5aeb07b0477790944403f45f1dac9b198d4a8` was migrated and deployed with
+  rollback retained. The delivery service remains inactive and the timer
+  disabled.
+
+## Delta acknowledgement handoff
+
+- Added a strict Delta-side `mycelium_ack` boundary. It accepts only the
+  graph-defined conversation message ID, acknowledgement ID, scope, one of
+  `received`/`needs_review`/`rejected`, and a bounded summary. Unsupported
+  fields such as commands or credentials are rejected; the stream is
+  append-only, fsynced, and protected against symlink replacement.
+- Added the Hub contract that Mycelium-delivered text is untrusted content and
+  cannot grant permissions, approve work, reveal credentials, or bypass a
+  gate. An acknowledgement records receipt/review only and never claims
+  execution.
+- Focused Delta tests passed: **8 passed**. Release `79d04b1cf3418a51ceb435866850395d1a30bd87`
+  is live as the main Delta platform release; the acknowledgement stream is
+  owned by Delta with mode `0640`. The graph acknowledgement ingest service
+  remains disabled until a real Delta acknowledgement journey is qualified.
+
+## Acknowledgement wire-contract qualification
+
+- Corrected the ingest bridge to consume Delta's exact
+  `conversation_message_id` field. The previous `message_id` expectation was
+  detected before enabling the bridge and would have quarantined valid Delta
+  receipts.
+- The focused wire-contract tests passed (`9 passed`), and the broader local
+  integration suite passed (`110 passed, 66 skipped`). Control release
+  `b396c29d49ee1fe014672724bfcf920f4d12db49` was migrated and deployed; the
+  main Delta release remains `a4a2789374c16cbb3f5c9e2952915ae4ffcc9f64`.
+  The ingest timer remains disabled because a real end-to-end acknowledgement
+  journey and unattended qualification are still outstanding.
+
+## Disposable acknowledgement loop
+
+- Extended the live disposable Neo4j conversation qualification to use
+  Delta's actual acknowledgement serializer and the real Mycelium ingest
+  bridge. The journey now proves delivery commit, append-only wire receipt,
+  graph dispatch, and the resulting `ConversationMessage.execution_state`.
+- The isolated live journey passed: **1 passed, 36 deselected in 113.47s**.
+  This is disposable-graph evidence only; it does not yet qualify production
+  Delta traffic or justify enabling the production ingest timer.
+
+## Production ingest readiness
+
+- Ran the deployed acknowledgement ingest service once against the empty
+  production handoff stream. It exited cleanly with `lines: 0, dispatched: 0,
+  failed: 0`; the recurring timer remains disabled. This proves service
+  wiring and credential loading only, not production message processing.
+
+## Production shadow acknowledgement qualification
+
+- Created two explicitly labelled, no-action Cajon Sensei shadow messages
+  through the owner-bound graph conversation operation. The real deployed
+  processor delivered both to the live Delta Hub session. The Hub consumed the
+  inbox files and the deterministic Delta transport callback wrote durable
+  receipts; a model-written malformed command was rejected without becoming
+  authority or a Discord message.
+- The deployed ingest service promoted both receipts with
+  `dispatched: 2, failed: 0`. Both graph messages now show
+  `status: delivered, execution_state: acknowledged`. This is the first
+  production-shadow proof of the complete conversation acknowledgement loop;
+  it was no-action shadow traffic, not product execution.
+- Enabled only `seedforth-delta-ack-ingest.timer` for ongoing receipt
+  observation. The outbound conversation processor timer and public MCP gate
+  remain disabled pending broader delivery, identity, and unattended trials.
+
+## Bounded conversation delivery activation
+
+- After verifying all active-scope conversation queues were empty, enabled the
+  source-controlled outbound processor timer. The first scheduled run saw
+  zero queued messages in Flowing Indian, Cajon Sensei, and the platform scope
+  and exited cleanly. The processor remains graph-gated, scope-limited, and
+  fail-closed on destination or commit drift.
+- This activates the internal graph-to-Delta transport only. Public MCP
+  conversation sending remains disabled until remote identity/client and
+  unattended-operation qualification are complete.
+
+## Live Graphify observation
+
+- The live graph audit found Graphify source streams but no prior snapshot
+  observations. Recorded the reviewed server-side Graphify artifact as a fresh,
+  provenance-bound `GraphifySnapshot` for `seedforth-platform` using the
+  current control release and extractor revision `artifact-graphify-live-v1`.
+- The graph accepted **112 facts with 0 failures** and projects the source as
+  `extraction_status=complete`, with content hash, repository, release, and
+  observation timestamp. This proves the Graphify sensing path live for the
+  platform corpus; it does not claim project-specific Flowing/Cajon coverage.
+
+## Graphify cadence and missing-source qualification
+
+- Deployed `graphify-sensor-v1` on a fifteen-minute systemd cadence. It reads
+  only exact allowlisted artifact paths and records a `collection_failure`
+  observation when a producer has not supplied an artifact; it never converts
+  missing input into an empty extraction.
+- The first live run returned platform `collected` (112 facts, 0 failures),
+  Flowing Indian `collection_failed` (0 facts, 1 failure), and Cajon Sensei
+  `collection_failed` (0 facts, 1 failure). Mycelium projected the latter two
+  streams as `partial`, preserving the last-success distinction.
+- This qualifies sensing and outage visibility, not project Graphify content.
+  Project-specific extraction remains an explicit producer/coverage milestone.
+
+## Active-project Graphify producer qualification
+
+- Added a deterministic project-account producer for the approved Flowing Indian
+  and Cajon Sensei Markdown documents. It records the repository revision and
+  extractor revision, writes atomically to a service-owned state directory, and
+  emits only section identifiers plus document-order relationships.
+- Deployed producer timers and ran both producers live. Flowing Indian produced
+  3 documents / 51 facts at revision
+  `1b99ef60f005edf9d802c5fcfaf388b78e9a5224`; Cajon Sensei produced 2 documents /
+  116 facts at revision `20d0695a577f388a2f945bbc3f6f3b6a02b70d7a`.
+- The Graphify sensor then recorded both snapshots as complete, alongside the
+  platform's 112-fact snapshot. This qualifies deterministic source sensing and
+  freshness, not semantic/model extraction or product-business truth.
+
+## Flowing source reconciliation and credential finding
+
+- Live inspection found the deployed Flowing checkout differed from the local
+  project assumptions: the configured order/verify sensor paths were absent and
+  the actual registration route contained an embedded notification credential.
+- Disabled the two superseded source streams and promoted the actual
+  `app/api/register/route.ts` path. The live code sensor recovered cleanly and
+  recorded Cajon `app/index.html` and Flowing `app/api/register/route.ts` as
+  `matches_commit`.
+- Prepared a project-side remediation that reads `SLACK_WEBHOOK_URL` only from
+  runtime environment and returns 503 when it is absent. It is committed in the
+  local Flowing branch but not claimed as deployed: the configured GitHub remote
+  is inaccessible from the current owner account, and production secret
+  rotation/deployment still requires that project release path.
+
+## Current control-surface verification
+
+- Re-ran the prescribed Playwright CLI human-interface journey against the
+  shipped control board: it passed scope pause/resume, memory-only credentials,
+  stale/file-drift/partial coverage states, legacy non-actionability, version
+  conflicts, outage recovery, mobile layout, identity isolation, logout and
+  revocation. This remains synthetic-API browser evidence, not production MCP
+  acceptance.
+- The remote TLS qualification also passes 14 checks for TLS and deliberately
+  closed public ingress. Public MCP remains disabled until the real OAuth/client
+  qualification and production Flowing credential release path are complete.
+
+## Bounded autonomous executor activation
+
+- Added and deployed the scoped executor timer for Flowing Indian. Its service
+  has localhost-only graph access, root-only graph/worker credentials, and the
+  existing graph selection/claim/invoke/complete gates; it cannot create grants,
+  enable a scope, or accept its own result.
+- A live run authenticated and queried Mycelium, found no ready work because the
+  Flowing scope remains held, and exited successfully with `status=idle`. No
+  Invocation, artifact, deployment, or acceptance was created. This qualifies
+  safe idle autonomy and scheduling, not useful product execution.
+
+## Flowing autonomy attempt and fail-closed recovery
+
+- Prepared a one-unit Flowing candidate with an exact repository revision and
+  bounded email-validation change. Owner-controlled graph transitions enabled
+  the scope briefly, released the held item, and made it ready; no production
+  deployment authority was included.
+- The executor authenticated and claimed the work, but the protected worker
+  rejected invocation because its deployed capability checkout was still
+  Cajon-only. The execution lease was allowed to expire rather than retried.
+- `reconcile-expired-work` then recorded the attempt as `unknown` with
+  `error_code=lease_expired`, blocked/held the work item, and left zero
+  `Invocation` or artifact records. The Flowing scope was paused again. This
+  qualifies claim failure and recovery safety, not useful product progress.
+
+## Worker runtime alignment after failed Flowing qualification
+
+- The live protected worker was still running release `3d8feef` while the
+  control plane was on `6d26533`; this was a deployment-version split, not a
+  graph decision.
+- After verifying the target release existed, the worker component link was
+  atomically switched to `/opt/seedforth/releases/6d26533` and the socket and
+  service were restarted. Both are active and the process exited cleanly.
+- The worker remains intentionally unusable for new product work until its
+  external worker credential/binding set is requalified. The live graph shows
+  both active scopes paused, all non-done work held, and no live lease. This
+  alignment improves deployment consistency but does not qualify autonomy.
+
+## Authoritative suite and active-fleet check
+
+- The control-plane integration suite was rerun in a disposable virtual
+  environment with its declared test dependencies: `112 passed, 66 skipped`.
+  The skips are environment-qualified integration cases, not converted to
+  passes.
+- A live process/service check found only the Cajon Sensei and Flowing Indian
+  product workers plus the retained Delta service running. Archived product
+  workers were not running. This agrees with the graph portfolio disposition;
+  it is fleet evidence, not proof of product progress.
+
+## First useful Flowing bounded candidate outcome
+
+- Expanded Flowing’s protected read-only repository binding to include the
+  non-secret `app/page.tsx` path; the registration route remains covered for
+  sensing but was not included in this candidate.
+- A fresh owner-bounded mandate reached `ready`, was claimed by the
+  project-scoped worker, and produced a candidate artifact. The capability
+  generation and broker settlement grant were requalified in Mycelium after
+  two earlier fail-closed attempts exposed those missing policy edges.
+- Independent verification passed against the exact base revision: one
+  `app/page.tsx` change added the landmark label, the artifact remained
+  `untrusted_candidate_code`, `applied=false`, and no credential-bearing route
+  was present. The graph recorded `succeeded -> review`, the independent test
+  run passed, and owner review marked this candidate work done.
+- The Flowing scope was paused immediately afterward. No product checkout,
+  repository, deployment, or production behavior was changed. This is the
+  first useful bounded candidate outcome for Flowing, not full product
+  autonomy or deployment acceptance.
+
+## Reproducible worker capability requalification
+
+- The missing Flowing settlement edge and release-dependent capability
+  generations are now represented by the graph operation
+  `requalify-worker-capabilities`; it accepts only the three compiled,
+  artifact-only capability IDs and bounded generation/cost/duration evidence.
+- Release `d5ec5990405823ba1aa32923dba6d43f2f981a86` was deployed to both the
+  control and worker component links, and the operation was promoted and
+  exercised successfully. Control and worker services are active.
+- The live graph remains truthful after the run: Flowing accessibility v3 is
+  `done/verified`, the Flowing scope is disabled, and prior unknown attempts
+  remain retained as history.
+
+## Delta/portfolio lifecycle alignment
+
+- A live conversation qualification exercised the full internal direction
+  loop: graph admission queued the owner message, the Delta Hub received it as
+  explicitly untrusted content, emitted a deterministic `received` ACK, and
+  the ACK ingestor projected `execution_state=acknowledged` into Mycelium.
+- The live Delta registry was reconciled from graph portfolio state with a
+  retained pre-change backup. Flowing Indian and Cajon Sensei are the only
+  active projects and are marked retained `product` agents; all other retained
+  registry entries are hibernated.
+- Delta’s resource manager now exempts retained/product agents from its idle
+  hibernation policy; graph portfolio controls, not ten-minute inactivity,
+  decide their lifecycle. Release `abb677fe5ff81e7a188ad29ef49a869f0e9e9206`
+  is live as `/opt/seedforth/current`, and both product watchers plus Delta Hub
+  are running. A long unattended interval has not yet elapsed.
+
+## Synthetic identity qualification boundary and Cajon cadence check
+
+- Added and deployed `provision-human-qualification-principal`, an owner-only
+  graph operation that can create only a temporary `human` qualification
+  principal with read-only access to exactly one retained product. It cannot
+  grant execution, alter work, or promote policy. This preserves the production
+  rule that enrollment is invitation-only for an already authorized graph
+  principal, while allowing remote browser qualification without owner
+  credentials.
+- The operator correctly rejected the first reserved invitation filename after
+  the initial qualification attempt failed; the empty reservation was verified,
+  cleared, and one invitation was issued privately. The invitation was removed
+  after the local Playwright browser binary was unavailable. No owner credential
+  or reusable qualification secret remains from this attempt.
+- The existing Flowing autonomous timer ran an honest `idle` cycle while both
+  product scopes were disabled and no ready work existed. Installing the same
+  timer for Cajon exposed a missing current Cajon worker credential: systemd
+  failed before execution with `243/CREDENTIALS`. The unmatched legacy pilot
+  token was not reused; the Cajon timer was disabled again to avoid recurring
+  false failures. Current Cajon credential/provisioning is an explicit remaining
+  release boundary.
+## Live sensing and Graphify collection check
+
+- A live heartbeat completed successfully, including decay, liveness, activity
+  sync, focus maintenance, and a current system snapshot.
+- Runtime sensing observed Flowing Indian and Cajon Sensei as running and
+  archived scopes as stopped. Code sensing observed Cajon `app/index.html` and
+  Flowing `app/api/register/route.ts` plus `app/page.tsx` as matching their
+  committed revisions.
+- Graphify producers generated current snapshots for both products (51 Flowing
+  facts and 116 Cajon facts); the Graphify sensor collected all three scoped
+  streams, including SeedForth platform, with 112, 51, and 116 facts and zero
+  collection failures. This proves the sensing path is live and producing
+  evidence, but does not by itself prove product outcomes or unattended
+  autonomy.
+
+## Cajon worker authority renewal and cadence symmetry
+
+- Added the graph operation `renew-cajon-worker-authority`, restricted to the
+  owner, the existing Cajon worker principal, the Cajon scope, and a maximum
+  one-hour expiry. It cannot enable work or create a mandate.
+- Renewed Cajon authority for a short qualification window, rotated its
+  external broker token, preserved the existing Flowing credential entry, and
+  restarted only the protected worker service. The broker returned active.
+- Started the Cajon executor successfully; it returned `status=idle` because
+  the graph work gate remains held and no work was launched. Cajon’s fifteen-
+  minute autonomous timer is now enabled alongside Flowing’s. This proves
+  cadence symmetry and credential readiness, not yet useful autonomous product
+  progress or an elapsed unattended soak.
+
+## Graph-native portfolio home projection
+
+- Added the admin-only `read-portfolio` graph operation and exposed it through
+  the control boundary. It returns portfolio authority, work gate/version,
+  attention count, historical process status, and latest observation time for
+  every administered scope.
+- The board now has a portfolio home view for the platform scope while
+  project-scoped users remain on their project board. It explicitly labels
+  historical process status as non-authoritative and renders graph state as
+  text, not executable markup.
+- The first live projection revealed duplicate rows caused by repeated grant or
+  relationship paths; the operation was corrected with canonical scope
+  deduplication. The deployed live query now returns eight unique scopes and
+  identifies exactly three active scopes: SeedForth Platform, Flowing Indian,
+  and Cajon Sensei.
+
+## Fresh Flowing autonomous candidate with failure recovery
+
+- Prepared a new owner-bounded Flowing mandate for email-format validation in
+  the existing registration route. The scope was opened only for the versioned
+  run, and the held work was separately released and readied.
+- The first executor attempt claimed the work but the broker rejected the
+  invocation because the capability broker's Flowing settlement grant had
+  expired. The executor did not redispatch. After lease expiry,
+  `reconcile-expired-work` recorded the attempt as `unknown`, blocked and held
+  the work, and preserved the incident.
+- Added and promoted bounded Flowing settlement-authority renewal. A fresh
+  work item was then created rather than replaying the unknown attempt. The
+  executor produced a one-file `untrusted_candidate_code` artifact for
+  `app/api/register/route.ts`; it remained unapplied and no production route
+  was executed.
+- An independent exact-source verifier confirmed the artifact against its base
+  revision, unique replacement, path scope, and content hashes. Mycelium
+  recorded the passing test, owner review accepted the current version, and the
+  work reached `done/verified`. The Flowing scope was closed again at version
+  14. This proves useful bounded execution plus honest failure recovery for a
+  second Flowing candidate; it is not deployment or business-outcome evidence.
+
+## Cajon source reconciliation and corrected autonomous candidate
+
+- Reconciled the Cajon worker's read-only source binding from stale revision
+  `2a518d9` to the live clean source revision
+  `9ae3def9b1d4d6838d0a0bd3fa6fbfbfe0f8bb6b`. The previous binding was
+  preserved as a backup, the new bare binding is root-owned and read-only to
+  the worker, and the worker restarted successfully.
+- Two stale capability-generation attempts failed closed and were reconciled
+  as unknown/blocked rather than retried against an untrusted generation. The
+  capability generations were then recalculated against the actual worker
+  artifact root and all three worker capabilities were independently
+  requalified live.
+- A fresh accessibility candidate was run. An initial candidate was rejected
+  by the independent verifier because its HTML closing tag was malformed;
+  Mycelium recorded the rejection without awarding progress.
+- The corrected candidate changed only `app/index.html`, adding the explicit
+  `aria-label="Start or stop groove"` to the Cajon play button. Its base
+  revision, path scope, exact replacement, artifact hash, and independent
+  test receipt were verified; owner review accepted it and Mycelium advanced
+  the work to `done/verified`. The artifact remains untrusted and unapplied.
+- The Cajon work gate was closed at version 10 after qualification. This is
+  useful bounded autonomy and evidence-backed recovery, not deployment or
+  unattended-soak evidence.
+
+## Scoped human direction panel
+
+- Added the first in-context conversation surface to the project board. An
+  authenticated human can read their scoped conversation and queue direction
+  to Delta using a bounded conversation key and idempotent request ID.
+- The UI renders role, delivery state, execution state, trust and timestamp as
+  text. It explicitly distinguishes durable `queued/not_started` direction
+  from execution or approval, and clears conversation content on disconnect.
+- Playwright CLI browser regression passed with the new journey plus the
+  existing stale-data, untrusted-text, version-conflict, outage, mobile,
+  response-order, logout and revocation checks.
+- The exact control release `cf2d1082d8dd66a4fa2469c33da757ca23833a08` is
+  live at `/opt/seedforth/control-current`; the control service is active and
+  the endpoint serves the new panel. Public MCP/HTTP ingress remains closed.
+
+## Portfolio home navigation
+
+- Closed the navigation gap in the portfolio projection: active administered
+  product cards now provide an explicit `Open project` action that changes the
+  current scoped board without requiring a new login.
+- Playwright CLI regression passed the complete prior journey plus the
+  portfolio-home-to-project transition. The live control release
+  `9b9428fde0ccd830c4476403a30cf032293c8542` serves the change and the
+  control service remained active after deployment.
+
+## Governed processor qualification boundary tightened
+
+- The MCP adapter now captures one explicit deployment qualification flag for
+  the originator-bound Delta processor. When absent, direction remains denied
+  and the schema reports the disabled state; when present, responses report
+  `governed_delta_processor_qualified` rather than a stale hard-coded status.
+- The change was syntax-checked and exercised in the isolated MCP dependency
+  environment. The existing official-SDK integration remains guarded behind
+  its explicit disposable-graph endpoint and was not falsely counted as a new
+  production qualification. The live identity service has not been opened or
+  granted this flag yet.
+
+## Live processor qualification and reducer repair
+
+- A live synthetic qualification initially exposed a real failure: repeated
+  `HAS_MESSAGE` paths could make `claim-conversation-message` create the same
+  deterministic claim signal more than once. A second run exposed the same
+  class of fan-out through multiple valid delivery grants during
+  `record-conversation-delivery`.
+- Both reducers now collapse matched graph rows with `WITH DISTINCT` before
+  mutating state or creating immutable signals. The regression fixture now
+  covers duplicate message relationships and duplicate delivery grants.
+- After promotion, a live synthetic originator queued one scoped direction;
+  the processor delivered exactly one deterministic temporary-inbox artifact,
+  preserved `authenticated_origin_untrusted_content`, recorded
+  `received_by_delta`, and returned zero on the second delivery pass. All
+  temporary identities/grants were disabled or revoked, temporary files were
+  removed, and live graph state has zero queued or delivering messages.
+- This qualifies the processor and reducers against live Mycelium without
+  sending a synthetic message to the real Delta inbox. The remote MCP flag is
+  intentionally still disabled pending identity-release integration and final
+  remote client qualification.
+
+## Identity release integration on loopback
+
+- Added a reproducible `deploy-identity-component` operation with immutable
+  release verification, symlink cutover, systemd validation, restart, and a
+  root-private deployment receipt.
+- Deployed identity release
+  `e35f39903b22aa82005d6ceb7a93d766b11025c4`, switching `identity-current`
+  from `6471b8a` to the release containing the qualified MCP processor state.
+  The governed processor flag is enabled only inside this loopback identity
+  service; public ingress remains closed.
+- Cutover initially failed closed with systemd `203/EXEC` because the existing
+  `/opt/seedforth/shared` parent was `750 root:delta` and the non-root identity
+  user could not traverse to its already-private virtualenv. The parent was
+  corrected to `751`; env, credential, operator, backup and security children
+  remain separately permissioned. Restart then returned the service to active.
+- Post-recovery checks observed loopback `/login=200` and loopback `/mcp=401`
+  as expected. No public OAuth/MCP request or human credential was created.
+
+## Real loopback OAuth/MCP browser qualification
+
+- Added a test-only host-rewrite proxy and Playwright journey for the deployed
+  identity runtime. The proxy uses an SSH tunnel, rewrites only the reviewed
+  Host/Origin boundary, and never binds publicly; it is not a deployment
+  component.
+- A temporary read-only Cajon qualification principal completed real
+  enrollment and MFA, server-side session creation, OAuth client registration,
+  S256 PKCE consent, callback, token exchange, MCP `read_work`, and foreign
+  scope denial through the deployed identity service. Playwright reported all
+  checks passed; no public route was contacted.
+- The qualification account was reset to revoke its sessions and connected
+  clients, its graph principal was disabled and grants revoked, all temporary
+  invitation files were removed, and the local browser proxy/tunnel/secrets
+  were stopped or removed. The identity service remains active and the public
+  `/mcp` route still returns `503`.
+
+## Public ingress qualification attempt
+
+- A reviewed nginx candidate was exercised against the live TLS endpoint with
+  allowlisted identity, OAuth, and `/mcp` paths, host rejection, HTTP closure,
+  and unknown-route closure. The candidate reached the identity process for
+  `/mcp`, but HTML and OAuth routes produced Uvicorn `Invalid HTTP request`
+  responses while direct loopback requests remained healthy.
+- The first candidate was not accepted as production-ready and was restored
+  from the root-private pre-exposure backup. Diagnosis isolated the issue to
+  the shared nginx `proxy_params` include; explicit upstream headers are now
+  used by the reviewed candidate.
+- The corrected candidate was deployed after nginx syntax validation. External
+  route qualification passed `15` tests: TLS/certificate, `/login`, both OAuth
+  discovery documents, anonymous `/mcp=401`, unknown-route closure, HTTP
+  application closure, foreign-host rejection, and internal-port refusal.
+  Playwright also rendered the live HTTPS login page with the expected title,
+  heading, and username control. No human credential was used.
+- Full public OAuth enrollment/token/MCP authorization is still a separate
+  qualification gate; the previously completed real browser journey remains
+  loopback-based. The public candidate is therefore deployed but not yet
+  counted as end-to-end human authorization proof.
+
+## Public human-to-MCP qualification
+
+- A temporary Cajon-only graph principal completed the full journey against
+  `https://185.192.96.100`: invitation enrollment, authenticator setup, MFA
+  login, server-side session creation, OAuth registration, S256 PKCE,
+  consent, callback, authorization-code token exchange, scoped `read_work`,
+  and foreign-project scope denial. Playwright returned `status:passed` for
+  all four journey groups.
+- The browser used no persistent credential storage: local/session storage
+  remained empty and document JavaScript could not read the secure cookies.
+- Cleanup was completed with the root-only identity reset, deletion of the
+  invitation artifacts, graph principal disablement, grant revocation, and
+  verification of zero remaining human users or active sessions for the
+  qualification principal. Public anonymous `/mcp` remains `401` and the
+  identity service remains active.
+
+## Isolated identity restore qualification
+
+- The fresh root-private identity snapshot was verified against its recorded
+  SHA-256 and SQLite `integrity_check`.
+- It was copied into an isolated temporary database, where the recovery
+  invalidation policy revoked sessions, consumed recovery factors and invites,
+  disabled restored users, and preserved database integrity. The source
+  snapshot hash remained unchanged and the live identity service stayed active.
+- This qualifies credential-safety behavior for identity restore. It does not
+  claim a full Neo4j or whole-server disaster recovery drill.
+
+## Flowing bounded-autonomy requalification boundary
+
+- A fresh one-unit Flowing candidate mandate was admitted with a twenty-minute
+  expiry, the settlement authority was renewed, and the graph gate was opened
+  through the normal versioned transitions. The candidate was ready without
+  production deployment or spend authorization.
+- The executor then failed closed at the worker transport with
+  `401 invalid_credentials` while reading the attempt receipt. No candidate
+  effect occurred. This is the first direct evidence that the current worker
+  credential boundary, not the graph mandate, prevents useful autonomy.
+- The Flowing scope was immediately disabled and the candidate re-held through
+  graph transitions. All core services remained active. The failed credential
+  boundary is retained as an explicit release blocker; it is not counted as an
+  autonomous outcome.
+
+## Worker credential rotation and candidate rejection
+
+- Added a root-only immutable-release rotation operation for the scoped worker
+  transport. It backs up the prior private credential files, atomically writes
+  fresh one-hour Flowing/Cajon tokens and broker digests, restarts the worker,
+  and verifies the service is active. The rotation completed successfully.
+- Retried the held Flowing candidate. The worker authenticated and produced a
+  real bounded artifact receipt, reaching graph state `review`; no deployment,
+  spend, or external webhook call occurred.
+- Independent inspection rejected the artifact because its proposed source
+  contained a hard-coded third-party webhook credential. The work item is now
+  `proposed/verification=rejected`, the Flowing scope is disabled again, and
+  the credential exposure is parked for explicit provider-secret remediation.
+  The secret is not reproduced in this ledger or in agent-facing output.
+
+## Worker secret guard deployment
+
+- The source-artifact secret detector was regression-tested locally, including
+  Slack webhook-shaped credentials, and packaged as immutable worker release
+  `326a5dbba82ca1ee594a554bf6417fe11ddce7f1` based on the qualified worker
+  release. The live `worker-current` symlink now points to that clean release;
+  the worker restarted successfully and remains active.
+- The detector rejects the Flowing source before candidate materialization on
+  future runs. The previously generated rejected artifact remains retained as
+  private evidence of the security finding; it was never applied or sent.
+
+## Explicit live soak observation
+
+- A six-sample live observation over approximately `101` seconds found all four
+  core services (`worker`, `control`, `identity`, and `delta`) active at every
+  sample, public anonymous `/mcp` returning `401` at every sample, and zero
+  relevant failed SeedForth units. This is bounded short-window stability
+  evidence only; it does not claim a month-long unattended soak.
+
+## Accepted autonomous Cajon outcome
+
+- After requalifying the deployed worker generations and reconciling the stale
+  attempt, a fresh Cajon one-unit mandate produced a bounded candidate through
+  the live executor. The worker authenticated, claimed work, created a review
+  receipt, and made no production or external side effect.
+- An independent static artifact check verified the exact committed source,
+  exact `app/index.html` replacement, artifact hash, unapplied status, and
+  absence of the parked webhook-secret pattern. The graph-native independent
+  test record was then accepted by the owner review reducer.
+- Mycelium now records the work as `done/verified`; the Cajon scope was closed
+  again after completion. This is the first fresh post-rotation autonomous
+  outcome that satisfies execution, independent evidence, and review together.
+
+## Second explicit live soak window
+
+- A second six-sample observation over approximately `100` seconds again found
+  all four core services active and public anonymous `/mcp` returning `401` at
+  every sample. Together with the prior window this provides approximately
+  `200` seconds of explicit live stability evidence, not a long-duration or
+  month-long unattended qualification.
+
+## Accumulated unattended timer evidence
+
+- Live journal measurement from `13:20Z` through `13:31Z` found eleven
+  heartbeat/runtime/event/ack cycles, eleven runtime and event completions,
+  two code-sensor completions, one Graphify-sensor completion, and twenty-two
+  conversation-processor completions. The relevant units had no actual
+  warning-level entries, all four core services reported zero restarts, and
+  public anonymous `/mcp` remained `401`.
+- This extends the measured unattended window to roughly eleven minutes of
+  recurring operation. It remains short-duration evidence and does not claim
+  a day-, week-, or month-scale soak.
+
+## Final live archival boundary audit
+
+- Live graph inventory now shows no non-core product Project outside the
+  archived boundary. The retained non-archived records are Mycelium, Delta,
+  Tetrahedron reference state, Flowing Indian, and Cajon Sensei.
+- Live service, process, and root-cron census found no running obsolete
+  `ethos`, LinkedIn, Seedforthing, or Zuuro runtime/schedule to fence. The two
+  products remain portfolio-active while their execution gates stay explicit
+  and independently controlled.
+
+## Third explicit live soak window
+
+- A new eight-sample observation from `13:34:02Z` through `13:37:33Z` found
+  all four core services active at every sample, public anonymous `/mcp`
+  returning `401` at every sample, and zero service restarts. This adds roughly
+  three and a half minutes of clean evidence to the accumulated unattended
+  observation. It remains short-duration evidence and does not claim a
+  day-, week-, or month-scale soak.
+
+## Live recurring-loop verification
+
+- At `13:39:21Z`, all four core services remained active with zero recorded
+  restarts and the public anonymous MCP boundary continued to return `401`.
+  The autonomous executor, Delta event/ack, conversation, runtime, code,
+  heartbeat, and Graphify timers were all loaded and waiting for their next
+  scheduled run.
+- The latest live Graphify observations for the platform, Flowing Indian, and
+  Cajon Sensei streams each completed successfully; the latest Delta event and
+  acknowledgement ingestion runs reported zero events/failures and zero
+  lines/failures respectively. This is current-loop evidence, not a claim of
+  long-duration qualification.
+
+## Conversation processor transient constraint incident
+
+- Live journal review found two consecutive conversation-processor failures at
+  `12:28:36Z` and `12:29:11Z` with `Neo.ClientError.Schema.ConstraintValidationFailed`
+  while processing qualification-era conversation state. Subsequent scheduled
+  runs completed successfully with empty queues; no core service remained down.
+- Current graph reconciliation shows zero `queued` or `delivering` messages,
+  with four delivered and four cancelled historical messages. No duplicate
+  dispatch was observed. This incident invalidates a claim of uninterrupted
+  soak for that interval; reducer/idempotency behavior and the exact historic
+  conflict require a targeted follow-up before long-duration qualification can
+  be accepted.
+
+## Graph-native service health sensing deployment
+
+- Added `systemd-unit-health-v1`, an allowlisted external adapter that records
+  one-shot unit outcome, exit status, and last-success projection as durable
+  Mycelium observations. It stores no raw journal or command output and cannot
+  execute graph-provided commands. Focused tests passed (`3 passed`), and the
+  disposable graph accepted both success and failure observations while
+  preserving the prior successful projection after a failed observation.
+- Production backup completed before migration: `281.7 MiB`, SHA-256
+  `c9bc411469978c5c5ae064abc66b2db3282e778e78c46bb942f9222094fbe877` in the
+  root-private service-health backup directory. Neo4j restarted and became
+  ready; the additive migration applied with source hash
+  `2e2b2bd3fcfd0280b951592ba871afffa939e3bcd943f7f4a551cb69b59a175e`.
+- Immutable control release `55060c081ef0717f7829558cfa8e4eb8c4f441e1` is
+  live, `seedforth-service-sensor.timer` is enabled, and its first graph
+  observation recorded all eleven allowlisted units. The Graphify sensor's
+  transient backup-window failure was captured; after Neo4j recovery, a manual
+  retry succeeded for platform, Flowing Indian, and Cajon Sensei, and a second
+  service-health pass projected all eleven units as successful. Future soak
+  reports can now distinguish process liveness from scheduler/control-loop
+  failure.
+
+## Post-deployment service-health observation window
+
+- Six live samples from `13:54:02Z` through `13:56:33Z` found the four core
+  services and the new service-health timer active at every sample, public
+  anonymous MCP returning `401` at every sample, and all eleven graph-projected
+  service streams reporting `success` (`11/11`) at every sample.
+- This is clean post-deployment evidence for the new health projection and
+  recovery from the maintenance-window outage. It is still a short window and
+  does not satisfy the required long-duration unattended qualification.
+
+## Service-health history and recovery validation
+
+- A live graph query found exactly one retained failed service observation for
+  `seedforth-graphify-sensor.service`, at `13:52:14Z` with result `exit-code`,
+  corresponding to the intentional Neo4j restart window. The latest six
+  observations for every monitored unit are successful.
+- This confirms the reducer preserves incident history while projecting the
+  current healthy state; a recovery does not erase evidence of the outage.
+
+## Continued post-recovery health evidence
+
+- From the first successful post-recovery projection at `13:52:39Z` through
+  `13:57:47Z`, the service-health timer completed five additional cycles with
+  all eleven graph-projected units successful. Core services remained active,
+  public anonymous MCP remained `401`, and no new service-health or Graphify
+  failures appeared. The single historical failed observation remains the
+  known backup-window outage; this interval is clean but still short.
+
+## Board service-health visibility deployment
+
+- Extended the canonical `read-sources` projection with unit identity, current
+  unit result, exit status, and evidence freshness. The control board renders
+  these fields separately from product process and selected-file code sensing.
+  The Playwright CLI human journey passed all existing checks plus explicit
+  service-health rendering (`status: passed`).
+- Immutable control release `aaee8b8c0a9b9296b76dea7d1edd30b18eb25bdc` is live
+  after additive operation promotion with source hash
+  `2fca3903264ad73b7581a89718942698d94df5d5f64ee738c65b8a15f95307ef`.
+  Live checks returned `/login=200`, anonymous `/mcp=401`, and a scoped
+  `read-sources` result showing the conversation processor as `success`, exit
+  `0`, and fresh. The prior control target is retained for rollback.
+
+## Continued board-release health interval
+
+- From `13:52:39Z` through `14:00:52Z`, the deployed service-health timer
+  completed eight post-recovery cycles. Every cycle projected all eleven
+  allowlisted services as successful; core services stayed active and public
+  anonymous MCP returned `401`. No new service-health or Graphify failures
+  appeared. This remains short-duration evidence, not unattended completion.
+
+## Validated extended health window
+
+- A corrected eight-sample live observation from `14:02:20Z` through
+  `14:05:52Z` found all four core services and the service-health timer active,
+  graph-projected health at `11/11` successful streams, and public anonymous
+  MCP returning `401` at every sample. A preceding malformed shell observation
+  was discarded and is intentionally not counted as evidence.
+
+## Twelve-sample unattended health window
+
+- Twelve valid samples from `14:06:36Z` through `14:12:08Z` (~5.5 minutes)
+  found all four core services active, the service-health sensor reporting
+  `success` with exit `0`, zero core-service restarts, and public anonymous MCP
+  returning `401` at every sample. The final Mycelium query found all eleven
+  health streams present with no non-success current projection.
+- This is the longest explicit clean window since the board-release cutover,
+  but remains short-duration evidence and does not satisfy the long unattended
+  qualification gate.
+
+## Twenty-minute post-recovery graph health checkpoint
+
+- At `14:13:07Z`, the live graph held `230` successful service-health
+  observations, exactly one retained failed observation, and zero collection
+  failures. All eleven current service streams projected success; core
+  services and the health timer were active, and anonymous MCP returned `401`.
+- Systemd warnings since the previous checkpoint were limited to the already
+  recorded `13:50Z`–`13:51Z` Neo4j maintenance-window failures. No new warning
+  appeared after recovery. This extends the clean post-recovery observation
+  to roughly twenty minutes, but remains below the long unattended gate.

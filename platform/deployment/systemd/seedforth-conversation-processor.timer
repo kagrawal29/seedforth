@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll graph direction for bounded Delta delivery
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Unit=seedforth-conversation-processor.service
+
+[Install]
+WantedBy=timers.target

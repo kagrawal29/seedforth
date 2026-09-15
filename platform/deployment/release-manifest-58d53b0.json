@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "platform_commit": "58d53b0",
+  "components": {
+    "mycelium": {"source_repository": "kagraw29/mycelium", "source_commit": "e43f15f", "import": "sanitized-working-tree"},
+    "delta": {"source_repository": "kagraw29/delta", "source_commit": "53d4d96", "import": "history-preserving-subtree"}
+  },
+  "graph": {
+    "endpoint": "bolt://185.192.96.100:7687",
+    "control_schema": "seedforth-control-v1",
+    "control_schema_version": "1.0.0",
+    "migration": "control-v2",
+    "verified_at": "2026-09-07"
+  },
+  "server": {
+    "host": "185.192.96.100",
+    "release_path": "/opt/seedforth/releases/scopefix",
+    "previous_release": "/opt/seedforth/releases/boardux",
+    "rollback_unit": "seedforth-identity.service",
+    "created_at": "2026-09-07"
+  },
+  "verification": {
+    "identity_security_tests": {"passed": 13, "skipped": 1, "failed": 0},
+    "mcp_oauth_live_test": {"passed": 1, "failed": 0},
+    "control_board_browser_journey": "passed against disposable Neo4j",
+    "control_board_mobile_width": 390,
+    "control_board_mobile_horizontal_overflow": false,
+    "production_login_mobile_horizontal_overflow": false,
+    "production_anonymous_control": 303,
+    "production_anonymous_admin": 303,
+    "production_anonymous_mcp": 401,
+    "identity_service": "active",
+    "nginx_config": "valid",
+    "graph_admin_operations": {"read": "passed", "provision": "passed", "revoke": "passed"}
+  },
+  "runtime": {
+    "identity_unit": "seedforth-identity.service",
+    "control_unit": "seedforth-control.service",
+    "public_origin": "https://185.192.96.100",
+    "status": "active"
+  }
+}
