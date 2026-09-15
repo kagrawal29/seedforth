@@ -20,6 +20,64 @@ SOURCES = ['seedforth-control-model-v1.cypher', 'seedforth-control-model-v2.cyph
            'seedforth-owner-conversations-v1.cypher']
 
 
+def split_cypher_statements(source):
+    """Split source on statement semicolons, preserving comments and strings."""
+    statements, current = [], []
+    i = 0
+    quote = False
+    line_comment = False
+    block_comment = False
+    while i < len(source):
+        char = source[i]
+        next_char = source[i + 1] if i + 1 < len(source) else ''
+        if line_comment:
+            current.append(char)
+            if char == '\n':
+                line_comment = False
+            i += 1
+            continue
+        if block_comment:
+            current.append(char)
+            if char == '*' and next_char == '/':
+                current.append(next_char)
+                block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+        if not quote and char == '/' and next_char == '/':
+            current.extend((char, next_char))
+            line_comment = True
+            i += 2
+            continue
+        if not quote and char == '/' and next_char == '*':
+            current.extend((char, next_char))
+            block_comment = True
+            i += 2
+            continue
+        if char == "'":
+            current.append(char)
+            if quote and next_char == "'":
+                current.append(next_char)
+                i += 2
+                continue
+            quote = not quote
+            i += 1
+            continue
+        if char == ';' and not quote:
+            statement = ''.join(current).strip()
+            if statement:
+                statements.append(statement)
+            current = []
+        else:
+            current.append(char)
+        i += 1
+    statement = ''.join(current).strip()
+    if statement:
+        statements.append(statement)
+    return statements
+
+
 def migrate(graph, revision):
     # Fail before touching schema if this is not the inspected product identity set.
     rows = graph.query("MATCH (p:Project) WHERE p.node_id IN $ids "
@@ -31,10 +89,8 @@ def migrate(graph, revision):
     for name in SOURCES:
         source = (ROOT/name).read_text()
         digest.update(source.encode())
-        for statement in '\n'.join(line for line in source.splitlines()
-                                   if not line.lstrip().startswith('//')).split(';'):
-            if statement.strip():
-                graph.query(statement)
+        for statement in split_cypher_statements(source):
+            graph.query(statement)
     for path in operation_sources():
         digest.update(path.name.encode())
         digest.update(path.read_bytes())
