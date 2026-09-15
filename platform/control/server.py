@@ -31,6 +31,7 @@ FIELDS = {
     'ready-work': {'id':str,'version':int},
     'admit-awareness-foundation': {'id':str,'version':int},
     'retry-awareness-foundation': {'id':str,'version':int,'reason':str},
+    'reconcile-awareness-foundation': {'id':str,'version':int,'attempt':str,'reason':str},
     'hold-work': {'id':str,'version':int,'hold':bool},
     'review-work': {'id':str,'version':int,'receipt':str,'artifact_hash':str,
                     'test_run':(str,type(None)),'accept':bool},
@@ -120,7 +121,8 @@ class Boundary:
         # provenance record.  Keep event_id out of the public request shape so
         # callers cannot forge or reuse transition identity.
         if name in {'ready-work','admit-awareness-foundation',
-                    'retry-awareness-foundation','hold-work','review-work'}:
+                    'retry-awareness-foundation','reconcile-awareness-foundation',
+                    'hold-work','review-work'}:
             bound['event_id']=str(uuid4())
         rows=self.graph.operation(name,actor,scope,**bound)
         if not name.startswith('read-') and not rows:
