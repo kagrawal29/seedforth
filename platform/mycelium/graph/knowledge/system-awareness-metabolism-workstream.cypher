@@ -42,7 +42,7 @@ MERGE (ws)-[:HAS_MILESTONE]->(m)
 MERGE (m)-[:SERVES]->(goal)
 WITH goal,ws,m
 UNWIND [
-  {id:'W01',title:'Define the canonical awareness event substrate',acceptance:'Code, graph, runtime, conversation, and external observations have one versioned event contract with source, timestamp, identity, scope, lineage, freshness, and uncertainty.'},
+  {id:'W01',title:'Define the canonical awareness event substrate',deliverable:'A versioned awareness event contract and graph-native validation fixtures covering code, graph, runtime, conversation, and external observations.',acceptance:'Code, graph, runtime, conversation, and external observations have one versioned event contract with source, timestamp, identity, scope, lineage, freshness, and uncertainty.'},
   {id:'W02',title:'Map repository history into the system graph',acceptance:'Every in-scope repository commit and file change can be ingested idempotently with author, parent, branch, diff lineage, and provenance without treating history as accepted progress.'},
   {id:'W03',title:'Map agent runtime and provider lifecycle',acceptance:'Agent processes, leases, attempts, provider events, heartbeats, failures, and graph state are correlated with freshness and explicit mismatch evidence.'},
   {id:'W04',title:'Build connectome activation and Hebbian evidence',acceptance:'Useful node and relationship traversals record observed activation and reinforcement evidence with decay, provenance, and no authority escalation.'},
@@ -58,6 +58,8 @@ ON CREATE SET w.created_at=datetime(),
   w.state_version=0,
   w.verification_status='unverified'
 SET w.title=item.title,
+  w.objective=item.title,
+  w.deliverable=item.deliverable,
   w.acceptance=item.acceptance,
   w.project='mycelium',
   w.scope_id='seedforth-platform',
