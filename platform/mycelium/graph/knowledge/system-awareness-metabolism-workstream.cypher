@@ -15,6 +15,7 @@ ON CREATE SET goal.name='System Awareness & Metabolism',
   goal.created_by='principal-seedforth-owner',
   goal.created_at=datetime()
 SET goal.acceptance='The system correlates canonical code, runtime, graph, semantic, and learning observations into provenance-bearing advisory context and reviewable improvement proposals without silently changing authority, active execution, or external commitments.',
+  goal:EntityGoal,
   goal.source='owner-session-2026-09-16',
   goal.updated_at=datetime()
 MERGE (p)-[:HAS_GOAL]->(goal)
