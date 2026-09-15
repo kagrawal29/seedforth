@@ -5,11 +5,9 @@ WHERE 'read' IN grant.permissions AND (grant.expires_at IS NULL OR grant.expires
 WITH DISTINCT grant.scope AS scope
 MATCH (s:ControlScope {node_id:scope})
 OPTIONAL MATCH (s)-[:MAPS_PROJECT]->(project:Project)
-CALL {
-  WITH scope
+CALL (scope) {
   MATCH (ws:Workstream {scope_id:scope})
-  CALL {
-    WITH ws
+  CALL (ws) {
     OPTIONAL MATCH (ws)-[:HAS_MILESTONE]->(:Milestone)-[:HAS_WORK_ITEM]->(w:WorkItem)
     RETURN collect(DISTINCT {
       id:w.node_id, title:w.title, status:w.status,
@@ -22,8 +20,7 @@ CALL {
     workitems:workitems
   }) AS workstreams
 }
-CALL {
-  WITH scope
+CALL (scope) {
   MATCH (p:PriorityProposal)-[:TARGETS]->(:WorkItem {scope_id:scope})
   WHERE p.status='proposed'
   RETURN collect(DISTINCT {
@@ -33,8 +30,7 @@ CALL {
     requires_review:p.requires_review
   }) AS priority_proposals
 }
-CALL {
-  WITH scope
+CALL (scope) {
   MATCH (g:GapSignal)-[:AFFECTS]->(:WorkItem {scope_id:scope})
   WHERE g.mode='shadow' AND g.status='advisory'
   RETURN collect(DISTINCT {
