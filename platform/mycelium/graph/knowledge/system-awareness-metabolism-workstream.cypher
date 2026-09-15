@@ -4,7 +4,21 @@
 // Governed admission for the graph-native System Awareness & Metabolism workstream.
 // Everything starts proposed so this workstream cannot pre-empt active work.
 MATCH (p:Project {node_id:'proj-mycelium'})
-MATCH (goal:Goal {node_id:'goal-seedforth-upgrade-20260906'})
+MATCH (parent_goal:Goal {node_id:'goal-seedforth-upgrade-20260906'})
+MERGE (goal:Goal {node_id:'goal-system-awareness-metabolism'})
+ON CREATE SET goal.name='System Awareness & Metabolism',
+  goal.project='mycelium',
+  goal.scope_id='seedforth-platform',
+  goal.status='active',
+  goal.owner='principal-seedforth-owner',
+  goal.version=1,
+  goal.created_by='principal-seedforth-owner',
+  goal.created_at=datetime()
+SET goal.acceptance='The system correlates canonical code, runtime, graph, semantic, and learning observations into provenance-bearing advisory context and reviewable improvement proposals without silently changing authority, active execution, or external commitments.',
+  goal.source='owner-session-2026-09-16',
+  goal.updated_at=datetime()
+MERGE (p)-[:HAS_GOAL]->(goal)
+MERGE (goal)-[:SUBGOAL_OF]->(parent_goal)
 MERGE (ws:Workstream {node_id:'workstream-system-awareness-metabolism'})
 ON CREATE SET ws.name='System Awareness & Metabolism',
   ws.project='mycelium',

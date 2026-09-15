@@ -14,6 +14,7 @@ def test_awareness_workstream_is_bounded_and_non_preemptive():
     text = WORKSTREAM.read_text(encoding="utf-8")
 
     assert "workstream-system-awareness-metabolism" in text
+    assert "goal-system-awareness-metabolism" in text
     assert "knowledge-system-awareness-metabolism-workstream" in text
     assert "goal-seedforth-upgrade-20260906" in text
     assert text.count("id:'W0") >= 8
