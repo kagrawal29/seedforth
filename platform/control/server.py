@@ -30,6 +30,7 @@ FIELDS = {
     'set-scope-work-enabled': {'version':int,'enabled':bool,'reason':str},
     'ready-work': {'id':str,'version':int},
     'admit-awareness-foundation': {'id':str,'version':int},
+    'retry-awareness-foundation': {'id':str,'version':int,'reason':str},
     'hold-work': {'id':str,'version':int,'hold':bool},
     'review-work': {'id':str,'version':int,'receipt':str,'artifact_hash':str,
                     'test_run':(str,type(None)),'accept':bool},
