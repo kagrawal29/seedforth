@@ -189,11 +189,13 @@ def decompose_protocol(protocol_id, cypher_text):
                 MERGE (a:CypherAtom {atom_id: $atom_id})
                   ON CREATE SET
                     a.atom_id = $atom_id,
+                    a.node_id = $atom_id,
                     a.protocol_id = $protocol_id,
                     a.cypher = $cypher_text,
                     a.order = $order,
                     a.created_at = toString(datetime())
                   ON MATCH SET
+                    a.node_id = coalesce(a.node_id, $atom_id),
                     a.cypher = $cypher_text,
                     a.order = $order,
                     a.updated_at = toString(datetime())
@@ -227,6 +229,32 @@ def decompose_protocol(protocol_id, cypher_text):
         })
     except Exception as e:
         print(f"  [warn] failed to clean stale atoms for {protocol_id}: {e}", file=sys.stderr)
+
+    # The graph runner walks FIRST_ATOM/FOLLOWS and addresses atoms by
+    # node_id.  Keep the decomposer's compatibility HAS_ATOM projection, but
+    # materialize the executable chain here so a fresh decomposition is
+    # immediately runnable by the graph-native runner.
+    try:
+        run_cypher("""
+            MATCH (p:Protocol {node_id: $protocol_id})-[:HAS_ATOM]->(a:CypherAtom)
+            SET a.node_id = coalesce(a.node_id, a.atom_id)
+            WITH p, a
+            MATCH (p)-[:HAS_ATOM]->(first:CypherAtom)
+            WHERE first.order = 0
+            SET p.enabled = coalesce(p.enabled, true),
+                p.cadence = coalesce(p.cadence, 'heartbeat')
+            MERGE (p)-[:FIRST_ATOM]->(first)
+            RETURN first.node_id AS first_atom
+        """, {"protocol_id": protocol_id})
+        run_cypher("""
+            MATCH (p:Protocol {node_id: $protocol_id})-[:HAS_ATOM]->(a:CypherAtom)
+            MATCH (p)-[:HAS_ATOM]->(next:CypherAtom)
+            WHERE next.order = a.order + 1
+            MERGE (a)-[:FOLLOWS]->(next)
+            RETURN count(*) AS links
+        """, {"protocol_id": protocol_id})
+    except Exception as e:
+        print(f"  [warn] failed to wire executable atom chain for {protocol_id}: {e}", file=sys.stderr)
 
     return atom_count, failed
 
