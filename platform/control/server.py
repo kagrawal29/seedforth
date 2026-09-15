@@ -116,7 +116,11 @@ class Boundary:
             raise RequestError(400,'invalid_cursor')
         if name=='create-work':
             bound['request_hash']=hashlib.sha256(json.dumps(body,sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        if name in {'ready-work','hold-work','review-work'}:
+        # Every state-changing foundation transition creates its own immutable
+        # provenance record.  Keep event_id out of the public request shape so
+        # callers cannot forge or reuse transition identity.
+        if name in {'ready-work','admit-awareness-foundation',
+                    'retry-awareness-foundation','hold-work','review-work'}:
             bound['event_id']=str(uuid4())
         rows=self.graph.operation(name,actor,scope,**bound)
         if not name.startswith('read-') and not rows:
