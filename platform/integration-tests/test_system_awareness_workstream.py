@@ -58,3 +58,22 @@ def test_awareness_projection_is_exposed_by_control_and_mcp_surfaces():
     assert "'read-awareness': {}" in server
     assert "async def read_awareness" in gateway
     assert "call('read-awareness',scope,{})" in gateway
+
+
+def test_migration_loader_preserves_semicolons_inside_cypher_strings():
+    import importlib.util
+    import sys
+
+    migration = Path(__file__).parents[1] / "control" / "migrate.py"
+    sys.path.insert(0, str(migration.parents[1]))
+    spec = importlib.util.spec_from_file_location("control_migrate", migration)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    statements = module.split_cypher_statements(
+        "MERGE (n:Test {text:'keep; this'}) RETURN n;\n"
+        "// comment; not a split\nMATCH (n) RETURN n;"
+    )
+
+    assert len(statements) == 2
+    assert "keep; this" in statements[0]
