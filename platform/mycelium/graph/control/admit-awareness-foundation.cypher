@@ -17,6 +17,7 @@ SET w._lock=coalesce(w._lock,0)+1
 WITH w WHERE w.state_version=$version
 SET w.status='ready',
     w.execution_eligible=true,
+    w.program=coalesce(w.program,'mycelium.autonomy_control_plane.v2'),
     w.admission_mode='bounded_foundation',
     w.admitted_by=$actor,
     w.admitted_at=datetime(),
