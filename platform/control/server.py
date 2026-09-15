@@ -29,6 +29,7 @@ FIELDS = {
     'create-work': {'id':str,'milestone':str,'title':str,'acceptance':str},
     'set-scope-work-enabled': {'version':int,'enabled':bool,'reason':str},
     'ready-work': {'id':str,'version':int},
+    'admit-awareness-foundation': {'id':str,'version':int},
     'hold-work': {'id':str,'version':int,'hold':bool},
     'review-work': {'id':str,'version':int,'receipt':str,'artifact_hash':str,
                     'test_run':(str,type(None)),'accept':bool},
