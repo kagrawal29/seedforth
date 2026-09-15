@@ -8,7 +8,13 @@ MATCH (w:WorkItem {node_id:$id,scope_id:scope})
 WHERE w.project='mycelium'
   AND w.workstream_id='workstream-system-awareness-metabolism'
   AND w.status='blocked'
-  AND w.last_attempt_error CONTAINS 'tool loop limit exceeded'
+  AND (
+    w.last_attempt_error CONTAINS 'tool loop limit exceeded'
+    OR (
+      w.blocked_reason='orphaned_runtime'
+      AND w.last_attempt_error STARTS WITH 'owner-verified-runtime-service-inactive'
+    )
+  )
 SET w._lock=coalesce(w._lock,0)+1
 WITH w WHERE w.state_version=$version
 SET w.status='ready',
