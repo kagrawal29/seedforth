@@ -30,3 +30,30 @@ def test_awareness_workstream_does_not_mutate_active_execution_state():
     assert "SET w.status='ready'" not in text
     assert "SET w.execution_eligible=true" not in text
     assert "DETACH DELETE" not in text
+
+
+def test_awareness_projection_is_read_only_and_review_oriented():
+    projection = (
+        Path(__file__).parents[1]
+        / "mycelium"
+        / "graph"
+        / "control"
+        / "read-awareness.cypher"
+    ).read_text(encoding="utf-8")
+
+    assert "PriorityProposal" in projection
+    assert "GapSignal" in projection
+    assert "p.status='proposed'" in projection
+    assert "g.mode='shadow'" in projection
+    assert "SET " not in projection
+    assert "CREATE " not in projection
+    assert "DELETE " not in projection
+
+
+def test_awareness_projection_is_exposed_by_control_and_mcp_surfaces():
+    server = (Path(__file__).parents[1] / "control" / "server.py").read_text(encoding="utf-8")
+    gateway = (Path(__file__).parents[1] / "control" / "mcp_gateway.py").read_text(encoding="utf-8")
+
+    assert "'read-awareness': {}" in server
+    assert "async def read_awareness" in gateway
+    assert "call('read-awareness',scope,{})" in gateway

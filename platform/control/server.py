@@ -22,6 +22,7 @@ from control.conversations import identifiers
 WEB = Path(__file__).parent / 'web'
 FIELDS = {
     'read-scoped-graph': {'cursor':str},
+    'read-awareness': {},
     'send-conversation-message': {'conversation_key':str,'request_id':str,'text':str},
     'read-conversation': {'conversation_key':str,'cursor':int},
     'read-scope': {}, 'read-portfolio': {}, 'read-work': {}, 'read-sources': {}, 'read-legacy-work': {}, 'read-timeline': {'id':str}, 'read-evidence': {'id':str},
