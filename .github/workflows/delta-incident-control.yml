@@ -24,60 +24,47 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  readiness:
+  control:
     runs-on: ubuntu-latest
-    outputs:
-      ssh_ready: ${{ steps.check.outputs.ssh_ready }}
+    timeout-minutes: 10
+    env:
+      DELTA_SSH_PRIVATE_KEY: ${{ secrets.DELTA_SSH_PRIVATE_KEY }}
+      DELTA_SSH_USER: ${{ secrets.DELTA_SSH_USER }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - id: check
-        name: Check incident-control credentials
-        env:
-          DELTA_SSH_PRIVATE_KEY: ${{ secrets.DELTA_SSH_PRIVATE_KEY }}
-          DELTA_SSH_USER: ${{ secrets.DELTA_SSH_USER }}
+      - uses: actions/checkout@v4
+      - name: Check incident-control credentials
+        id: readiness
         shell: bash
         run: |
           if [ -n "$DELTA_SSH_PRIVATE_KEY" ] && [ -n "$DELTA_SSH_USER" ]; then
-            echo 'ssh_ready=true' >> "$GITHUB_OUTPUT"
-            printf 'Incident-control SSH credentials are configured.\n' > "$RUNNER_TEMP/readiness.txt"
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+            echo 'Incident-control SSH credentials are configured.'
           else
-            echo 'ssh_ready=false' >> "$GITHUB_OUTPUT"
-            printf 'Incident-control SSH credentials are not configured. Required repository secrets: DELTA_SSH_PRIVATE_KEY and DELTA_SSH_USER.\n' > "$RUNNER_TEMP/readiness.txt"
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Incident-control SSH credentials are not configured. Required repository secrets: DELTA_SSH_PRIVATE_KEY and DELTA_SSH_USER.' | tee "$RUNNER_TEMP/readiness.txt"
           fi
-          cat "$RUNNER_TEMP/readiness.txt"
       - name: Report missing control path
-        if: steps.check.outputs.ssh_ready != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ steps.readiness.outputs.ready != 'true' }}
         run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/readiness.txt"
-
-  diagnose:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'diagnose' && needs.readiness.outputs.ssh_ready == 'true'
-    needs: readiness
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+      - name: Stop when credentials are absent
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.readiness.outputs.ready != 'true' }}
+        run: exit 1
       - name: Configure ephemeral SSH key
-        env:
-          DELTA_SSH_PRIVATE_KEY: ${{ secrets.DELTA_SSH_PRIVATE_KEY }}
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.readiness.outputs.ready == 'true' }}
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DELTA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 143.110.226.214 >> ~/.ssh/known_hosts
-      - name: Inspect repositories and Mycelium
-        env:
-          DELTA_SSH_USER: ${{ secrets.DELTA_SSH_USER }}
+      - name: Read-only server and Mycelium diagnostics
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'diagnose' && steps.readiness.outputs.ready == 'true' }}
         run: |
           python3 operations/reconcile.py --server "$DELTA_SSH_USER@143.110.226.214" --graph "$DELTA_SSH_USER@143.110.226.214" > "$RUNNER_TEMP/reconcile.json"
-          python3 -m json.tool "$RUNNER_TEMP/reconcile.json"
-      - name: Collect channel service evidence
-        env:
-          DELTA_SSH_USER: ${{ secrets.DELTA_SSH_USER }}
-        run: |
-          ssh "$DELTA_SSH_USER@143.110.226.214" 'set -o pipefail; systemctl is-active delta whatsapp-webhook 2>&1 || true; systemctl --no-pager --full status delta whatsapp-webhook 2>&1 | tail -120 || true' > "$RUNNER_TEMP/services.txt"
-          sed -E 's/(token|secret|password|key)=[^[:space:]]+/\1=[REDACTED]/Ig' "$RUNNER_TEMP/services.txt"
+          ssh "$DELTA_SSH_USER@143.110.226.214" 'systemctl is-active delta whatsapp-webhook 2>&1 || true; systemctl --no-pager --full status delta whatsapp-webhook 2>&1 | tail -120 || true' > "$RUNNER_TEMP/services.txt"
+          sed -E -i 's/(token|secret|password|key)=[^[:space:]]+/\1=[REDACTED]/Ig' "$RUNNER_TEMP/services.txt"
       - name: Upload diagnostic evidence
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'diagnose' && steps.readiness.outputs.ready == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: delta-incident-diagnostics
@@ -85,33 +72,11 @@ jobs:
             ${{ runner.temp }}/reconcile.json
             ${{ runner.temp }}/services.txt
           retention-days: 7
-      - name: Post diagnostic checkpoint
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          printf 'Read-only server diagnostics completed. Evidence: https://github.com/%s/actions/runs/%s\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/comment.txt"
-          gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comment.txt"
-
-  restart_channels:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'restart-channels' && needs.readiness.outputs.ssh_ready == 'true'
-    needs: readiness
-    runs-on: ubuntu-latest
-    environment: delta-production
-    timeout-minutes: 10
-    steps:
-      - name: Configure ephemeral SSH key
-        env:
-          DELTA_SSH_PRIVATE_KEY: ${{ secrets.DELTA_SSH_PRIVATE_KEY }}
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$DELTA_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H 143.110.226.214 >> ~/.ssh/known_hosts
+      - name: Report diagnostic checkpoint
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'diagnose' && steps.readiness.outputs.ready == 'true' }}
+        run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body "Read-only server diagnostics completed. Evidence: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
       - name: Restart only channel services
-        env:
-          DELTA_SSH_USER: ${{ secrets.DELTA_SSH_USER }}
-        run: ssh "$DELTA_SSH_USER@143.110.226.214" 'sudo systemctl restart delta whatsapp-webhook && systemctl is-active delta whatsapp-webhook'
-      - name: Record recovery attempt
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body "Explicit GitHub Actions recovery restarted only Delta and WhatsApp webhook services. Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. End-to-end channel verification is still required."
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'restart-channels' && steps.readiness.outputs.ready == 'true' }}
+        run: |
+          ssh "$DELTA_SSH_USER@143.110.226.214" 'sudo systemctl restart delta whatsapp-webhook && systemctl is-active delta whatsapp-webhook'
+          gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body "Explicit recovery restarted only Delta and WhatsApp webhook services. Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. End-to-end verification is still required."
