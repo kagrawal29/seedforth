@@ -13,8 +13,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from control.graph import Graph
-from control.isolated_worker import PROTECTED_EXECUTION_ROUTE, execute
-from control.worker_transport import WorkerClient
+from control.isolated_worker import execute
+from control.worker_transport import PROTECTED_EXECUTION_ROUTE, WorkerClient
 
 
 def _id(prefix: str) -> str:

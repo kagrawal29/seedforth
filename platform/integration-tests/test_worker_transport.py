@@ -82,6 +82,19 @@ def test_worker_dispatch_reaches_broker_with_bound_actor(service):
     assert result==[dict(status='succeeded')]
 
 
+def test_claim_route_is_server_owned_and_model_route_is_rejected(service):
+    client, graph, _ = service
+    client.request('claim-work', id='fixture-work', version=1,
+                   attempt='fixture-attempt')
+    assert graph.calls[-1][0] == 'claim-work'
+    assert graph.calls[-1][3]['execution_route'] == 'protected-proposal-v1'
+    with pytest.raises(RequestError) as exc:
+        client.request('claim-work', id='fixture-work', version=1,
+                       attempt='fixture-attempt',
+                       execution_route='delta-model-worker-v1')
+    assert exc.value.status == 400
+
+
 def test_worker_artifact_read_binds_identity_without_host_path(service):
     client,_,_=service
     assert client.request('read-artifact',invocation='fixture-invocation')==[

@@ -14,11 +14,14 @@ from uuid import uuid4
 from control.broker import InvocationDenied
 from control.server import Boundary,Handler,RequestError
 
+PROTECTED_EXECUTION_ROUTE='protected-proposal-v1'
+
 FIELDS={
     'read-work':{},'read-attempt':{'attempt':str},
     'read-artifact':{'invocation':str},
     'read-execution-spec':{'attempt':str},
-    'claim-work':{'id':str,'version':int,'attempt':str,'execution_route':str},
+    # The deployed protected capability owns its route; clients cannot select it.
+    'claim-work':{'id':str,'version':int,'attempt':str},
     'renew-work':{'attempt':str,'fence':int},
     'invoke':{'attempt':str,'fence':int,'invocation':str,'capability':str,'arguments':dict},
     'complete-invocation-work':{'attempt':str,'fence':int,'invocation':str},
@@ -54,6 +57,8 @@ class WorkerBoundary(Boundary):
             except InvocationDenied:
                 raise RequestError(409,'invocation_denied_or_reconciliation_required') from None
         else:
+            if name=='claim-work':
+                bound['execution_route']=PROTECTED_EXECUTION_ROUTE
             if name in {'claim-work','complete-invocation-work'}:
                 bound['event_id']=str(uuid4())
             rows=self.graph.operation(name,actor,scope,**bound)

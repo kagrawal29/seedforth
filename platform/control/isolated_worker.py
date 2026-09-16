@@ -10,9 +10,6 @@ from pathlib import Path
 import socket
 
 
-PROTECTED_EXECUTION_ROUTE = 'protected-proposal-v1'
-
-
 def request(job, token, operation, **params):
     connection = http.client.HTTPConnection('localhost', timeout=40)
     connection.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -44,7 +41,7 @@ def execute(job, call):
     if len(work) != 1 or work[0]['status'] != 'ready' or work[0]['hold']:
         raise RuntimeError('work_not_ready')
     claimed = call('claim-work', id=job['work'], version=work[0]['version'],
-                   attempt=job['attempt'], execution_route=PROTECTED_EXECUTION_ROUTE)
+                   attempt=job['attempt'])
     if len(claimed) != 1:
         raise RuntimeError('claim_not_confirmed')
     fence = claimed[0]['fence']

@@ -66,7 +66,7 @@ def create(graph, c):
     rows=graph.operation('create-work', c['actor'], c['scope'], id=c['id'],
                            milestone=c['milestone'], title='Verify staged artifact',
                            acceptance='Independent checker accepts exact hash',request_hash='request-a')
-    graph.query("MATCH (w:WorkItem {node_id:$id}),(m:Mandate {node_id:$scope+'-mandate'}) SET w.mandate_id=m.node_id MERGE (w)-[:AUTHORIZED_BY]->(m)",c)
+    graph.query("MATCH (w:WorkItem {node_id:$id}),(m:Mandate {node_id:$scope+'-mandate'}) SET w.mandate_id=m.node_id,w.execution_route='protected-proposal-v1' MERGE (w)-[:AUTHORIZED_BY]->(m)",c)
     return rows
 
 
@@ -269,7 +269,8 @@ def test_legacy_triage_preserves_state_and_never_admits_execution(graph, case):
     assert rows[0]['status']=='proposed' and rows[0]['hold'] is True
     assert rows[0]['legacy_status']=='in_review' and rows[0]['version']==0
     assert graph.operation('read-work',case['actor'],case['scope'])[0]['status'] in {'proposed','in_review'}
-    assert graph.operation('select-ready-work',case['worker'],case['scope'])==[]
+    assert graph.operation('select-ready-work',case['worker'],case['scope'],
+                           execution_route='protected-proposal-v1')==[]
 
 
 def test_archive_requires_quiet_project_and_holds_pending_work(graph, case):

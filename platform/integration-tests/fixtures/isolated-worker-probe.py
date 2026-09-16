@@ -47,8 +47,7 @@ assert call('settle-invocation')[0]==400
 assert call('promote')[0]==400
 assert call('read-work',scope='another-project')[0]==403
 assert call('read-work',{'actor':'principal-seedforth-owner'})[0]==400
-status,result=call('claim-work',dict(id=job['work'],version=1,attempt=job['attempt'],
-                                     execution_route='protected-proposal-v1'))
+status,result=call('claim-work',dict(id=job['work'],version=1,attempt=job['attempt']))
 assert status==200
 fence=result['data'][0]['fence']
 status,result=call('invoke',dict(attempt=job['attempt'],fence=fence,invocation=job['invocation'],
