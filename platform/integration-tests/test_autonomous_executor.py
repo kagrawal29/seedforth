@@ -52,6 +52,7 @@ def test_selected_work_runs_one_bounded_cycle_and_stops_at_review():
         "read-attempt", "read-work", "claim-work", "read-execution-spec", "invoke", "complete-invocation-work"
     ]
     assert graph.calls[0][0] == "select-ready-work"
+    assert graph.calls[0][3]["execution_route"] == "protected-proposal-v1"
 
 
 def test_malformed_selector_result_fails_before_worker_contact():

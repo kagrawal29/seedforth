@@ -77,7 +77,8 @@ def ready(graph, c):
 
 def claim(graph, c):
     return graph.operation('claim-work',c['worker'],c['scope'],id=c['id'],version=1,
-                           attempt=uuid4().hex,event_id=uuid4().hex)
+                           attempt=uuid4().hex, execution_route='protected-proposal-v1',
+                           event_id=uuid4().hex)
 
 
 def test_idempotent_creation_and_cross_scope_denial(graph, case):

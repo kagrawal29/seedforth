@@ -13,7 +13,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from control.graph import Graph
-from control.isolated_worker import execute
+from control.isolated_worker import PROTECTED_EXECUTION_ROUTE, execute
 from control.worker_transport import WorkerClient
 
 
@@ -22,7 +22,8 @@ def _id(prefix: str) -> str:
 
 
 def run_once(graph: Graph, worker: WorkerClient, principal: str, scope: str) -> dict:
-    candidates = graph.operation("select-ready-work", principal, scope)
+    candidates = graph.operation("select-ready-work", principal, scope,
+                                 execution_route=PROTECTED_EXECUTION_ROUTE)
     if not candidates:
         return {"status": "idle", "scope": scope}
     candidate = candidates[0]

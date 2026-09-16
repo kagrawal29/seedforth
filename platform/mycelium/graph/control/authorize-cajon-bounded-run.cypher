@@ -36,6 +36,7 @@ MERGE (w:WorkItem {node_id:$work_id})
 ON CREATE SET w.scope_id='cajon-sensei',w.project='cajon-sensei',w.title=$title,
     w.acceptance=$acceptance,w.status='proposed',w.hold=true,w.state_version=0,
     w.verification_status='unverified',w.execution_capability='capability-code-proposal-v1',
+    w.execution_route='protected-proposal-v1',
     w.execution_arguments=$arguments_json,w.assignee_id=agent.node_id,w.created_at=datetime(),
     w.updated_at=datetime(),w.authority='owner-bounded-run'
 WITH s,w,mandate,grant

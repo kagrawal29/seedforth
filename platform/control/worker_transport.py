@@ -18,7 +18,7 @@ FIELDS={
     'read-work':{},'read-attempt':{'attempt':str},
     'read-artifact':{'invocation':str},
     'read-execution-spec':{'attempt':str},
-    'claim-work':{'id':str,'version':int,'attempt':str},
+    'claim-work':{'id':str,'version':int,'attempt':str,'execution_route':str},
     'renew-work':{'attempt':str,'fence':int},
     'invoke':{'attempt':str,'fence':int,'invocation':str,'capability':str,'arguments':dict},
     'complete-invocation-work':{'attempt':str,'fence':int,'invocation':str},
