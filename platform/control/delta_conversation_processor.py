@@ -45,6 +45,9 @@ def payload(claim: dict) -> dict:
         'scope': claim['scope'],
         'originator': claim['originator'],
         'conversation_message_id': message_id,
+        # WorkItem binding is carried through the delivery claim.  A consumer
+        # must never infer task scope from free-form text or conversation key.
+        'workitem_id': claim.get('workitem_id'),
         'conversation_request_hash': claim['request_hash'],
         'trust': 'authenticated_origin_untrusted_content',
     }

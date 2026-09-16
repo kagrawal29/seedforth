@@ -6,9 +6,10 @@ WHERE 'conversation.deliver' IN g.permissions
 MATCH (c:ScopedConversation {scope_id:$scope})-[:HAS_MESSAGE]->
       (m:ConversationMessage {node_id:$message_id,status:'queued'})
 WHERE c.originator=m.originator AND size($delivery_attempt)>=8 AND size($delivery_attempt)<=128
-WITH DISTINCT c,m
+OPTIONAL MATCH (w:WorkItem)-[:HAS_MESSAGE]->(m)
+WITH DISTINCT c,m,w
 SET m._lock=coalesce(m._lock,0)+1
-WITH c,m WHERE m.status='queued'
+WITH c,m,w WHERE m.status='queued'
 SET m.status='delivering',m.delivery_attempt=$delivery_attempt,
     m.delivery_lease_until=datetime()+duration('PT2M'),m.delivery_started_at=datetime(),
     m.updated_at=datetime()
@@ -19,4 +20,5 @@ CREATE (s)-[:TARGETS]->(m)
 RETURN m.node_id AS message_id,m.originator AS originator,m.recipient AS recipient,
        m.sequence AS sequence,m.text AS text,m.request_hash AS request_hash,
        m.created_at AS created_at,
-       m.delivery_attempt AS delivery_attempt,m.delivery_lease_until AS lease_until
+       m.delivery_attempt AS delivery_attempt,m.delivery_lease_until AS lease_until,
+       w.node_id AS workitem_id

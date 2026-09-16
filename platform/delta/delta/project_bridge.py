@@ -262,15 +262,15 @@ class ProjectBridge:
         """Signal all watcher threads to stop. They exit within one poll cycle."""
         self._shutdown_event.set()
 
-    def send_to_lead(self, msg_id: str) -> None:
+    def send_to_lead(self, msg_id: str) -> bool:
         """Deprecated alias for :meth:`nudge`."""
-        self.nudge(msg_id)
+        return self.nudge(msg_id)
 
-    def nudge(self, msg_id: str) -> None:
-        """Wake the opencode HTTP agent to process an inbox file."""
-        self._nudge(msg_id)
+    def nudge(self, msg_id: str) -> bool:
+        """Wake the opencode HTTP agent and report health reachability."""
+        return self._nudge(msg_id)
 
-    def _nudge(self, msg_id: str) -> None:
+    def _nudge(self, msg_id: str) -> bool:
         """Nudge the agent via HTTP health ping."""
         if self.serve_port:
             nudge_file = self.data_dir / ".nudge"
@@ -280,8 +280,10 @@ class ProjectBridge:
                     f"http://127.0.0.1:{self.serve_port}/global/health",
                     timeout=3,
                 )
+                return True
             except Exception:
-                pass
+                return False
+        return False
 
     def watch_followups(self, callback: Callable[[dict], None]) -> None:
         """Poll followups/ for messages whose deliver_after time has passed.
