@@ -1,0 +1,55 @@
+name: Emergency Delta observability
+
+on:
+  push:
+    paths:
+      - .github/workflows/emergency-delta-observability.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: emergency-delta-observability
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe documented Delta server boundary
+        id: probe
+        shell: bash
+        run: |
+          set +e
+          REPORT="$RUNNER_TEMP/delta-report.md"
+          {
+            echo '## GitHub emergency probe'
+            echo
+            echo "Observed at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "Workflow run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '| Check | Result |'
+            echo '|---|---|'
+            for port in 22 80 443 7687; do
+              if timeout 5 bash -c "</dev/tcp/143.110.226.214/${port}" 2>/dev/null; then
+                echo "| TCP 143.110.226.214:${port} | reachable |"
+              else
+                echo "| TCP 143.110.226.214:${port} | unavailable/filtered |"
+              fi
+            done
+            http_code=$(curl -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' http://143.110.226.214/ || true)
+            https_code=$(curl -k -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' https://143.110.226.214/ || true)
+            echo "| HTTP root | ${http_code:-failed} |"
+            echo "| HTTPS root | ${https_code:-failed} |"
+            echo
+            echo 'This probe is external and read-only. Reachability does not prove that Delta, Charlie, Mycelium, routing, or model execution is healthy.'
+          } > "$REPORT"
+          cat "$REPORT"
+      - name: Post evidence to incident 50
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/delta-report.md"
