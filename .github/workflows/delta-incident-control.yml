@@ -30,7 +30,9 @@ jobs:
     env:
       DELTA2_HOST: ${{ secrets.DELTA2_HOST }}
       DELTA2_SSH_PRIVATE_KEY: ${{ secrets.DELTA2_SSH_PRIVATE_KEY }}
+      DELTA2_SSH_PASSWORD: ${{ secrets.DELTA2_SSH_PASSWORD }}
       DELTA2_SSH_USER: ${{ secrets.DELTA2_SSH_USER }}
+      SSHPASS: ${{ secrets.DELTA2_SSH_PASSWORD }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -38,12 +40,12 @@ jobs:
         id: readiness
         shell: bash
         run: |
-          if [ -n "$DELTA2_HOST" ] && [ -n "$DELTA2_SSH_PRIVATE_KEY" ] && [ -n "$DELTA2_SSH_USER" ]; then
+          if [ -n "$DELTA2_HOST" ] && [ -n "$DELTA2_SSH_USER" ] && { [ -n "$DELTA2_SSH_PRIVATE_KEY" ] || [ -n "$DELTA2_SSH_PASSWORD" ]; }; then
             echo 'ready=true' >> "$GITHUB_OUTPUT"
-            echo 'Delta2 incident-control host and SSH credentials are configured.'
+            echo 'Delta2 host, SSH user, and an SSH authentication method are configured.'
           else
             echo 'ready=false' >> "$GITHUB_OUTPUT"
-            echo 'Delta2 incident control is blocked. Configure repository Actions secrets DELTA2_HOST, DELTA2_SSH_USER, and DELTA2_SSH_PRIVATE_KEY. The obsolete Delta host will not be used.' | tee "$RUNNER_TEMP/readiness.txt"
+            echo 'Delta2 incident control is blocked. Configure DELTA2_HOST, DELTA2_SSH_USER, and either DELTA2_SSH_PRIVATE_KEY or DELTA2_SSH_PASSWORD. The obsolete Delta host will not be used.' | tee "$RUNNER_TEMP/readiness.txt"
           fi
       - name: Report missing Delta2 control path
         if: ${{ steps.readiness.outputs.ready != 'true' }}
@@ -51,13 +53,25 @@ jobs:
       - name: Stop dispatched run when Delta2 credentials are absent
         if: ${{ github.event_name == 'workflow_dispatch' && steps.readiness.outputs.ready != 'true' }}
         run: exit 1
-      - name: Configure ephemeral SSH key for Delta2
+      - name: Configure ephemeral SSH authentication for Delta2
         if: ${{ github.event_name == 'workflow_dispatch' && steps.readiness.outputs.ready == 'true' }}
+        shell: bash
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$DELTA2_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$DELTA2_HOST" >> ~/.ssh/known_hosts
+          if [ -n "$DELTA2_SSH_PRIVATE_KEY" ]; then
+            printf '%s\n' "$DELTA2_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            echo 'Using the configured Delta2 SSH private key.'
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sshpass
+            install -m 700 -d "$RUNNER_TEMP/ssh-bin"
+            printf '%s\n' '#!/bin/sh' 'exec sshpass -e /usr/bin/ssh "$@"' > "$RUNNER_TEMP/ssh-bin/ssh"
+            chmod 700 "$RUNNER_TEMP/ssh-bin/ssh"
+            echo "$RUNNER_TEMP/ssh-bin" >> "$GITHUB_PATH"
+            echo 'Using the configured Delta2 SSH password.'
+          fi
       - name: Read-only Delta2 and Mycelium diagnostics
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'diagnose' && steps.readiness.outputs.ready == 'true' }}
         run: |
