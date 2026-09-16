@@ -1,9 +1,6 @@
-name: Emergency Delta observability
+name: Emergency Delta2 observability
 
 on:
-  push:
-    paths:
-      - .github/workflows/emergency-delta-observability.yml
   workflow_dispatch:
 
 permissions:
@@ -11,22 +8,30 @@ permissions:
   issues: write
 
 concurrency:
-  group: emergency-delta-observability
+  group: emergency-delta2-observability
   cancel-in-progress: true
 
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      DELTA2_HOST: ${{ secrets.DELTA2_HOST }}
     steps:
-      - name: Probe documented Delta server boundary
-        id: probe
+      - name: Require canonical Delta2 host
+        shell: bash
+        run: |
+          if [ -z "$DELTA2_HOST" ]; then
+            echo 'DELTA2_HOST is not configured; refusing to probe the obsolete Delta server.'
+            exit 1
+          fi
+      - name: Probe Delta2 network boundary
         shell: bash
         run: |
           set +e
-          REPORT="$RUNNER_TEMP/delta-report.md"
+          REPORT="$RUNNER_TEMP/delta2-report.md"
           {
-            echo '## GitHub emergency probe'
+            echo '## GitHub emergency Delta2 probe'
             echo
             echo "Observed at: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "Workflow run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
@@ -34,22 +39,21 @@ jobs:
             echo '| Check | Result |'
             echo '|---|---|'
             for port in 22 80 443 7687; do
-              if timeout 5 bash -c "</dev/tcp/143.110.226.214/${port}" 2>/dev/null; then
-                echo "| TCP 143.110.226.214:${port} | reachable |"
+              if timeout 5 bash -c "</dev/tcp/${DELTA2_HOST}/${port}" 2>/dev/null; then
+                echo "| TCP Delta2:${port} | reachable |"
               else
-                echo "| TCP 143.110.226.214:${port} | unavailable/filtered |"
+                echo "| TCP Delta2:${port} | unavailable/filtered |"
               fi
             done
-            http_code=$(curl -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' http://143.110.226.214/ || true)
-            https_code=$(curl -k -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' https://143.110.226.214/ || true)
+            http_code=$(curl -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' "http://${DELTA2_HOST}/" || true)
+            https_code=$(curl -k -L -sS -o /dev/null --connect-timeout 5 --max-time 10 -w '%{http_code}' "https://${DELTA2_HOST}/" || true)
             echo "| HTTP root | ${http_code:-failed} |"
             echo "| HTTPS root | ${https_code:-failed} |"
             echo
-            echo 'This probe is external and read-only. Reachability does not prove that Delta, Charlie, Mycelium, routing, or model execution is healthy.'
+            echo 'This external read-only probe targets the host held in the DELTA2_HOST secret. The host is deliberately not printed.'
           } > "$REPORT"
           cat "$REPORT"
       - name: Post evidence to incident 50
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/delta-report.md"
+        run: gh issue comment 50 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/delta2-report.md"
