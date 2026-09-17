@@ -13,11 +13,12 @@
 | Process liveness | Supervisor | Supervisor → FleetState → Mycelium |
 | Runtime configuration | Delta registry | Registry → Mycelium observation |
 | Agent identity/capabilities | Mycelium | Mycelium → grounding/config |
-| Workstreams and work items | Mycelium | Mycelium → agents/UI |
+| Engineering workstreams and work items | GitHub Issues/Projects | GitHub → Mycelium projection → agents/UI |
+| Platform protocols and graph-native work | Mycelium + authored Git | Git → Mycelium → runtime |
 | Human decisions | Mycelium | channels/UI → Mycelium |
 | Protocol definitions | Git-authored graph files | PR → bootstrap → verify |
 | Protocol execution | Mycelium | ProtocolRun/evidence nodes |
-| Commits and diffs | Git | Git → progress signals → Mycelium |
+| Commits and diffs | GitHub/Git | GitHub/Git → progress signals → Mycelium |
 | Raw transport logs | Filesystem/provider | raw log → durable summary |
 | External account state | External provider | provider → observed graph state |
 
@@ -37,6 +38,22 @@ Examples:
 - active workstream without recent progress → `stale`;
 - registry project without graph identity → `orphaned`.
 
+For every active product repository, the canonical engineering relationship must
+also be recorded across three locations:
+
+```text
+GitHub canonical branch / PR
+        ↕
+local checkout or worktree
+        ↕
+server checkout or deployed release
+```
+
+The graph records observed SHAs, branch, worktree, deployment, freshness, and
+conflicts; it does not make an unverified local or server checkout authoritative.
+A worker may execute only against a pinned, identified revision and must report
+the revision it actually changed.
+
 ## Reconciliation rules
 
 1. Read all sources before writing any derived state.
@@ -46,6 +63,9 @@ Examples:
 5. Permit automatic repair only for derived liveness and safe metadata.
 6. Require human or policy approval for strategic status, ownership, deletion, or external side effects.
 7. Record the deployed platform commit and graph bootstrap version in Neo4j.
+8. Treat GitHub webhook ingestion as incremental observation and run periodic
+   reconciliation against GitHub, local checkouts, and server releases. Missing,
+   stale, divergent, or dirty state is visible and blocks unsafe execution.
 
 ## Promotion path
 

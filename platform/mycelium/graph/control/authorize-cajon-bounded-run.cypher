@@ -44,9 +44,12 @@ WHERE w.scope_id='cajon-sensei' AND w.status='proposed' AND w.hold=true
   AND w.state_version=0 AND w.execution_capability='capability-code-proposal-v1'
 SET w.mandate_id=mandate.node_id
 MERGE (w)-[:AUTHORIZED_BY]->(mandate)
-CREATE (signal:Signal {node_id:'signal-cajon-bounded-'+$run_id,scope_id:'cajon-sensei',
-    issuer:$actor,type:'bounded_run_authorized',status:'accepted',created_at:datetime(),
-    result:'held_candidate_work_prepared',work_id:w.node_id,mandate_id:mandate.node_id})
-CREATE (signal)-[:TARGETS]->(w)
+MERGE (signal:Signal {node_id:'signal-cajon-bounded-'+$run_id})
+ON CREATE SET signal.scope_id='cajon-sensei',
+    signal.issuer=$actor,signal.type='bounded_run_authorized',signal.status='accepted',signal.created_at=datetime(),
+    signal.result='held_candidate_work_prepared',signal.work_id=w.node_id,signal.mandate_id=mandate.node_id
+ON MATCH SET signal.updated_at=datetime(),signal.status='accepted',
+    signal.work_id=w.node_id,signal.mandate_id=mandate.node_id
+MERGE (signal)-[:TARGETS]->(w)
 RETURN w.node_id AS work_id,mandate.node_id AS mandate_id,grant.node_id AS grant_id,
        w.status AS status,w.hold AS hold

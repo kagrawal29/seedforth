@@ -25,15 +25,58 @@ Keep their history, decisions, repositories, and evidence recoverable. A product
 leaving the active portfolio does not imply deleting its repository or shutting
 down a hosted service relied on by customers.
 
-Mycelium remains the executable graph program and durable system of record.
-Delta orchestrates agents, execution, and recovery. Charlie handles alignment and
-human communication. The board and remote MCP expose the same system state and
-authority. Graphify contributes observations about source reality.
+Mycelium remains the executable graph program and durable system of record for
+cross-system context, authority, protocols, decisions, and provenance. GitHub is
+the source of truth for product engineering work: issues, project status, code,
+branches, pull requests, reviews, CI, and deployments. Delta orchestrates agents,
+execution, and recovery. Charlie handles alignment and human communication. The
+phone interface and any board expose projections of the same state and authority.
+Graphify contributes observations about source reality.
 
 The upgrade includes the graph itself, all mechanisms that update it, authorization,
 agent execution, testing, sensing, learning, runtime recovery, and human experience.
 It must account for every finding from the audit, even when a finding is shown to
 be historical or a lower-priority implementation is explicitly deferred.
+
+### Core product acceptance marker
+
+The primary acceptance marker is a real Flowing Indian delivery journey, completed
+from a phone: a human describes a desired outcome, the system discovers current
+state, produces a detailed proposal, obtains team alignment, receives human
+acceptance, creates the GitHub work, executes through isolated worktrees and pull
+requests, runs CI and independent verification, pauses for the required human
+review, and delivers the accepted result. GitHub is authoritative for project
+execution artifacts; Mycelium supplies coherent cross-system context, authority,
+and provenance. The journey must show the same state through the mobile interface,
+GitHub, Delta, Charlie, and Mycelium. A rendered board, queued conversation, agent
+activity, or passing infrastructure test without a useful product outcome does not
+satisfy this marker.
+
+### System shape required by the marker
+
+Flowing Indian engineering work has one project-management authority: GitHub. Its
+issues, project status, comments, dependencies, branches, worktrees, pull requests,
+reviews, checks, deployments, and releases are the execution record. No separate
+board database may compete with that state. Mycelium stores the cross-system goal,
+agent and human identities, authority, mandates, decisions, relationships, source
+provenance, and a fresh projection of GitHub activity. A GitHub event adapter plus
+periodic reconciliation keeps that projection current; missed or out-of-order
+events remain visible as freshness uncertainty.
+
+Repository and delivery context is indexed in two complementary forms: graph
+relationships for timelines, dependencies, ownership, and causality; and semantic
+retrieval for issue bodies, comments, design material, commit messages, and relevant
+code. GitHub remains authoritative for exact source and review state. Agents receive
+a fast Mycelium-generated briefing, then read or edit the exact GitHub issue,
+repository, worktree, or pull request required for the task.
+
+The human operating surface is phone-first conversation through the authenticated
+Charlie/Delta/remote interface. It must support intake, discovery, specification,
+team alignment, acceptance, progress, intervention, review, and delivery reports.
+GitHub mobile links and review surfaces remain available for engineering detail, but
+the human must not need a terminal for the normal delivery journey. The custom
+control board is optional and may only be a projection of these sources; it is not a
+third task system.
 
 ## 2. Evidence and document authority
 
@@ -482,9 +525,11 @@ Exercise success, rejection/rework, denial, pause/resume, abort, simultaneous
 claim, expired worker, crash before/after effect, lost receipt, and changed intent.
 Approval of a draft does not automatically authorize production release.
 
-Exit: one complete goal-to-next-action path is visible and controllable by a human.
-The same tests prove forbidden actions cannot occur and retries do not duplicate
-known effects. Rollback returns to the prior writer safely with evidence retained.
+Exit: one complete goal-to-next-action path is visible and controllable by a human,
+and the Core product acceptance marker has passed against a real bounded Flowing
+Indian outcome. The same tests prove forbidden actions cannot occur and retries do
+not duplicate known effects. Rollback returns to the prior writer safely with
+evidence retained.
 
 Pass the core C01 combined-failure scenario: delayed observations, duplicate input,
 uncertain effect, pause, goal change, revocation, graph outage, and worker restart.
@@ -656,8 +701,10 @@ progress, permission, and learning claims have provenance and verification.
 
 Proceed with Phase 0 read-only investigation and Phase 1 scenario specification in
 parallel. First establish delta2 endpoint/release and inspect its writer/scheduler
-chain; then trace a Flowing Indian signal through existing evidence. Draft the
-daily home, attention queue, and execution inspector flows from that concrete path.
+chain; then reconcile Flowing Indian's three GitHub-backed workstreams and select
+the first bounded order-system outcome for the Core product acceptance marker.
+Trace that outcome through existing evidence and draft the phone-first intake,
+alignment, execution, review, and delivery-report flows from the concrete path.
 Use the findings to complete supporting contracts, then review Phase 2 as a whole.
 
 Include S01–S10 in this investigation: identify actual outcome evaluators, competing
